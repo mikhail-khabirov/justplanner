@@ -23,7 +23,15 @@ jobs:
         run: ssh-keyscan -H ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts
 
       - name: Sync files to VPS
+        env:
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+          SSH_USER: ${{ secrets.SSH_USERNAME }}
+          SSH_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
         run: |
+          # Sanitize variables (remove whitespace)
+          HOST=$(echo "$SSH_HOST" | xargs)
+          USER=$(echo "$SSH_USER" | xargs)
+          
           rsync -avz --delete \
             --exclude 'node_modules' \
             --exclude '.git' \
@@ -31,19 +39,31 @@ jobs:
             --exclude '.env' \
             --exclude 'github_actions_key*' \
             -e "ssh -o StrictHostKeyChecking=no" \
-            ./ ${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_HOST }}:/var/www/justplanner/
+            ./ ${USER}@${HOST}:/var/www/justplanner/
 
       - name: Install Dependencies & Build
+        env:
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+          SSH_USER: ${{ secrets.SSH_USERNAME }}
         run: |
-          ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_HOST }} "
+          HOST=$(echo "$SSH_HOST" | xargs)
+          USER=$(echo "$SSH_USER" | xargs)
+          
+          ssh -o StrictHostKeyChecking=no ${USER}@${HOST} "
             cd /var/www/justplanner &&
             npm install &&
             npm run build
           "
 
       - name: Restart Backend
+        env:
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+          SSH_USER: ${{ secrets.SSH_USERNAME }}
         run: |
-          ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_HOST }} "
+          HOST=$(echo "$SSH_HOST" | xargs)
+          USER=$(echo "$SSH_USER" | xargs)
+          
+          ssh -o StrictHostKeyChecking=no ${USER}@${HOST} "
             cd /var/www/justplanner/server &&
             npm install &&
             pm2 restart justplanner-api
