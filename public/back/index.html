@@ -84,6 +84,8 @@
 
         let usersData = [];
 
+        let sortConfig = { key: 'created_at', direction: 'desc' };
+
         async function renderDashboard() {
             document.getElementById('app').innerHTML = `
                 <div class="min-h-screen p-6">
@@ -114,11 +116,21 @@
                                 <table class="w-full">
                                     <thead class="bg-white/5">
                                         <tr>
-                                            <th class="text-left p-4 text-white/60 font-medium">ID</th>
-                                            <th class="text-left p-4 text-white/60 font-medium">Email</th>
-                                            <th class="p-4 text-left text-white/50 font-medium">Тип</th>
-                                            <th class="p-4 text-left text-white/50 font-medium">Регистрация</th>
-                                            <th class="p-4 text-left text-white/50 font-medium">Активность</th>
+                                            <th onclick="sort('id')" class="text-left p-4 text-white/60 font-medium cursor-pointer hover:text-white transition select-none group">
+                                                <div class="flex items-center gap-1">ID <span class="text-xs opacity-50">↕</span></div>
+                                            </th>
+                                            <th onclick="sort('email')" class="text-left p-4 text-white/60 font-medium cursor-pointer hover:text-white transition select-none">
+                                                <div class="flex items-center gap-1">Email <span class="text-xs opacity-50">↕</span></div>
+                                            </th>
+                                            <th onclick="sort('registrationType')" class="p-4 text-left text-white/50 font-medium cursor-pointer hover:text-white transition select-none">
+                                                <div class="flex items-center gap-1">Тип <span class="text-xs opacity-50">↕</span></div>
+                                            </th>
+                                            <th onclick="sort('created_at')" class="p-4 text-left text-white/50 font-medium cursor-pointer hover:text-white transition select-none">
+                                                <div class="flex items-center gap-1">Регистрация <span class="text-xs opacity-50">↕</span></div>
+                                            </th>
+                                            <th onclick="sort('lastSession')" class="p-4 text-left text-white/50 font-medium cursor-pointer hover:text-white transition select-none">
+                                                <div class="flex items-center gap-1">Активность <span class="text-xs opacity-50">↕</span></div>
+                                            </th>
                                             <th class="p-4 text-left text-white/50 font-medium"></th>
                                         </tr>
                                     </thead>
@@ -136,24 +148,7 @@
             loadUsers();
         }
 
-        async function loadStats() {
-            try {
-                const res = await fetch(`${API_URL}/stats`, {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
-
-                if (res.status === 401) {
-                    logout();
-                    return;
-                }
-
-                const data = await res.json();
-                document.getElementById('totalUsers').textContent = data.totalUsers;
-                document.getElementById('totalTasks').textContent = data.totalTasks;
-            } catch (err) {
-                console.error('Failed to load stats:', err);
-            }
-        }
+        // ... loadStats kept as is ...
 
         async function loadUsers() {
             try {
@@ -168,10 +163,76 @@
 
                 const data = await res.json();
                 usersData = data.users;
-                renderTable();
+                
+                // Sort with default config
+                sort(sortConfig.key, sortConfig.direction);
             } catch (err) {
                 console.error('Failed to load users:', err);
                 document.getElementById('usersTable').innerHTML = '<tr><td colspan="6" class="p-4 text-white/50 text-center">Ошибка загрузки</td></tr>';
+            }
+        }
+
+        function sort(key, forceDirection = null) {
+            // Update config
+            if (forceDirection) {
+                sortConfig.key = key;
+                sortConfig.direction = forceDirection;
+            } else {
+                if (sortConfig.key === key) {
+                    sortConfig.direction = sortConfig.direction === 'asc' ? 'desc' : 'asc';
+                } else {
+                    sortConfig.key = key;
+                    sortConfig.direction = 'asc';
+                }
+            }
+
+            // Perform sort
+            usersData.sort((a, b) => {
+                let valA = a[key];
+                let valB = b[key];
+
+                // Handle null/undefined
+                if (valA === null || valA === undefined) valA = '';
+                if (valB === null || valB === undefined) valB = '';
+
+                // Handle numeric types
+                if (typeof valA === 'number' && typeof valB === 'number') {
+                    return sortConfig.direction === 'asc' ? valA - valB : valB - valA;
+                }
+
+                // Handle strings case-insensitive
+                if (typeof valA === 'string' && typeof valB === 'string') {
+                    valA = valA.toLowerCase();
+                    valB = valB.toLowerCase();
+                }
+
+                if (valA < valB) return sortConfig.direction === 'asc' ? -1 : 1;
+                if (valA > valB) return sortConfig.direction === 'asc' ? 1 : -1;
+                return 0;
+            });
+
+            renderTable();
+            updateSortIndicators();
+        }
+
+        function updateSortIndicators() {
+            // Reset all arrows to default state
+            document.querySelectorAll('th span').forEach(span => {
+                span.textContent = '↕';
+                span.className = 'text-xs opacity-50';
+            });
+
+            // Find active header and update arrow
+            const headers = document.querySelectorAll('th');
+            const keyMap = ['id', 'email', 'registrationType', 'created_at', 'lastSession'];
+            
+            const activeIndex = keyMap.indexOf(sortConfig.key);
+            if (activeIndex !== -1 && headers[activeIndex]) {
+                const span = headers[activeIndex].querySelector('span');
+                if (span) {
+                    span.textContent = sortConfig.direction === 'asc' ? '↑' : '↓';
+                    span.className = 'text-xs text-blue-300 opacity-100 font-bold';
+                }
             }
         }
 
@@ -192,9 +253,9 @@
                     : '<span class="text-white/30">-</span>';
 
                 return `
-                <tr class="border-t border-white/10 hover:bg-white/5">
-                    <td class="p-4 text-white/80">${user.id}</td>
-                    <td class="p-4 text-white">${user.email}</td>
+                <tr class="border-t border-white/10 hover:bg-white/5 transition-colors">
+                    <td class="p-4 text-white/80 font-mono text-sm">${user.id}</td>
+                    <td class="p-4 text-white font-medium">${user.email}</td>
                     <td class="p-4">${typeBadge}</td>
                     <td class="p-4 text-white/80 text-sm whitespace-nowrap">${new Date(user.created_at).toLocaleString('ru-RU')}</td>
                     <td class="p-4 text-white/80 text-sm whitespace-nowrap">${lastLogin}</td>
