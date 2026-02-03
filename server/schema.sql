@@ -7,6 +7,8 @@ CREATE TABLE IF NOT EXISTS users (
     email VARCHAR(255) UNIQUE NOT NULL,
     password_hash VARCHAR(255),
     google_id VARCHAR(255),
+    registration_source VARCHAR(255),
+    registration_campaign VARCHAR(255),
     created_at TIMESTAMP DEFAULT NOW()
 );
 

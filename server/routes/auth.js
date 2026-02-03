@@ -9,7 +9,7 @@ const router = express.Router();
 // Register
 router.post('/register', async (req, res) => {
     try {
-        const { email, password } = req.body;
+        const { email, password, utmSource, utmCampaign } = req.body;
 
         if (!email || !password) {
             return res.status(400).json({ error: 'Email и пароль обязательны' });
@@ -28,7 +28,7 @@ router.post('/register', async (req, res) => {
         // Generate 6-digit code
         const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
 
-        await User.create(email, password, verificationCode);
+        await User.create(email, password, verificationCode, utmSource, utmCampaign);
 
         // Send Email
         const { sendVerificationCode } = await import('../utils/email.js');

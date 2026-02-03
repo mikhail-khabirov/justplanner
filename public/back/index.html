@@ -130,6 +130,12 @@
                                             <th onclick="sort('registrationType')" class="p-4 text-left text-white/50 font-medium cursor-pointer hover:text-white transition select-none">
                                                 <div class="flex items-center gap-1">Тип <span class="text-xs opacity-50">↕</span></div>
                                             </th>
+                                            <th onclick="sort('source')" class="p-4 text-left text-white/50 font-medium cursor-pointer hover:text-white transition select-none">
+                                                <div class="flex items-center gap-1">Источник <span class="text-xs opacity-50">↕</span></div>
+                                            </th>
+                                            <th onclick="sort('campaign')" class="p-4 text-left text-white/50 font-medium cursor-pointer hover:text-white transition select-none">
+                                                <div class="flex items-center gap-1">Кампания <span class="text-xs opacity-50">↕</span></div>
+                                            </th>
                                             <th onclick="sort('created_at')" class="p-4 text-left text-white/50 font-medium cursor-pointer hover:text-white transition select-none">
                                                 <div class="flex items-center gap-1">Регистрация <span class="text-xs opacity-50">↕</span></div>
                                             </th>
@@ -140,7 +146,7 @@
                                         </tr>
                                     </thead>
                                     <tbody id="usersTable">
-                                        <tr><td colspan="6" class="p-4 text-white/50 text-center">Загрузка...</td></tr>
+                                        <tr><td colspan="8" class="p-4 text-white/50 text-center">Загрузка...</td></tr>
                                     </tbody>
                                 </table>
                             </div>
@@ -197,7 +203,7 @@
                 sort(sortConfig.key, sortConfig.direction);
             } catch (err) {
                 console.error('Failed to load users:', err);
-                document.getElementById('usersTable').innerHTML = '<tr><td colspan="6" class="p-4 text-white/50 text-center">Ошибка загрузки</td></tr>';
+                document.getElementById('usersTable').innerHTML = '<tr><td colspan="8" class="p-4 text-white/50 text-center">Ошибка загрузки</td></tr>';
             }
         }
 
@@ -253,7 +259,8 @@
 
             // Find active header and update arrow
             const headers = document.querySelectorAll('th');
-            const keyMap = ['id', 'email', 'registrationType', 'created_at', 'lastSession'];
+            // Make sure this matches the order of columns in the HTML
+            const keyMap = ['id', 'email', 'registrationType', 'source', 'campaign', 'created_at', 'lastSession'];
 
             const activeIndex = keyMap.indexOf(sortConfig.key);
             if (activeIndex !== -1 && headers[activeIndex]) {
@@ -268,7 +275,7 @@
         function renderTable() {
             const tbody = document.getElementById('usersTable');
             if (usersData.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="6" class="p-4 text-white/50 text-center">Нет пользователей</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="8" class="p-4 text-white/50 text-center">Нет пользователей</td></tr>';
                 return;
             }
 
@@ -281,11 +288,16 @@
                     ? new Date(user.lastSession).toLocaleString('ru-RU')
                     : '<span class="text-white/30">-</span>';
 
+                const source = user.source || 'direct/organic';
+                const campaign = user.campaign || '-';
+
                 return `
                 <tr class="border-t border-white/10 hover:bg-white/5 transition-colors">
                     <td class="p-4 text-white/80 font-mono text-sm">${user.id}</td>
                     <td class="p-4 text-white font-medium">${user.email}</td>
                     <td class="p-4">${typeBadge}</td>
+                    <td class="p-4 text-white/70 text-sm max-w-[150px] truncate" title="${source}">${source}</td>
+                    <td class="p-4 text-white/70 text-sm max-w-[150px] truncate" title="${campaign}">${campaign}</td>
                     <td class="p-4 text-white/80 text-sm whitespace-nowrap">${new Date(user.created_at).toLocaleString('ru-RU')}</td>
                     <td class="p-4 text-white/80 text-sm whitespace-nowrap">${lastLogin}</td>
                     <td class="p-4">

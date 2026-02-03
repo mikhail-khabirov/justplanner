@@ -10,26 +10,35 @@ import tasksRoutes from './routes/tasks.js';
 const app = express();
 const PORT = process.env.PORT || 3001;
 
+import cookieParser from 'cookie-parser';
+
 // Middleware
 app.use(cors({
     origin: process.env.FRONTEND_URL || 'http://localhost:3000',
     credentials: true
 }));
 app.use(express.json());
+app.use(cookieParser());
 
 // Passport Google Strategy
 if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
     passport.use(new GoogleStrategy({
         clientID: process.env.GOOGLE_CLIENT_ID,
         clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-        callbackURL: process.env.FRONTEND_URL + '/api/auth/google/callback'
-    }, async (accessToken, refreshToken, profile, done) => {
+        callbackURL: process.env.FRONTEND_URL + '/api/auth/google/callback',
+        passReqToCallback: true
+    }, async (req, accessToken, refreshToken, profile, done) => {
         try {
             const email = profile.emails?.[0]?.value;
             if (!email) {
                 return done(new Error('Email not provided by Google'));
             }
-            const { user, isNew } = await User.findOrCreateByGoogle(profile.id, email);
+
+            // Extract UTM params from cookies
+            const utmSource = req.cookies?.utm_source || null;
+            const utmCampaign = req.cookies?.utm_campaign || null;
+
+            const { user, isNew } = await User.findOrCreateByGoogle(profile.id, email, utmSource, utmCampaign);
 
             if (isNew) {
                 const { sendWelcomeEmail } = await import('./utils/email.js');
@@ -63,7 +72,23 @@ app.get('/api/health', (req, res) => {
     res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
+// Auto-migration helper
+async function updateSchema() {
+    try {
+        const { default: pool } = await import('./config/db.js');
+        await pool.query(`
+            ALTER TABLE users 
+            ADD COLUMN IF NOT EXISTS registration_source VARCHAR(255),
+            ADD COLUMN IF NOT EXISTS registration_campaign VARCHAR(255);
+        `);
+        console.log('✅ Database schema updated (UTM columns)');
+    } catch (err) {
+        console.error('⚠️ Schema update failed:', err.message);
+    }
+}
+
 // Start server
-app.listen(PORT, () => {
+app.listen(PORT, async () => {
+    await updateSchema();
     console.log(`🚀 Server running on http://localhost:${PORT}`);
 });

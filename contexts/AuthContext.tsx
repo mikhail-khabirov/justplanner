@@ -94,10 +94,21 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     };
 
     const register = async (email: string, password: string) => {
+        // Extract UTMs from cookies
+        const getCookie = (name: string) => {
+            const value = `; ${document.cookie}`;
+            const parts = value.split(`; ${name}=`);
+            if (parts.length === 2) return parts.pop()?.split(';').shift();
+            return null;
+        };
+
+        const utmSource = getCookie('utm_source');
+        const utmCampaign = getCookie('utm_campaign');
+
         const response = await fetch(`${API_URL}/auth/register`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email, password })
+            body: JSON.stringify({ email, password, utmSource, utmCampaign })
         });
 
         const data = await response.json();

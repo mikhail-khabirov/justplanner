@@ -122,6 +122,16 @@ const App: React.FC = () => {
         referer: window.location.href
       });
     }
+
+    // Capture UTM parameters
+    const params = new URLSearchParams(window.location.search);
+    const source = params.get('utm_source');
+    const campaign = params.get('utm_campaign');
+
+    // Save to cookies for 24h (accessible by server for Google Auth)
+    if (source) document.cookie = `utm_source=${source}; path=/; max-age=86400`;
+    if (campaign) document.cookie = `utm_campaign=${campaign}; path=/; max-age=86400`;
+
   }, [showLanding]);
 
 

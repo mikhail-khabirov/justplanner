@@ -49,7 +49,7 @@ const adminAuth = (req, res, next) => {
 router.get('/users', adminAuth, async (req, res) => {
     try {
         const result = await pool.query(
-            'SELECT id, email, created_at, last_login, google_id FROM users ORDER BY created_at DESC'
+            'SELECT id, email, created_at, last_login, google_id, registration_source, registration_campaign FROM users ORDER BY created_at DESC'
         );
 
         const users = result.rows.map(user => ({
@@ -57,7 +57,9 @@ router.get('/users', adminAuth, async (req, res) => {
             email: user.email,
             created_at: user.created_at,
             lastSession: user.last_login,
-            registrationType: user.google_id ? 'Google' : 'Email'
+            registrationType: user.google_id ? 'Google' : 'Email',
+            source: user.registration_source || 'direct/organic',
+            campaign: user.registration_campaign || '-'
         }));
 
         res.json({ users });

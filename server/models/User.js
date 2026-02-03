@@ -3,11 +3,11 @@ import bcrypt from 'bcrypt';
 
 export const User = {
     // Create new user
-    async create(email, password, verificationCode) {
+    async create(email, password, verificationCode, source = null, campaign = null) {
         const passwordHash = await bcrypt.hash(password, 10);
         const result = await pool.query(
-            'INSERT INTO users (email, password_hash, verification_code, is_verified) VALUES ($1, $2, $3, $4) RETURNING id, email, created_at',
-            [email, passwordHash, verificationCode, false]
+            'INSERT INTO users (email, password_hash, verification_code, is_verified, registration_source, registration_campaign) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id, email, created_at',
+            [email, passwordHash, verificationCode, false, source || null, campaign || null]
         );
         return result.rows[0];
     },
@@ -79,7 +79,7 @@ export const User = {
     },
 
     // Find or create by Google ID
-    async findOrCreateByGoogle(googleId, email) {
+    async findOrCreateByGoogle(googleId, email, source = null, campaign = null) {
         // First try to find by google_id
         let result = await pool.query(
             'SELECT * FROM users WHERE google_id = $1',
@@ -107,8 +107,8 @@ export const User = {
 
         // Create new user with Google
         result = await pool.query(
-            'INSERT INTO users (email, google_id, is_verified) VALUES ($1, $2, TRUE) RETURNING id, email, created_at',
-            [email, googleId]
+            'INSERT INTO users (email, google_id, is_verified, registration_source, registration_campaign) VALUES ($1, $2, TRUE, $3, $4) RETURNING id, email, created_at',
+            [email, googleId, source || null, campaign || null]
         );
         return { user: result.rows[0], isNew: true };
     },
