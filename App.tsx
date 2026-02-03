@@ -10,6 +10,7 @@ import OnboardingOverlay from './components/OnboardingOverlay';
 import LandingPage from './components/LandingPage';
 import PublicOffer from './components/Legal/PublicOffer';
 import PrivacyPolicy from './components/Legal/PrivacyPolicy';
+import PricingPage from './components/PricingPage';
 import { useAuth } from './contexts/AuthContext';
 import { tasksApi } from './api';
 import { User, MoreHorizontal, ChevronLeft, ChevronRight, TrendingUp, LogOut, Settings, LifeBuoy, X } from 'lucide-react';
@@ -104,7 +105,7 @@ const App: React.FC = () => {
   const [showMenuDropdown, setShowMenuDropdown] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [showLanding, setShowLanding] = useState(!isAuthenticated);
-  const [legalView, setLegalView] = useState<'terms' | 'privacy' | null>(null);
+  const [legalView, setLegalView] = useState<'terms' | 'privacy' | 'pricing' | null>(null);
   // Blocking auth state: triggered by smart timer/clicks in demo mode
   const [blockingAuth, setBlockingAuth] = useState(false);
   const [authMode, setAuthMode] = useState<'login' | 'register'>('login');
@@ -637,6 +638,22 @@ const App: React.FC = () => {
   if (legalView === 'privacy') {
     return <PrivacyPolicy onBack={() => setLegalView(null)} />;
   }
+  if (legalView === 'pricing') {
+    return (
+      <PricingPage
+        onBack={() => setLegalView(null)}
+        onSelectPlan={(plan) => {
+          setLegalView(null);
+          if (plan === 'premium') {
+            setAuthMode('register');
+            setShowAuthModal(true);
+          } else {
+            setShowLanding(false);
+          }
+        }}
+      />
+    );
+  }
 
   // Show Landing Page for guests (unless they chose to try demo)
   if (!isAuthenticated && showLanding) {
@@ -652,6 +669,7 @@ const App: React.FC = () => {
           }}
           onShowTerms={() => setLegalView('terms')}
           onShowPrivacy={() => setLegalView('privacy')}
+          onShowPricing={() => setLegalView('pricing')}
         />
         {/* Render AuthModal here too in case they click Login from landing */}
         {showAuthModal && (

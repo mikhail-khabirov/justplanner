@@ -8,9 +8,10 @@ interface LandingPageProps {
     onLogin: () => void;
     onShowTerms: () => void;
     onShowPrivacy: () => void;
+    onShowPricing: () => void;
 }
 
-const LandingPage: React.FC<LandingPageProps> = ({ onStart, onLogin, onShowTerms, onShowPrivacy }) => {
+const LandingPage: React.FC<LandingPageProps> = ({ onStart, onLogin, onShowTerms, onShowPrivacy, onShowPricing }) => {
     return (
         <div className="min-h-screen bg-white font-sans text-gray-900">
             {/* Header / Nav */}
@@ -26,6 +27,12 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart, onLogin, onShowTerms
                         </span>
                     </div>
                     <div className="flex items-center gap-3 sm:gap-4 shrink-0">
+                        <button
+                            onClick={onShowPricing}
+                            className="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors"
+                        >
+                            Тарифы
+                        </button>
                         <button
                             onClick={() => {
                                 (window as any).ym?.(106590123, 'reachGoal', 'btn_login_click');
@@ -234,6 +241,9 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart, onLogin, onShowTerms
                         support@justplanner.ru
                     </a>
                     <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-4">
+                        <button onClick={onShowPricing} className="hover:text-gray-900 transition-colors underline decoration-gray-300 underline-offset-4">
+                            Тарифы
+                        </button>
                         <button onClick={onShowTerms} className="hover:text-gray-900 transition-colors underline decoration-gray-300 underline-offset-4">
                             Публичная оферта
                         </button>
