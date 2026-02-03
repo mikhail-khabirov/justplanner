@@ -72,10 +72,12 @@ router.get('/stats', adminAuth, async (req, res) => {
     try {
         const usersResult = await pool.query('SELECT COUNT(*) as count FROM users');
         const tasksResult = await pool.query('SELECT COUNT(*) as count FROM tasks');
+        const tasks24hResult = await pool.query("SELECT COUNT(*) as count FROM tasks WHERE created_at > NOW() - INTERVAL '24 hours'");
 
         res.json({
             totalUsers: parseInt(usersResult.rows[0].count),
-            totalTasks: parseInt(tasksResult.rows[0].count)
+            totalTasks: parseInt(tasksResult.rows[0].count),
+            tasks24h: parseInt(tasks24hResult.rows[0].count)
         });
     } catch (error) {
         console.error('Get stats error:', error);
