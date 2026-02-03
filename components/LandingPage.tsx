@@ -230,7 +230,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart, onLogin }) => {
                 <a href="mailto:support@justplanner.ru" className="hover:text-gray-900 transition-colors block mb-4">
                     support@justplanner.ru
                 </a>
-                <p className="text-xs text-gray-400">
+                <p className="text-xs text-gray-500 mt-2">
                     Самозанятый Федоров М.В. ИНН 370202964392
                 </p>
             </footer>
