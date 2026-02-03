@@ -148,7 +148,24 @@
             loadUsers();
         }
 
-        // ... loadStats kept as is ...
+        async function loadStats() {
+            try {
+                const res = await fetch(`${API_URL}/stats`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (res.status === 401) {
+                    logout();
+                    return;
+                }
+
+                const data = await res.json();
+                document.getElementById('totalUsers').textContent = data.totalUsers;
+                document.getElementById('totalTasks').textContent = data.totalTasks;
+            } catch (err) {
+                console.error('Failed to load stats:', err);
+            }
+        }
 
         async function loadUsers() {
             try {
@@ -163,7 +180,7 @@
 
                 const data = await res.json();
                 usersData = data.users;
-                
+
                 // Sort with default config
                 sort(sortConfig.key, sortConfig.direction);
             } catch (err) {
@@ -225,7 +242,7 @@
             // Find active header and update arrow
             const headers = document.querySelectorAll('th');
             const keyMap = ['id', 'email', 'registrationType', 'created_at', 'lastSession'];
-            
+
             const activeIndex = keyMap.indexOf(sortConfig.key);
             if (activeIndex !== -1 && headers[activeIndex]) {
                 const span = headers[activeIndex].querySelector('span');
