@@ -6,9 +6,11 @@ import LandingAnimation from './LandingAnimation'; // Toggle if needed
 interface LandingPageProps {
     onStart: () => void;
     onLogin: () => void;
+    onShowTerms: () => void;
+    onShowPrivacy: () => void;
 }
 
-const LandingPage: React.FC<LandingPageProps> = ({ onStart, onLogin }) => {
+const LandingPage: React.FC<LandingPageProps> = ({ onStart, onLogin, onShowTerms, onShowPrivacy }) => {
     return (
         <div className="min-h-screen bg-white font-sans text-gray-900">
             {/* Header / Nav */}
@@ -227,9 +229,19 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart, onLogin }) => {
             {/* Footer */}
             <footer className="py-8 border-t border-gray-100 text-center text-gray-500 text-sm">
                 <p className="mb-2">&copy; {new Date().getFullYear()} JustPlanner. Все права защищены</p>
-                <a href="mailto:support@justplanner.ru" className="hover:text-gray-900 transition-colors block mb-4">
-                    support@justplanner.ru
-                </a>
+                <div className="flex flex-col items-center gap-2 mb-4">
+                    <a href="mailto:support@justplanner.ru" className="hover:text-gray-900 transition-colors">
+                        support@justplanner.ru
+                    </a>
+                    <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-4">
+                        <button onClick={onShowTerms} className="hover:text-gray-900 transition-colors underline decoration-gray-300 underline-offset-4">
+                            Публичная оферта
+                        </button>
+                        <button onClick={onShowPrivacy} className="hover:text-gray-900 transition-colors underline decoration-gray-300 underline-offset-4">
+                            Политика конфиденциальности
+                        </button>
+                    </div>
+                </div>
                 <p className="text-xs text-gray-500 mt-2">
                     Самозанятый Федоров М.В. ИНН 370202964392
                 </p>

@@ -8,6 +8,8 @@ import SettingsModal from './components/SettingsModal';
 import OnboardingTooltip from './components/OnboardingTooltip';
 import OnboardingOverlay from './components/OnboardingOverlay';
 import LandingPage from './components/LandingPage';
+import PublicOffer from './components/Legal/PublicOffer';
+import PrivacyPolicy from './components/Legal/PrivacyPolicy';
 import { useAuth } from './contexts/AuthContext';
 import { tasksApi } from './api';
 import { User, MoreHorizontal, ChevronLeft, ChevronRight, TrendingUp, LogOut, Settings, LifeBuoy, X } from 'lucide-react';
@@ -102,6 +104,7 @@ const App: React.FC = () => {
   const [showMenuDropdown, setShowMenuDropdown] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [showLanding, setShowLanding] = useState(!isAuthenticated);
+  const [legalView, setLegalView] = useState<'terms' | 'privacy' | null>(null);
   // Blocking auth state: triggered by smart timer/clicks in demo mode
   const [blockingAuth, setBlockingAuth] = useState(false);
   const [authMode, setAuthMode] = useState<'login' | 'register'>('login');
@@ -133,8 +136,6 @@ const App: React.FC = () => {
     if (campaign) document.cookie = `utm_campaign=${campaign}; path=/; max-age=86400`;
 
   }, [showLanding]);
-
-
 
   // Ref for main scroll container
   const mainScrollRef = useRef<HTMLElement>(null);
@@ -630,6 +631,13 @@ const App: React.FC = () => {
     return <div className="flex h-screen items-center justify-center">Загрузка...</div>;
   }
 
+  if (legalView === 'terms') {
+    return <PublicOffer onBack={() => setLegalView(null)} />;
+  }
+  if (legalView === 'privacy') {
+    return <PrivacyPolicy onBack={() => setLegalView(null)} />;
+  }
+
   // Show Landing Page for guests (unless they chose to try demo)
   if (!isAuthenticated && showLanding) {
     return (
@@ -642,6 +650,8 @@ const App: React.FC = () => {
             setAuthMode('login');
             setShowAuthModal(true);
           }}
+          onShowTerms={() => setLegalView('terms')}
+          onShowPrivacy={() => setLegalView('privacy')}
         />
         {/* Render AuthModal here too in case they click Login from landing */}
         {showAuthModal && (
