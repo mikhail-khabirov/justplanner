@@ -1,0 +1,9 @@
+User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /server/
+Disallow: /dist/
+Disallow: /node_modules/
+
+Host: justplanner.ru
+Sitemap: https://justplanner.ru/sitemap.xml

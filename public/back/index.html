@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JustPlanner Admin</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            background: linear-gradient(135deg, #1e3a5f 0%, #0f172a 100%);
+            min-height: 100vh;
+        }
+    </style>
+</head>
+
+<body class="min-h-screen">
+    <div id="app"></div>
+
+    <script>
+        const API_URL = '/api/admin';
+        let token = localStorage.getItem('admin_token');
+
+        function render() {
+            if (!token) {
+                renderLogin();
+            } else {
+                renderDashboard();
+            }
+        }
+
+        function renderLogin() {
+            document.getElementById('app').innerHTML = `
+                <div class="min-h-screen flex items-center justify-center px-4">
+                    <div class="bg-white/10 backdrop-blur-lg rounded-2xl p-8 w-full max-w-md border border-white/20">
+                        <h1 class="text-2xl font-bold text-white text-center mb-6">🔐 Админ-панель</h1>
+                        <form id="loginForm" class="space-y-4">
+                            <div>
+                                <input type="text" id="username" placeholder="Логин" 
+                                    class="w-full px-4 py-3 rounded-lg bg-white/10 border border-white/20 text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            </div>
+                            <div>
+                                <input type="password" id="password" placeholder="Пароль" 
+                                    class="w-full px-4 py-3 rounded-lg bg-white/10 border border-white/20 text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            </div>
+                            <button type="submit" 
+                                class="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition">
+                                Войти
+                            </button>
+                            <p id="error" class="text-red-400 text-center hidden"></p>
+                        </form>
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('loginForm').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const username = document.getElementById('username').value;
+                const password = document.getElementById('password').value;
+
+                try {
+                    const res = await fetch(`${API_URL}/login`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ username, password })
+                    });
+
+                    const data = await res.json();
+
+                    if (res.ok) {
+                        token = data.token;
+                        localStorage.setItem('admin_token', token);
+                        render();
+                    } else {
+                        document.getElementById('error').textContent = data.error;
+                        document.getElementById('error').classList.remove('hidden');
+                    }
+                } catch (err) {
+                    document.getElementById('error').textContent = 'Ошибка соединения';
+                    document.getElementById('error').classList.remove('hidden');
+                }
+            });
+        }
+
+        let usersData = [];
+
+        async function renderDashboard() {
+            document.getElementById('app').innerHTML = `
+                <div class="min-h-screen p-6">
+                    <div class="max-w-7xl mx-auto">
+                        <div class="flex justify-between items-center mb-8">
+                            <h1 class="text-3xl font-bold text-white">📊 JustPlanner Admin</h1>
+                            <button onclick="logout()" class="px-4 py-2 bg-red-600/80 hover:bg-red-600 text-white rounded-lg transition">
+                                Выйти
+                            </button>
+                        </div>
+
+                        <div id="stats" class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+                            <div class="bg-white/10 backdrop-blur-lg rounded-xl p-6 border border-white/20">
+                                <p class="text-white/60 text-sm">Всего пользователей</p>
+                                <p id="totalUsers" class="text-3xl font-bold text-white">-</p>
+                            </div>
+                            <div class="bg-white/10 backdrop-blur-lg rounded-xl p-6 border border-white/20">
+                                <p class="text-white/60 text-sm">Всего задач</p>
+                                <p id="totalTasks" class="text-3xl font-bold text-white">-</p>
+                            </div>
+                        </div>
+
+                        <div class="bg-white/10 backdrop-blur-lg rounded-xl border border-white/20 overflow-hidden">
+                            <div class="p-4 border-b border-white/20">
+                                <h2 class="text-xl font-semibold text-white">👥 Пользователи</h2>
+                            </div>
+                            <div class="overflow-x-auto">
+                                <table class="w-full">
+                                    <thead class="bg-white/5">
+                                        <tr>
+                                            <th class="text-left p-4 text-white/60 font-medium">ID</th>
+                                            <th class="text-left p-4 text-white/60 font-medium">Email</th>
+                                            <th class="p-4 text-left text-white/50 font-medium">Тип</th>
+                                            <th class="p-4 text-left text-white/50 font-medium">Регистрация</th>
+                                            <th class="p-4 text-left text-white/50 font-medium">Активность</th>
+                                            <th class="p-4 text-left text-white/50 font-medium"></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="usersTable">
+                                        <tr><td colspan="6" class="p-4 text-white/50 text-center">Загрузка...</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            loadStats();
+            loadUsers();
+        }
+
+        async function loadStats() {
+            try {
+                const res = await fetch(`${API_URL}/stats`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (res.status === 401) {
+                    logout();
+                    return;
+                }
+
+                const data = await res.json();
+                document.getElementById('totalUsers').textContent = data.totalUsers;
+                document.getElementById('totalTasks').textContent = data.totalTasks;
+            } catch (err) {
+                console.error('Failed to load stats:', err);
+            }
+        }
+
+        async function loadUsers() {
+            try {
+                const res = await fetch(`${API_URL}/users`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (res.status === 401) {
+                    logout();
+                    return;
+                }
+
+                const data = await res.json();
+                usersData = data.users;
+                renderTable();
+            } catch (err) {
+                console.error('Failed to load users:', err);
+                document.getElementById('usersTable').innerHTML = '<tr><td colspan="6" class="p-4 text-white/50 text-center">Ошибка загрузки</td></tr>';
+            }
+        }
+
+        function renderTable() {
+            const tbody = document.getElementById('usersTable');
+            if (usersData.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" class="p-4 text-white/50 text-center">Нет пользователей</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = usersData.map(user => {
+                const typeBadge = user.registrationType === 'Google'
+                    ? '<span class="px-2 py-1 rounded bg-blue-500/20 text-blue-300 text-xs text-white">Google</span>'
+                    : '<span class="px-2 py-1 rounded bg-white/10 text-white/70 text-xs">Email</span>';
+
+                const lastLogin = user.lastSession
+                    ? new Date(user.lastSession).toLocaleString('ru-RU')
+                    : '<span class="text-white/30">-</span>';
+
+                return `
+                <tr class="border-t border-white/10 hover:bg-white/5">
+                    <td class="p-4 text-white/80">${user.id}</td>
+                    <td class="p-4 text-white">${user.email}</td>
+                    <td class="p-4">${typeBadge}</td>
+                    <td class="p-4 text-white/80 text-sm whitespace-nowrap">${new Date(user.created_at).toLocaleString('ru-RU')}</td>
+                    <td class="p-4 text-white/80 text-sm whitespace-nowrap">${lastLogin}</td>
+                    <td class="p-4">
+                        <button onclick="deleteUser(${user.id}, '${user.email}')" class="p-2 text-white/40 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors" title="Удалить">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></svg>
+                        </button>
+                    </td>
+                </tr>
+            `}).join('');
+        }
+
+        async function deleteUser(id, email) {
+            if (!confirm(`Вы действительно хотите удалить пользователя ${email}?\nЭто действие нельзя отменить.`)) {
+                return;
+            }
+
+            try {
+                const res = await fetch(`${API_URL}/users/${id}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (res.status === 401) {
+                    logout();
+                    return;
+                }
+
+                if (res.ok) {
+                    loadUsers(); // Reload table
+                } else {
+                    const errorData = await res.json();
+                    alert(`Ошибка при удалении: ${errorData.error || res.statusText}`);
+                }
+            } catch (err) {
+                console.error('Delete error:', err);
+                alert('Ошибка соединения');
+            }
+        }
+
+        function logout() {
+            token = null;
+            localStorage.removeItem('admin_token');
+            render();
+        }
+
+        render();
+    </script>
+</body>
+
+</html>
