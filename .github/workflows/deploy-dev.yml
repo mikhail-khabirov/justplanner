@@ -1,0 +1,70 @@
+name: Деплой на DEV (Тестовый)
+run-name: 'Dev Deploy: ${{ github.event.head_commit.message }}'
+
+on:
+  push:
+    branches:
+      - dev
+  workflow_dispatch: {}
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup SSH
+        uses: shimataro/ssh-key-action@v2
+        with:
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          known_hosts: unnecessary
+          if_key_exists: replace
+
+      - name: Adding Known Hosts
+        run: ssh-keyscan -H ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Sync files to VPS (DEV)
+        env:
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+          SSH_USER: ${{ secrets.SSH_USERNAME }}
+        run: |
+          HOST=$(echo "$SSH_HOST" | xargs)
+          USER=$(echo "$SSH_USER" | xargs)
+          
+          rsync -avz --delete \
+            --exclude 'node_modules' \
+            --exclude '.git' \
+            --exclude 'dist' \
+            --exclude '.env' \
+            --exclude 'github_actions_key*' \
+            -e "ssh -o StrictHostKeyChecking=no" \
+            ./ ${USER}@${HOST}:/var/www/justplanner-dev/
+
+      - name: Install Dependencies & Build (DEV)
+        env:
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+          SSH_USER: ${{ secrets.SSH_USERNAME }}
+        run: |
+          HOST=$(echo "$SSH_HOST" | xargs)
+          USER=$(echo "$SSH_USER" | xargs)
+          
+          ssh -o StrictHostKeyChecking=no ${USER}@${HOST} "
+            cd /var/www/justplanner-dev &&
+            npm install &&
+            npm run build
+          "
+
+      - name: Restart Backend (DEV)
+        env:
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+          SSH_USER: ${{ secrets.SSH_USERNAME }}
+        run: |
+          HOST=$(echo "$SSH_HOST" | xargs)
+          USER=$(echo "$SSH_USER" | xargs)
+          
+          ssh -o StrictHostKeyChecking=no ${USER}@${HOST} "
+            cd /var/www/justplanner-dev/server &&
+            npm install &&
+            pm2 restart justplanner-dev-api || pm2 start index.js --name justplanner-dev-api --watch
+          "
