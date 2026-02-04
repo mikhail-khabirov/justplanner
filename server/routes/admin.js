@@ -48,9 +48,22 @@ const adminAuth = (req, res, next) => {
 // Get all users
 router.get('/users', adminAuth, async (req, res) => {
     try {
-        const result = await pool.query(
-            'SELECT id, email, created_at, last_login, google_id, registration_source, registration_campaign FROM users ORDER BY created_at DESC'
-        );
+        const result = await pool.query(`
+            SELECT 
+                u.id, 
+                u.email, 
+                u.created_at, 
+                u.last_login, 
+                u.google_id, 
+                u.registration_source, 
+                u.registration_campaign,
+                COUNT(t.id) as total_tasks,
+                COUNT(CASE WHEN t.created_at > NOW() - INTERVAL '24 hours' THEN 1 END) as tasks_24h
+            FROM users u
+            LEFT JOIN tasks t ON u.id = t.user_id
+            GROUP BY u.id
+            ORDER BY u.created_at DESC
+        `);
 
         const users = result.rows.map(user => ({
             id: user.id,
@@ -59,7 +72,10 @@ router.get('/users', adminAuth, async (req, res) => {
             lastSession: user.last_login,
             registrationType: user.google_id ? 'Google' : 'Email',
             source: user.registration_source || 'direct/organic',
-            campaign: user.registration_campaign || '-'
+            campaign: user.registration_campaign || '-',
+            // Parse counts as integers (Postgres returns string for COUNT)
+            totalTasks: parseInt(user.total_tasks || 0),
+            tasks24h: parseInt(user.tasks_24h || 0)
         }));
 
         res.json({ users });
