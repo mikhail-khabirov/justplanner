@@ -253,15 +253,6 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart, onLogin, onShowTerms
                     </div>
                 </div>
 
-                {/* Sentry Test Button (Temporary) */}
-                <div className="text-center pb-8 opacity-20 hover:opacity-100 transition-opacity">
-                    <button
-                        onClick={() => { throw new Error('Sentry Test Error: Hello from JustPlanner!'); }}
-                        className="text-xs text-red-500 border border-red-200 px-2 py-1 rounded"
-                    >
-                        Test Sentry Error
-                    </button>
-                </div>
                 <p className="text-xs text-gray-500 mt-2">
                     Самозанятый Федоров М.В. ИНН 370202964392
                 </p>
