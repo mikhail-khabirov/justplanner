@@ -87,6 +87,30 @@ async function updateSchema() {
     }
 }
 
+// Temporary route to create test user for Yookassa
+app.get('/api/create-test-user', async (req, res) => {
+    try {
+        const { default: pool } = await import('./config/db.js');
+        const bcrypt = await import('bcrypt'); // Dynamic import to ensure module exists
+
+        const email = 'test@test.ru';
+        const password = '123456';
+        const hash = await bcrypt.hash(password, 10);
+
+        await pool.query(`
+            INSERT INTO users (email, password_hash, is_verified, registration_source) 
+            VALUES ($1, $2, TRUE, 'manual_test')
+            ON CONFLICT (email) DO UPDATE 
+            SET password_hash = $2, is_verified = TRUE
+        `, [email, hash]);
+
+        res.send(`<h1>OK</h1><p>User <b>${email}</b> created with password <b>${password}</b></p>`);
+    } catch (e) {
+        console.error(e);
+        res.status(500).send('Error: ' + e.message);
+    }
+});
+
 // Start server
 app.listen(PORT, async () => {
     await updateSchema();
