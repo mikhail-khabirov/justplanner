@@ -7,7 +7,7 @@ import { SettingsProvider } from './contexts/SettingsContext';
 import * as Sentry from "@sentry/react";
 
 Sentry.init({
-  dsn: "https://eb23b5bd7d87cc4c6d724953dcce10f9@o4510827913412608.ingest.de.sentry.io/4510827937202256",
+  dsn: "https://7fd353e43cc096ae3f5eb69458685d2c@o4510827913412608.ingest.de.sentry.io/4510827981242448",
   integrations: [
     Sentry.browserTracingIntegration(),
     Sentry.replayIntegration(),
