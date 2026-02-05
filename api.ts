@@ -1,7 +1,9 @@
+import { safeLocalStorage } from './utils';
+
 const API_URL = '/api';
 
 const getAuthHeaders = () => {
-    const token = localStorage.getItem('token');
+    const token = safeLocalStorage.getItem('token');
     return {
         'Content-Type': 'application/json',
         ...(token ? { 'Authorization': `Bearer ${token}` } : {})

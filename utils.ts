@@ -76,3 +76,35 @@ export const generateColumns = (startDate: Date, days: number = 7): any[] => {
   }
   return columns;
 };
+
+// Safe LocalStorage wrapper to prevent crashes in private modes/WebViews
+export const safeLocalStorage = {
+  getItem: (key: string): string | null => {
+    try {
+      if (typeof window !== 'undefined' && window.localStorage) {
+        return window.localStorage.getItem(key);
+      }
+    } catch (e) {
+      console.warn('LocalStorage access failed:', e);
+    }
+    return null;
+  },
+  setItem: (key: string, value: string): void => {
+    try {
+      if (typeof window !== 'undefined' && window.localStorage) {
+        window.localStorage.setItem(key, value);
+      }
+    } catch (e) {
+      console.warn('LocalStorage access failed:', e);
+    }
+  },
+  removeItem: (key: string): void => {
+    try {
+      if (typeof window !== 'undefined' && window.localStorage) {
+        window.localStorage.removeItem(key);
+      }
+    } catch (e) {
+      console.warn('LocalStorage access failed:', e);
+    }
+  }
+};

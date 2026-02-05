@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
+import { safeLocalStorage } from '../utils';
 
 interface OnboardingTooltipProps {
     id: string; // unique key for localStorage
@@ -18,7 +19,7 @@ const OnboardingTooltip: React.FC<OnboardingTooltipProps> = ({
 
     useEffect(() => {
         const key = `onboarding_${id}`;
-        const dismissed = localStorage.getItem(key);
+        const dismissed = safeLocalStorage.getItem(key);
         if (!dismissed) {
             // Small delay so UI renders first
             const timer = setTimeout(() => setIsVisible(true), 500);
@@ -27,7 +28,7 @@ const OnboardingTooltip: React.FC<OnboardingTooltipProps> = ({
     }, [id]);
 
     const handleDismiss = () => {
-        localStorage.setItem(`onboarding_${id}`, 'true');
+        safeLocalStorage.setItem(`onboarding_${id}`, 'true');
         setIsVisible(false);
     };
 

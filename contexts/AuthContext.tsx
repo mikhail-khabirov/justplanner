@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { safeLocalStorage } from '../utils';
 
 interface User {
     id: string;
@@ -25,7 +26,7 @@ const API_URL = '/api';
 
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
     const [user, setUser] = useState<User | null>(null);
-    const [token, setToken] = useState<string | null>(() => localStorage.getItem('token'));
+    const [token, setToken] = useState<string | null>(() => safeLocalStorage.getItem('token'));
     const [isLoading, setIsLoading] = useState(true);
 
     // Check token on mount or get token from URL (Google OAuth redirect)
@@ -36,13 +37,13 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             const urlToken = urlParams.get('token');
 
             if (urlToken) {
-                localStorage.setItem('token', urlToken);
+                safeLocalStorage.setItem('token', urlToken);
                 setToken(urlToken);
                 // Clean URL
                 window.history.replaceState({}, document.title, window.location.pathname);
             }
 
-            const storedToken = urlToken || localStorage.getItem('token');
+            const storedToken = urlToken || safeLocalStorage.getItem('token');
 
             if (storedToken) {
                 try {
@@ -55,7 +56,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                         setUser(data.user);
                         setToken(storedToken);
                     } else {
-                        localStorage.removeItem('token');
+                        safeLocalStorage.removeItem('token');
                         setToken(null);
                     }
                 } catch (error) {
@@ -88,7 +89,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             throw new Error(data.error || 'Ошибка при входе');
         }
 
-        localStorage.setItem('token', data.token);
+        safeLocalStorage.setItem('token', data.token);
         setToken(data.token);
         setUser(data.user);
     };
@@ -122,7 +123,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             return { needVerification: true };
         }
 
-        localStorage.setItem('token', data.token);
+        safeLocalStorage.setItem('token', data.token);
         setToken(data.token);
         setUser(data.user);
         return { needVerification: false };
@@ -141,7 +142,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             throw new Error(data.error || 'Ошибка подтверждения');
         }
 
-        localStorage.setItem('token', data.token);
+        safeLocalStorage.setItem('token', data.token);
         setToken(data.token);
         setUser(data.user);
     };
@@ -175,13 +176,13 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     };
 
     const logout = () => {
-        localStorage.removeItem('token');
+        safeLocalStorage.removeItem('token');
         setToken(null);
         setUser(null);
     };
 
     const setAuthFromToken = async (newToken: string) => {
-        localStorage.setItem('token', newToken);
+        safeLocalStorage.setItem('token', newToken);
         setToken(newToken);
 
         const response = await fetch(`${API_URL}/auth/me`, {

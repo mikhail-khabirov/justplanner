@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import { Column as ColumnType, Task, TaskColor } from './types';
-import { generateColumns, generateId, getTodayISO, getNextRecurrenceDate, MOCK_TODAY_ISO } from './utils';
+import { generateColumns, generateId, getTodayISO, getNextRecurrenceDate, MOCK_TODAY_ISO, safeLocalStorage } from './utils';
 import Column from './components/Column';
 import TaskModal from './components/TaskModal';
 import AuthModal from './components/AuthModal';
@@ -177,7 +177,7 @@ const App: React.FC = () => {
 
         // Show onboarding for first-time users after login
         const onboardingKey = `onboarding_complete_${user?.id || 'default'}`;
-        if (!localStorage.getItem(onboardingKey)) {
+        if (!safeLocalStorage.getItem(onboardingKey)) {
           setShowOnboarding(true);
         }
       })

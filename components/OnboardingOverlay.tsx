@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { X, ChevronRight, GripVertical, Clock, Plus, Settings, Inbox } from 'lucide-react';
+import { safeLocalStorage } from '../utils';
 
 interface OnboardingOverlayProps {
     isOpen: boolean;
@@ -66,7 +67,7 @@ const OnboardingOverlay: React.FC<OnboardingOverlayProps> = ({ isOpen, userId, o
     const handleComplete = () => {
         // Mark as complete for this user
         const key = `onboarding_complete_${userId || 'default'}`;
-        localStorage.setItem(key, 'true');
+        safeLocalStorage.setItem(key, 'true');
         setCurrentStep(0);
         onComplete();
     };

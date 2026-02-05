@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { UserSettings } from '../types';
 import { useAuth } from './AuthContext';
+import { safeLocalStorage } from '../utils';
 
 interface SettingsContextType {
     settings: UserSettings;
@@ -35,8 +36,8 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
                 .catch(console.error)
                 .finally(() => setIsLoading(false));
         } else {
-            // Load from localStorage for non-authenticated users
-            const saved = localStorage.getItem('justplanner_settings');
+            // Load from safeLocalStorage for non-authenticated users
+            const saved = safeLocalStorage.getItem('justplanner_settings');
             if (saved) {
                 try {
                     setSettings(JSON.parse(saved));
@@ -62,8 +63,8 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
                 body: JSON.stringify(updated)
             }).catch(console.error);
         } else {
-            // Save to localStorage
-            localStorage.setItem('justplanner_settings', JSON.stringify(updated));
+            // Save to safeLocalStorage
+            safeLocalStorage.setItem('justplanner_settings', JSON.stringify(updated));
         }
     };
 
