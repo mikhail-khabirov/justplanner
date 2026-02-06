@@ -123,9 +123,12 @@ const SubscriptionStatus: React.FC<SubscriptionStatusProps> = ({ onUpgrade }) =>
                     <span className="text-xs bg-gray-200 text-gray-600 px-2 py-0.5 rounded-full">Free</span>
                 </div>
 
-                <p className="text-xs text-gray-500">
-                    Лимит: 5 задач на доске
-                </p>
+                <div className="text-xs text-gray-500 space-y-1">
+                    <p>• Максимум 10 задач</p>
+                    <p>• Только белый цвет карточек</p>
+                    <p>• Планирование только на текущую неделю</p>
+                    <p>• Без повторяющихся задач</p>
+                </div>
 
                 <button
                     onClick={onUpgrade || handleUpgrade}
