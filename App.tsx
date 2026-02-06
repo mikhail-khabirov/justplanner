@@ -8,13 +8,14 @@ import SettingsModal from './components/SettingsModal';
 import OnboardingTooltip from './components/OnboardingTooltip';
 import OnboardingOverlay from './components/OnboardingOverlay';
 import LandingPage from './components/LandingPage';
+import FeaturesPage from './components/FeaturesPage';
 import PublicOffer from './components/Legal/PublicOffer';
 import PrivacyPolicy from './components/Legal/PrivacyPolicy';
 import PricingPage from './components/PricingPage';
 import { useAuth } from './contexts/AuthContext';
 import { useBilling, ProBadge, UpgradePrompt, UpgradeReason } from './billing';
 import { tasksApi } from './api';
-import { User, MoreHorizontal, ChevronLeft, ChevronRight, TrendingUp, LogOut, Settings, LifeBuoy, X, Crown, FileDown, Printer } from 'lucide-react';
+import { User, MoreHorizontal, ChevronLeft, ChevronRight, TrendingUp, LogOut, Settings, LifeBuoy, X, Crown, FileDown, Printer, Zap } from 'lucide-react';
 
 // Configuration for the 4 bottom columns
 const BOTTOM_COLUMNS = [
@@ -107,6 +108,7 @@ const App: React.FC = () => {
   const [showMenuDropdown, setShowMenuDropdown] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [showLanding, setShowLanding] = useState(!isAuthenticated);
+  const [showFeaturesPage, setShowFeaturesPage] = useState(false);
   const [legalView, setLegalView] = useState<'terms' | 'privacy' | 'pricing' | null>(null);
   // Blocking auth state: triggered by smart timer/clicks in demo mode
   const [blockingAuth, setBlockingAuth] = useState(false);
@@ -732,6 +734,37 @@ const App: React.FC = () => {
     );
   }
 
+  // Show Features Page
+  if (showFeaturesPage) {
+    return (
+      <>
+        <FeaturesPage
+          onStart={() => {
+            setShowFeaturesPage(false);
+            setShowLanding(false);
+          }}
+          onBack={() => {
+            setShowFeaturesPage(false);
+            if (!isAuthenticated) {
+              setShowLanding(true);
+            }
+          }}
+          onShowPricing={() => setLegalView('pricing')}
+        />
+        {legalView === 'pricing' && (
+          <PricingPage
+            onBack={() => setLegalView(null)}
+            onSelectPlan={() => {
+              setLegalView(null);
+              setShowFeaturesPage(false);
+              setShowLanding(false);
+            }}
+          />
+        )}
+      </>
+    );
+  }
+
   // Show Landing Page for guests (unless they chose to try demo)
   if (!isAuthenticated && showLanding) {
     return (
@@ -747,6 +780,7 @@ const App: React.FC = () => {
           onShowTerms={() => setLegalView('terms')}
           onShowPrivacy={() => setLegalView('privacy')}
           onShowPricing={() => setLegalView('pricing')}
+          onShowFeatures={() => setShowFeaturesPage(true)}
         />
         {/* Render AuthModal here too in case they click Login from landing */}
         {showAuthModal && (
@@ -886,6 +920,17 @@ const App: React.FC = () => {
                     >
                       <Settings size={16} />
                       Настройки
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        setShowFeaturesPage(true);
+                        setShowMenuDropdown(false);
+                      }}
+                      className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
+                    >
+                      <Zap size={16} />
+                      Функции
                     </button>
 
                     {/* Upgrade to Pro - only for free users */}

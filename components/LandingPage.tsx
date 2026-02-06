@@ -9,9 +9,10 @@ interface LandingPageProps {
     onShowTerms: () => void;
     onShowPrivacy: () => void;
     onShowPricing: () => void;
+    onShowFeatures: () => void;
 }
 
-const LandingPage: React.FC<LandingPageProps> = ({ onStart, onLogin, onShowTerms, onShowPrivacy, onShowPricing }) => {
+const LandingPage: React.FC<LandingPageProps> = ({ onStart, onLogin, onShowTerms, onShowPrivacy, onShowPricing, onShowFeatures }) => {
     return (
         <div className="min-h-screen bg-white font-sans text-gray-900">
             {/* Header / Nav */}
@@ -27,6 +28,12 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart, onLogin, onShowTerms
                         </span>
                     </div>
                     <div className="flex items-center gap-6 shrink-0">
+                        <button
+                            onClick={onShowFeatures}
+                            className="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors"
+                        >
+                            Функции
+                        </button>
                         <button
                             onClick={onShowPricing}
                             className="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors"
