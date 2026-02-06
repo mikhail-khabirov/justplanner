@@ -112,18 +112,12 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, currentDate, onT
                             {DAY_START_OPTIONS.map(hour => (
                                 <button
                                     key={hour}
-                                    onClick={async () => {
-                                        if (!isPremium) {
-                                            try {
-                                                const url = await startPayment();
-                                                window.location.href = url;
-                                            } catch (e) {
-                                                console.error('Payment failed:', e);
-                                            }
-                                            return;
+                                    onClick={() => {
+                                        if (isPremium) {
+                                            updateSettings({ dayStartHour: hour });
                                         }
-                                        updateSettings({ dayStartHour: hour });
                                     }}
+                                    disabled={!isPremium}
                                     className={`
                     py-2 px-3 rounded-lg text-sm font-medium transition-all
                     ${settings.dayStartHour === hour
@@ -138,12 +132,18 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, currentDate, onT
                                 </button>
                             ))}
                         </div>
-                        <p className="text-xs text-gray-400 mt-2">
-                            {isPremium
-                                ? 'Задачи, назначенные на более раннее время, будут отображаться в свёрнутой секции'
-                                : 'Оформите Pro подписку, чтобы настроить начало дня'
-                            }
-                        </p>
+                        {isPremium ? (
+                            <p className="text-xs text-gray-400 mt-2">
+                                Задачи, назначенные на более раннее время, будут отображаться в свёрнутой секции
+                            </p>
+                        ) : (
+                            <div className="mt-3 p-3 bg-amber-50 border border-amber-200 rounded-lg flex items-center gap-2">
+                                <Crown size={16} className="text-amber-600 shrink-0" />
+                                <p className="text-sm text-amber-700 font-medium">
+                                    Оформите Pro подписку, чтобы выбрать начало дня
+                                </p>
+                            </div>
+                        )}
                     </div>
 
                     {/* Subscription Status - only for authenticated users */}
