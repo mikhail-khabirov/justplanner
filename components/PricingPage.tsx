@@ -13,13 +13,13 @@ const PricingPage: React.FC<PricingPageProps> = ({ onBack, onSelectPlan }) => {
             price: '0',
             description: 'Для тех, кто начинает свой путь к продуктивности',
             features: [
-                'До 3-х задач в час',
+                '10 активных задач',
                 'Недельный вид на 7 дней',
                 'Drag & Drop перенос задач',
                 'Базовые цвета задач',
                 'Работает на всех устройствах'
             ],
-            buttonText: 'Начать бесплатно',
+            buttonText: 'Начать сейчас',
             highlight: false
         },
         {
@@ -35,7 +35,7 @@ const PricingPage: React.FC<PricingPageProps> = ({ onBack, onSelectPlan }) => {
                 'Печать и сохранение в PDF',
                 'Приоритетная поддержка'
             ],
-            buttonText: 'Оформить подписку',
+            buttonText: 'Попробовать бесплатно',
             highlight: true
         }
     ];
@@ -75,7 +75,7 @@ const PricingPage: React.FC<PricingPageProps> = ({ onBack, onSelectPlan }) => {
                                 </div>
                             )}
 
-                            <div className="p-8 sm:p-10">
+                            <div className="p-8 sm:p-10 h-full flex flex-col">
                                 <h3 className="text-2xl font-bold text-gray-900 mb-2">{plan.name}</h3>
                                 <p className="text-gray-500 mb-6 text-sm">{plan.description}</p>
 
@@ -87,7 +87,7 @@ const PricingPage: React.FC<PricingPageProps> = ({ onBack, onSelectPlan }) => {
                                     )}
                                 </div>
 
-                                <ul className="space-y-4 mb-10">
+                                <ul className="space-y-4 mb-10 flex-grow">
                                     {plan.features.map((feature) => (
                                         <li key={feature} className="flex items-start gap-3 text-gray-700">
                                             <div className="mt-1 w-5 h-5 bg-[#26A69A]/10 rounded-full flex items-center justify-center shrink-0">
