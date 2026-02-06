@@ -72,14 +72,18 @@ const FeaturesPage: React.FC<FeaturesPageProps> = ({ onStart, onBack, onShowPric
                         <ArrowLeft size={20} />
                         <span className="text-sm font-medium">Назад</span>
                     </button>
-                    <div className="flex items-center gap-2 shrink-0">
+                    <button
+                        onClick={onBack}
+                        className="flex items-center gap-2 shrink-0 hover:opacity-80 transition-opacity"
+                    >
                         <div className="w-8 h-8 bg-[#26A69A] rounded-lg flex items-center justify-center text-white shadow-sm shrink-0">
                             <Check size={20} strokeWidth={3} />
                         </div>
-                        <span className="text-lg sm:text-xl font-bold tracking-tight">
+                        <span className="text-lg sm:text-xl font-bold tracking-tight flex items-center gap-1.5">
                             JustPlanner
+                            <span className="text-[0.65rem] leading-none px-1.5 py-0.5 rounded bg-gray-100 text-gray-500 font-bold uppercase tracking-wide border border-gray-200">Beta</span>
                         </span>
-                    </div>
+                    </button>
                     <button
                         onClick={onShowPricing}
                         className="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors"
