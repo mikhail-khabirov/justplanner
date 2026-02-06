@@ -12,7 +12,7 @@ import PublicOffer from './components/Legal/PublicOffer';
 import PrivacyPolicy from './components/Legal/PrivacyPolicy';
 import PricingPage from './components/PricingPage';
 import { useAuth } from './contexts/AuthContext';
-import { useBilling, ProBadge, UpgradePrompt } from './billing';
+import { useBilling, ProBadge, UpgradePrompt, UpgradeReason } from './billing';
 import { tasksApi } from './api';
 import { User, MoreHorizontal, ChevronLeft, ChevronRight, TrendingUp, LogOut, Settings, LifeBuoy, X, Crown } from 'lucide-react';
 
@@ -110,9 +110,16 @@ const App: React.FC = () => {
   const [legalView, setLegalView] = useState<'terms' | 'privacy' | 'pricing' | null>(null);
   // Blocking auth state: triggered by smart timer/clicks in demo mode
   const [blockingAuth, setBlockingAuth] = useState(false);
-  // Upgrade prompt for free users hitting task limit
+  // Upgrade prompt for free users hitting various limits
   const [showUpgradePrompt, setShowUpgradePrompt] = useState(false);
+  const [upgradeReason, setUpgradeReason] = useState<UpgradeReason>('task_limit');
   const [authMode, setAuthMode] = useState<'login' | 'register'>('login');
+
+  // Helper to show upgrade prompt with specific reason
+  const showUpgradePromptWithReason = useCallback((reason: UpgradeReason) => {
+    setUpgradeReason(reason);
+    setShowUpgradePrompt(true);
+  }, []);
 
   // Quick Add State
   const [quickAddState, setQuickAddState] = useState<QuickAddState | null>(null);
@@ -438,7 +445,7 @@ const App: React.FC = () => {
       endOfCurrentWeek.setHours(23, 59, 59, 999);
 
       if (targetDate > endOfCurrentWeek) {
-        setShowUpgradePrompt(true);
+        showUpgradePromptWithReason('week_planning');
         setDraggedTaskId(null);
         return;
       }
@@ -521,7 +528,7 @@ const App: React.FC = () => {
         endOfCurrentWeek.setHours(23, 59, 59, 999);
 
         if (targetDate > endOfCurrentWeek) {
-          setShowUpgradePrompt(true);
+          showUpgradePromptWithReason('week_planning');
           setDraggedTaskId(null);
           return;
         }
@@ -537,7 +544,7 @@ const App: React.FC = () => {
   const handleInitiateQuickAdd = (columnId: string, hour?: number) => {
     // Check task limit for free users
     if (isAuthenticated && !canAddTask(tasks.length)) {
-      setShowUpgradePrompt(true);
+      showUpgradePromptWithReason('task_limit');
       return;
     }
     // Check week restriction for free users (can only plan current week)
@@ -555,7 +562,7 @@ const App: React.FC = () => {
       endOfCurrentWeek.setHours(23, 59, 59, 999);
 
       if (targetDate > endOfCurrentWeek) {
-        setShowUpgradePrompt(true);
+        showUpgradePromptWithReason('week_planning');
         return;
       }
     }
@@ -935,7 +942,7 @@ const App: React.FC = () => {
               onOpenModal={setActiveTaskId}
               onTouchDragEnd={handleTouchDragEnd}
               isPremium={isPremium}
-              onShowUpgradePrompt={() => setShowUpgradePrompt(true)}
+              onShowUpgradePrompt={() => showUpgradePromptWithReason('colors')}
             />
           ))}
         </div>
@@ -969,7 +976,7 @@ const App: React.FC = () => {
                 onOpenModal={setActiveTaskId}
                 onTouchDragEnd={handleTouchDragEnd}
                 isPremium={isPremium}
-                onShowUpgradePrompt={() => setShowUpgradePrompt(true)}
+                onShowUpgradePrompt={() => showUpgradePromptWithReason('colors')}
               />
             </div>
           ))}
@@ -990,7 +997,7 @@ const App: React.FC = () => {
           onToggleSubtask={handleToggleSubtask}
           onDeleteSubtask={handleDeleteSubtask}
           isPremium={isPremium}
-          onShowUpgradePrompt={() => setShowUpgradePrompt(true)}
+          onShowUpgradePrompt={() => showUpgradePromptWithReason('colors')}
         />
       )}
 
@@ -1053,10 +1060,11 @@ const App: React.FC = () => {
         onComplete={() => setShowOnboarding(false)}
       />
 
-      {/* Upgrade Prompt for free users hitting task limit */}
+      {/* Upgrade Prompt for free users hitting various limits */}
       <UpgradePrompt
         isOpen={showUpgradePrompt}
         onClose={() => setShowUpgradePrompt(false)}
+        reason={upgradeReason}
       />
     </div>
   );

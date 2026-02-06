@@ -2,20 +2,41 @@ import React, { useState } from 'react';
 import { Crown, X, Loader2, Sparkles, Info } from 'lucide-react';
 import { useBilling } from '../BillingContext';
 
+export type UpgradeReason = 'task_limit' | 'colors' | 'week_planning';
+
 interface UpgradePromptProps {
     isOpen: boolean;
     onClose: () => void;
+    reason?: UpgradeReason;
 }
 
+// Message content based on reason
+const REASON_CONTENT: Record<UpgradeReason, { title: string; subtitle: string }> = {
+    task_limit: {
+        title: 'Лимит достигнут',
+        subtitle: 'Бесплатный план: максимум 10 задач'
+    },
+    colors: {
+        title: 'Цвета для Pro',
+        subtitle: 'Цветные карточки доступны в Pro версии'
+    },
+    week_planning: {
+        title: 'Планирование недели',
+        subtitle: 'Планирование на следующие недели доступно в Pro'
+    }
+};
+
 /**
- * Modal prompting free users to upgrade when they hit the 5 task limit
+ * Modal prompting free users to upgrade when they hit various limits
  */
-const UpgradePrompt: React.FC<UpgradePromptProps> = ({ isOpen, onClose }) => {
+const UpgradePrompt: React.FC<UpgradePromptProps> = ({ isOpen, onClose, reason = 'task_limit' }) => {
     const { startPayment, taskLimit } = useBilling();
     const [isProcessing, setIsProcessing] = useState(false);
     const [showTerms, setShowTerms] = useState(false);
 
     if (!isOpen) return null;
+
+    const content = REASON_CONTENT[reason];
 
     const handleUpgrade = async () => {
         setIsProcessing(true);
@@ -54,10 +75,10 @@ const UpgradePrompt: React.FC<UpgradePromptProps> = ({ isOpen, onClose }) => {
                     </div>
 
                     <h2 className="text-xl font-bold text-white mb-1">
-                        Лимит достигнут
+                        {content.title}
                     </h2>
                     <p className="text-white/80 text-sm">
-                        Бесплатный план: максимум {taskLimit} задач
+                        {content.subtitle}
                     </p>
                 </div>
 

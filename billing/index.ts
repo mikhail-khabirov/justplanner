@@ -6,4 +6,5 @@ export { billingApi } from './api';
 export { default as SubscriptionStatus } from './components/SubscriptionStatus';
 export { default as ProBadge } from './components/ProBadge';
 export { default as UpgradePrompt } from './components/UpgradePrompt';
+export type { UpgradeReason } from './components/UpgradePrompt';
 export * from './types';
