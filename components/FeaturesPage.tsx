@@ -57,6 +57,12 @@ const features: FeatureSection[] = [
         description: 'Распечатайте своё расписание на неделю или сохраните в PDF. Удобно для офлайн-планирования или чтобы повесить план на холодильник.',
         video: '/7.mp4',
     },
+    {
+        id: 'day-settings',
+        title: 'Настройка начала дня',
+        description: 'Выбирайте время начала дня и скрывайте ненужные часы. Сова или жаворонок — планировщик подстроится под ваш ритм.',
+        video: '/8.mp4',
+    },
 ];
 
 const FeaturesPage: React.FC<FeaturesPageProps> = ({ onStart, onBack, onShowPricing }) => {
