@@ -426,12 +426,18 @@ const App: React.FC = () => {
     // Week restriction for free users (can only move to current week)
     if (!isPremium && isDateColumn(targetColumnId)) {
       const targetDate = new Date(targetColumnId);
-      // Calculate end of current week (Sunday)
-      const endOfWeek = new Date(startDate);
-      endOfWeek.setDate(startDate.getDate() + 6);
-      endOfWeek.setHours(23, 59, 59, 999);
+      // Calculate ACTUAL current week (not displayed week)
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const dayOfWeek = today.getDay();
+      const mondayDiff = today.getDate() - dayOfWeek + (dayOfWeek === 0 ? -6 : 1);
+      const currentWeekMonday = new Date(today);
+      currentWeekMonday.setDate(mondayDiff);
+      const endOfCurrentWeek = new Date(currentWeekMonday);
+      endOfCurrentWeek.setDate(currentWeekMonday.getDate() + 6);
+      endOfCurrentWeek.setHours(23, 59, 59, 999);
 
-      if (targetDate > endOfWeek) {
+      if (targetDate > endOfCurrentWeek) {
         setShowUpgradePrompt(true);
         setDraggedTaskId(null);
         return;
@@ -442,7 +448,7 @@ const App: React.FC = () => {
       moveTask(taskId, targetColumnId, hour);
     }
     setDraggedTaskId(null);
-  }, [isPremium, startDate]);
+  }, [isPremium]);
 
   const handleDropOnTask = useCallback((e: React.DragEvent, targetTaskId: string) => {
     e.preventDefault();
@@ -503,11 +509,18 @@ const App: React.FC = () => {
       // Week restriction for free users (can only move to current week)
       if (!isPremium && isDateColumn(targetColumnId)) {
         const targetDate = new Date(targetColumnId);
-        const endOfWeek = new Date(startDate);
-        endOfWeek.setDate(startDate.getDate() + 6);
-        endOfWeek.setHours(23, 59, 59, 999);
+        // Calculate ACTUAL current week (not displayed week)
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const dayOfWeek = today.getDay();
+        const mondayDiff = today.getDate() - dayOfWeek + (dayOfWeek === 0 ? -6 : 1);
+        const currentWeekMonday = new Date(today);
+        currentWeekMonday.setDate(mondayDiff);
+        const endOfCurrentWeek = new Date(currentWeekMonday);
+        endOfCurrentWeek.setDate(currentWeekMonday.getDate() + 6);
+        endOfCurrentWeek.setHours(23, 59, 59, 999);
 
-        if (targetDate > endOfWeek) {
+        if (targetDate > endOfCurrentWeek) {
           setShowUpgradePrompt(true);
           setDraggedTaskId(null);
           return;
@@ -517,7 +530,7 @@ const App: React.FC = () => {
     }
 
     setDraggedTaskId(null);
-  }, [isPremium, startDate]);
+  }, [isPremium]);
 
   // --- Task Management ---
 
@@ -530,12 +543,18 @@ const App: React.FC = () => {
     // Check week restriction for free users (can only plan current week)
     if (isAuthenticated && !isPremium && isDateColumn(columnId)) {
       const targetDate = new Date(columnId);
-      // Calculate end of current week (Sunday)
-      const endOfWeek = new Date(startDate);
-      endOfWeek.setDate(startDate.getDate() + 6);
-      endOfWeek.setHours(23, 59, 59, 999);
+      // Calculate ACTUAL current week (not displayed week)
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const dayOfWeek = today.getDay();
+      const mondayDiff = today.getDate() - dayOfWeek + (dayOfWeek === 0 ? -6 : 1);
+      const currentWeekMonday = new Date(today);
+      currentWeekMonday.setDate(mondayDiff);
+      const endOfCurrentWeek = new Date(currentWeekMonday);
+      endOfCurrentWeek.setDate(currentWeekMonday.getDate() + 6);
+      endOfCurrentWeek.setHours(23, 59, 59, 999);
 
-      if (targetDate > endOfWeek) {
+      if (targetDate > endOfCurrentWeek) {
         setShowUpgradePrompt(true);
         return;
       }
