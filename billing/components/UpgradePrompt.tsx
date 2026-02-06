@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Crown, X, Loader2, Sparkles } from 'lucide-react';
+import { Crown, X, Loader2, Sparkles, Info } from 'lucide-react';
 import { useBilling } from '../BillingContext';
 
 interface UpgradePromptProps {
@@ -13,6 +13,7 @@ interface UpgradePromptProps {
 const UpgradePrompt: React.FC<UpgradePromptProps> = ({ isOpen, onClose }) => {
     const { startPayment, taskLimit } = useBilling();
     const [isProcessing, setIsProcessing] = useState(false);
+    const [showTerms, setShowTerms] = useState(false);
 
     if (!isOpen) return null;
 
@@ -92,6 +93,16 @@ const UpgradePrompt: React.FC<UpgradePromptProps> = ({ isOpen, onClose }) => {
                         )}
                     </button>
 
+                    {/* Auto-renewal terms link */}
+                    <p className="text-center mt-2">
+                        <button
+                            onClick={() => setShowTerms(true)}
+                            className="text-xs text-gray-400 hover:text-gray-600 underline underline-offset-2 transition-colors"
+                        >
+                            далее 99 ₽/мес
+                        </button>
+                    </p>
+
                     <button
                         onClick={onClose}
                         className="w-full mt-3 py-2.5 text-gray-500 text-sm hover:text-gray-700 transition-colors"
@@ -100,8 +111,48 @@ const UpgradePrompt: React.FC<UpgradePromptProps> = ({ isOpen, onClose }) => {
                     </button>
                 </div>
             </div>
+
+            {/* Terms Popup */}
+            {showTerms && (
+                <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
+                    <div
+                        className="absolute inset-0 bg-gray-900/50"
+                        onClick={() => setShowTerms(false)}
+                    />
+                    <div className="relative w-full max-w-xs bg-white rounded-xl shadow-2xl p-5 animate-in fade-in zoom-in-95 duration-150">
+                        <button
+                            onClick={() => setShowTerms(false)}
+                            className="absolute top-3 right-3 p-1 text-gray-400 hover:text-gray-600 rounded-full transition-colors"
+                        >
+                            <X size={16} />
+                        </button>
+
+                        <div className="flex items-center gap-2 mb-3 text-amber-600">
+                            <Info size={18} />
+                            <span className="font-semibold text-sm">Условия подписки</span>
+                        </div>
+
+                        <div className="text-sm text-gray-600 space-y-3">
+                            <p>
+                                Мы спишем с привязанной карты плату за сервис в момент окончания периода и сервис продлится автоматически.
+                            </p>
+                            <p>
+                                Отменить подписку и отвязать способ оплаты вы сможете в любой момент в настройках.
+                            </p>
+                        </div>
+
+                        <button
+                            onClick={() => setShowTerms(false)}
+                            className="w-full mt-4 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-200 transition-colors"
+                        >
+                            Понятно
+                        </button>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };
 
 export default UpgradePrompt;
+
