@@ -25,6 +25,7 @@ const PricingPage: React.FC<PricingPageProps> = ({ onBack, onSelectPlan }) => {
         {
             name: 'Премиум',
             price: '99',
+            oldPrice: '299',
             period: 'мес',
             description: 'Полный доступ ко всем функциям',
             features: [
@@ -79,11 +80,14 @@ const PricingPage: React.FC<PricingPageProps> = ({ onBack, onSelectPlan }) => {
                                 <h3 className="text-2xl font-bold text-gray-900 mb-2">{plan.name}</h3>
                                 <p className="text-gray-500 mb-6 text-sm">{plan.description}</p>
 
-                                <div className="flex items-baseline mb-8">
+                                <div className="flex items-baseline mb-8 gap-2">
+                                    {plan.oldPrice && (
+                                        <span className="text-2xl font-medium text-gray-400 line-through">{plan.oldPrice}₽</span>
+                                    )}
                                     <span className="text-5xl font-extrabold tracking-tight text-gray-900">{plan.price}</span>
-                                    <span className="text-xl font-medium text-gray-500 ml-1">₽</span>
+                                    <span className="text-xl font-medium text-gray-500">₽</span>
                                     {plan.period && (
-                                        <span className="text-lg font-medium text-gray-500 ml-1">/{plan.period}</span>
+                                        <span className="text-lg font-medium text-gray-500">/{plan.period}</span>
                                     )}
                                 </div>
 
