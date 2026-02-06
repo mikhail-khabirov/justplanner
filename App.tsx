@@ -810,6 +810,33 @@ const App: React.FC = () => {
           </div>
 
           <div className="flex items-center gap-2 md:gap-4">
+            {/* Print - Pro only, before divider */}
+            {isAuthenticated && (
+              <button
+                onClick={() => {
+                  if (!isPremium) {
+                    showUpgradePromptWithReason('print');
+                    return;
+                  }
+                  // Set document title for print/PDF filename
+                  const originalTitle = document.title;
+                  const endOfWeek = new Date(startDate);
+                  endOfWeek.setDate(startDate.getDate() + 6);
+                  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                  const startDay = startDate.getDate();
+                  const endDay = endOfWeek.getDate();
+                  const month = months[startDate.getMonth()];
+                  document.title = `${startDay}-${endDay} ${month}. Justplanner`;
+                  window.print();
+                  setTimeout(() => { document.title = originalTitle; }, 1000);
+                }}
+                className="p-2 rounded-full bg-gray-50 text-gray-600 hover:bg-gray-100 transition-colors"
+                title="Распечатать"
+              >
+                <Printer size={20} />
+              </button>
+            )}
+
             {/* Divider only on desktop if needed, or just space */}
             <div className="hidden md:block h-8 w-[1px] bg-gray-200 mx-2"></div>
 
@@ -833,61 +860,6 @@ const App: React.FC = () => {
             {/* Pro Badge for premium users */}
             {isAuthenticated && isPremium && (
               <ProBadge size="md" />
-            )}
-
-            {/* PDF Download - Pro only */}
-            {isAuthenticated && (
-              <button
-                onClick={() => {
-                  if (!isPremium) {
-                    showUpgradePromptWithReason('pdf');
-                    return;
-                  }
-                  // Set document title for PDF filename
-                  const originalTitle = document.title;
-                  const endOfWeek = new Date(startDate);
-                  endOfWeek.setDate(startDate.getDate() + 6);
-                  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-                  const startDay = startDate.getDate();
-                  const endDay = endOfWeek.getDate();
-                  const month = months[startDate.getMonth()];
-                  document.title = `${startDay}-${endDay} ${month}. Justplanner`;
-                  window.print();
-                  // Restore title after print dialog
-                  setTimeout(() => { document.title = originalTitle; }, 1000);
-                }}
-                className="p-2 rounded-full bg-gray-50 text-gray-600 hover:bg-gray-100 transition-colors"
-                title="Сохранить в PDF"
-              >
-                <FileDown size={20} />
-              </button>
-            )}
-
-            {/* Print - Pro only */}
-            {isAuthenticated && (
-              <button
-                onClick={() => {
-                  if (!isPremium) {
-                    showUpgradePromptWithReason('print');
-                    return;
-                  }
-                  // Set document title for print
-                  const originalTitle = document.title;
-                  const endOfWeek = new Date(startDate);
-                  endOfWeek.setDate(startDate.getDate() + 6);
-                  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-                  const startDay = startDate.getDate();
-                  const endDay = endOfWeek.getDate();
-                  const month = months[startDate.getMonth()];
-                  document.title = `${startDay}-${endDay} ${month}. Justplanner`;
-                  window.print();
-                  setTimeout(() => { document.title = originalTitle; }, 1000);
-                }}
-                className="p-2 rounded-full bg-gray-50 text-gray-600 hover:bg-gray-100 transition-colors"
-                title="Распечатать"
-              >
-                <Printer size={20} />
-              </button>
             )}
 
             <div className="relative">
