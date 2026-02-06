@@ -137,10 +137,10 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, currentDate, onT
                                 Задачи, назначенные на более раннее время, будут отображаться в свёрнутой секции
                             </p>
                         ) : (
-                            <div className="mt-3 p-3 bg-amber-50 border border-amber-200 rounded-lg flex items-center gap-2">
-                                <Crown size={16} className="text-amber-600 shrink-0" />
-                                <p className="text-sm text-amber-700 font-medium">
-                                    Оформите Pro подписку, чтобы выбрать начало дня
+                            <div className="mt-3 p-3 bg-[#26A69A]/10 border border-[#26A69A]/30 rounded-lg flex items-center gap-2">
+                                <Crown size={16} className="text-[#26A69A] shrink-0" />
+                                <p className="text-sm text-[#1a7a70] font-medium">
+                                    Оформите Pro подписку, чтобы выбрать начало дня — <span className="line-through text-gray-400">299₽</span> 99₽/мес
                                 </p>
                             </div>
                         )}
