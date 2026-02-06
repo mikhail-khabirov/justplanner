@@ -128,6 +128,7 @@ const SubscriptionStatus: React.FC<SubscriptionStatusProps> = ({ onUpgrade }) =>
                     <p>• Только белый цвет карточек</p>
                     <p>• Планирование только на текущую неделю</p>
                     <p>• Без повторяющихся задач</p>
+                    <p>• Без сохранения в PDF и печати</p>
                 </div>
 
                 <button

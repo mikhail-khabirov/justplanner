@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Crown, X, Loader2, Sparkles, Info } from 'lucide-react';
 import { useBilling } from '../BillingContext';
 
-export type UpgradeReason = 'task_limit' | 'colors' | 'week_planning' | 'recurrence';
+export type UpgradeReason = 'task_limit' | 'colors' | 'week_planning' | 'recurrence' | 'pdf' | 'print';
 
 interface UpgradePromptProps {
     isOpen: boolean;
@@ -27,6 +27,14 @@ const REASON_CONTENT: Record<UpgradeReason, { title: string; subtitle: string }>
     recurrence: {
         title: 'Повторяющиеся задачи',
         subtitle: 'Автоматическое повторение задач доступно в Pro'
+    },
+    pdf: {
+        title: 'Сохранение в PDF',
+        subtitle: 'Экспорт в PDF доступен в Pro версии'
+    },
+    print: {
+        title: 'Печать',
+        subtitle: 'Печать расписания доступна в Pro версии'
     }
 };
 
@@ -104,6 +112,10 @@ const UpgradePrompt: React.FC<UpgradePromptProps> = ({ isOpen, onClose, reason =
                         <div className="flex items-center gap-3 text-gray-700">
                             <Sparkles size={18} className="text-amber-500 flex-shrink-0" />
                             <span className="text-sm">Планирование на любую неделю</span>
+                        </div>
+                        <div className="flex items-center gap-3 text-gray-700">
+                            <Sparkles size={18} className="text-amber-500 flex-shrink-0" />
+                            <span className="text-sm">Сохранение в PDF и печать</span>
                         </div>
                     </div>
 

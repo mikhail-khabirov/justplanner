@@ -14,7 +14,7 @@ import PricingPage from './components/PricingPage';
 import { useAuth } from './contexts/AuthContext';
 import { useBilling, ProBadge, UpgradePrompt, UpgradeReason } from './billing';
 import { tasksApi } from './api';
-import { User, MoreHorizontal, ChevronLeft, ChevronRight, TrendingUp, LogOut, Settings, LifeBuoy, X, Crown } from 'lucide-react';
+import { User, MoreHorizontal, ChevronLeft, ChevronRight, TrendingUp, LogOut, Settings, LifeBuoy, X, Crown, FileDown, Printer } from 'lucide-react';
 
 // Configuration for the 4 bottom columns
 const BOTTOM_COLUMNS = [
@@ -833,6 +833,40 @@ const App: React.FC = () => {
             {/* Pro Badge for premium users */}
             {isAuthenticated && isPremium && (
               <ProBadge size="md" />
+            )}
+
+            {/* PDF Download - Pro only */}
+            {isAuthenticated && (
+              <button
+                onClick={() => {
+                  if (!isPremium) {
+                    showUpgradePromptWithReason('pdf');
+                    return;
+                  }
+                  window.print(); // For now, uses print dialog with PDF option
+                }}
+                className="p-2 rounded-full bg-gray-50 text-gray-600 hover:bg-gray-100 transition-colors"
+                title="Сохранить в PDF"
+              >
+                <FileDown size={20} />
+              </button>
+            )}
+
+            {/* Print - Pro only */}
+            {isAuthenticated && (
+              <button
+                onClick={() => {
+                  if (!isPremium) {
+                    showUpgradePromptWithReason('print');
+                    return;
+                  }
+                  window.print();
+                }}
+                className="p-2 rounded-full bg-gray-50 text-gray-600 hover:bg-gray-100 transition-colors"
+                title="Распечатать"
+              >
+                <Printer size={20} />
+              </button>
             )}
 
             <div className="relative">
