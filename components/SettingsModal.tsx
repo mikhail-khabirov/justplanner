@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import { X, Clock, Trash2, AlertTriangle } from 'lucide-react';
+import { X, Clock, Trash2, AlertTriangle, Crown } from 'lucide-react';
 import { useSettings } from '../contexts/SettingsContext';
 import { useAuth } from '../contexts/AuthContext';
 import { toISODate } from '../utils';
-import { SubscriptionStatus } from '../billing';
+import { SubscriptionStatus, useBilling } from '../billing';
 
 interface SettingsModalProps {
     onClose: () => void;
@@ -16,6 +16,7 @@ const DAY_START_OPTIONS = [5, 6, 7, 8, 9, 10];
 const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, currentDate, onTasksDeleted }) => {
     const { settings, updateSettings } = useSettings();
     const { token, isAuthenticated } = useAuth();
+    const { isPremium, startPayment } = useBilling();
     const [isDeleting, setIsDeleting] = useState(false);
 
     const handleDeleteWeek = async () => {
@@ -97,6 +98,12 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, currentDate, onT
                         <div className="flex items-center gap-2 text-gray-700">
                             <Clock size={18} />
                             <span className="font-medium">Начало рабочего дня</span>
+                            {!isPremium && (
+                                <span className="ml-auto flex items-center gap-1 text-xs text-amber-600 bg-amber-50 px-2 py-1 rounded-full border border-amber-200">
+                                    <Crown size={12} />
+                                    Pro
+                                </span>
+                            )}
                         </div>
                         <p className="text-sm text-gray-500">
                             Выберите час, с которого начинается отображение дня в календаре
@@ -105,12 +112,25 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, currentDate, onT
                             {DAY_START_OPTIONS.map(hour => (
                                 <button
                                     key={hour}
-                                    onClick={() => updateSettings({ dayStartHour: hour })}
+                                    onClick={async () => {
+                                        if (!isPremium) {
+                                            try {
+                                                const url = await startPayment();
+                                                window.location.href = url;
+                                            } catch (e) {
+                                                console.error('Payment failed:', e);
+                                            }
+                                            return;
+                                        }
+                                        updateSettings({ dayStartHour: hour });
+                                    }}
                                     className={`
                     py-2 px-3 rounded-lg text-sm font-medium transition-all
                     ${settings.dayStartHour === hour
                                             ? 'bg-blue-600 text-white shadow-md'
-                                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                                            : isPremium
+                                                ? 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                                                : 'bg-gray-50 text-gray-400 cursor-not-allowed'
                                         }
                   `}
                                 >
@@ -119,7 +139,10 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, currentDate, onT
                             ))}
                         </div>
                         <p className="text-xs text-gray-400 mt-2">
-                            Задачи, назначенные на более раннее время, будут отображаться в свёрнутой секции
+                            {isPremium
+                                ? 'Задачи, назначенные на более раннее время, будут отображаться в свёрнутой секции'
+                                : 'Оформите Pro подписку, чтобы настроить начало дня'
+                            }
                         </p>
                     </div>
 
