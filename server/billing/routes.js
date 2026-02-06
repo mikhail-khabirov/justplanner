@@ -1,6 +1,7 @@
 import express from 'express';
 import pool from '../config/db.js';
 import { authenticateToken } from '../middleware/auth.js';
+import { createPayment as createYookassaPayment, getPaymentStatus } from './yookassa.js';
 
 const router = express.Router();
 
@@ -11,7 +12,7 @@ router.get('/subscription', authenticateToken, async (req, res) => {
             `SELECT 
                 s.id, s.plan, s.status, s.yookassa_subscription_id,
                 s.current_period_end, s.auto_renew, s.created_at,
-                u.plan as user_plan
+                u.plan as user_plan, u.email
             FROM users u
             LEFT JOIN subscriptions s ON s.user_id = u.id
             WHERE u.id = $1`,
@@ -52,20 +53,141 @@ router.get('/subscription', authenticateToken, async (req, res) => {
     }
 });
 
-// Create payment (will be implemented in Phase 2 with Yookassa)
+// Create payment for premium subscription
 router.post('/create-payment', authenticateToken, async (req, res) => {
-    // Placeholder - will be implemented when Yookassa credentials are provided
-    res.status(501).json({
-        error: 'Payment integration not yet configured',
-        message: 'Yookassa integration pending'
-    });
+    try {
+        // Get user email
+        const userResult = await pool.query(
+            'SELECT email FROM users WHERE id = $1',
+            [req.user.id]
+        );
+
+        if (userResult.rows.length === 0) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+
+        const userEmail = userResult.rows[0].email;
+
+        // Create payment via Yookassa
+        const { confirmationUrl, paymentId } = await createYookassaPayment(
+            req.user.id,
+            userEmail
+        );
+
+        // Log payment attempt
+        await pool.query(
+            `INSERT INTO payments (user_id, yookassa_payment_id, amount, currency, status, description)
+             VALUES ($1, $2, $3, $4, $5, $6)`,
+            [req.user.id, paymentId, 99, 'RUB', 'pending', 'Premium subscription']
+        );
+
+        res.json({ confirmationUrl, paymentId });
+    } catch (error) {
+        console.error('Error creating payment:', error);
+        res.status(500).json({ error: 'Failed to create payment', message: error.message });
+    }
 });
 
-// Webhook handler (will be implemented in Phase 2)
+// Webhook handler for Yookassa events
 router.post('/webhook', async (req, res) => {
-    // Placeholder for Yookassa webhooks
-    console.log('Webhook received:', req.body);
-    res.status(200).json({ received: true });
+    try {
+        const event = req.body;
+        console.log('Yookassa webhook received:', JSON.stringify(event, null, 2));
+
+        if (event.event === 'payment.succeeded') {
+            const payment = event.object;
+            const userId = parseInt(payment.metadata?.userId);
+
+            if (!userId) {
+                console.error('No userId in payment metadata');
+                return res.status(400).json({ error: 'Invalid payment metadata' });
+            }
+
+            // Update payment status
+            await pool.query(
+                `UPDATE payments SET status = 'succeeded' WHERE yookassa_payment_id = $1`,
+                [payment.id]
+            );
+
+            // Calculate subscription end date (30 days from now)
+            const periodEnd = new Date();
+            periodEnd.setDate(periodEnd.getDate() + 30);
+
+            // Create or update subscription
+            await pool.query(
+                `INSERT INTO subscriptions (user_id, plan, status, current_period_end, auto_renew)
+                 VALUES ($1, 'premium', 'active', $2, TRUE)
+                 ON CONFLICT (user_id) 
+                 DO UPDATE SET 
+                    plan = 'premium', 
+                    status = 'active', 
+                    current_period_end = $2,
+                    auto_renew = TRUE,
+                    updated_at = NOW()`,
+                [userId, periodEnd]
+            );
+
+            // Update user's plan for quick access
+            await pool.query(
+                `UPDATE users SET plan = 'premium' WHERE id = $1`,
+                [userId]
+            );
+
+            // Save payment method ID for recurring payments
+            if (payment.payment_method?.saved) {
+                await pool.query(
+                    `UPDATE subscriptions SET yookassa_subscription_id = $1 WHERE user_id = $2`,
+                    [payment.payment_method.id, userId]
+                );
+            }
+
+            console.log(`✅ Premium activated for user ${userId} until ${periodEnd}`);
+        }
+        else if (event.event === 'payment.canceled') {
+            const payment = event.object;
+            await pool.query(
+                `UPDATE payments SET status = 'cancelled' WHERE yookassa_payment_id = $1`,
+                [payment.id]
+            );
+            console.log(`Payment cancelled: ${payment.id}`);
+        }
+        else if (event.event === 'refund.succeeded') {
+            const refund = event.object;
+            const paymentId = refund.payment_id;
+
+            // Get payment to find user
+            const paymentResult = await pool.query(
+                `SELECT user_id FROM payments WHERE yookassa_payment_id = $1`,
+                [paymentId]
+            );
+
+            if (paymentResult.rows.length > 0) {
+                const userId = paymentResult.rows[0].user_id;
+
+                // Downgrade to free
+                await pool.query(
+                    `UPDATE subscriptions SET plan = 'free', status = 'cancelled' WHERE user_id = $1`,
+                    [userId]
+                );
+                await pool.query(
+                    `UPDATE users SET plan = 'free' WHERE id = $1`,
+                    [userId]
+                );
+
+                await pool.query(
+                    `UPDATE payments SET status = 'refunded' WHERE yookassa_payment_id = $1`,
+                    [paymentId]
+                );
+
+                console.log(`Refund processed for user ${userId}`);
+            }
+        }
+
+        res.status(200).json({ received: true });
+    } catch (error) {
+        console.error('Webhook error:', error);
+        res.status(500).json({ error: 'Webhook processing failed' });
+    }
 });
 
 // Cancel auto-renewal
