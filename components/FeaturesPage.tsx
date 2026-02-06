@@ -11,7 +11,7 @@ interface FeatureSection {
     id: string;
     title: string;
     description: string;
-    screenshot?: string;
+    video: string;
 }
 
 const features: FeatureSection[] = [
@@ -19,36 +19,43 @@ const features: FeatureSection[] = [
         id: 'weekly-view',
         title: 'Недельный вид',
         description: 'Видите всю неделю целиком — 7 дней как на ладони. Легко планируйте задачи на несколько дней вперёд и держите фокус на главном.',
+        video: '/1.mp4',
     },
     {
         id: 'drag-drop',
         title: 'Drag & Drop',
         description: 'Перетаскивайте задачи между днями одним движением. Если планы изменились — просто переместите задачу на другой день.',
+        video: '/2.mp4',
     },
     {
         id: 'colors',
         title: 'Цветовая маркировка',
         description: 'Выделяйте важные задачи цветом. Работа, личное, спорт — всё визуально разделено и легко считывается.',
+        video: '/3.mp4',
     },
     {
         id: 'recurring',
         title: 'Повторяющиеся задачи',
         description: 'Создайте задачу один раз — она будет появляться каждый день или неделю автоматически. Идеально для привычек и регулярных дел.',
+        video: '/4.mp4',
     },
     {
         id: 'backlog',
         title: 'Бэклог',
         description: 'Храните идеи и несрочные задачи в специальном списке. Когда появится время — просто перетащите задачу в нужный день.',
+        video: '/5.mp4',
     },
     {
         id: 'stats',
         title: 'Статистика продуктивности',
         description: 'Отслеживайте сколько задач выполнено за день, неделю и месяц. Видите свой прогресс и мотивируйтесь на новые достижения.',
+        video: '/6.mp4',
     },
     {
         id: 'print',
         title: 'Печать и PDF',
         description: 'Распечатайте своё расписание на неделю или сохраните в PDF. Удобно для офлайн-планирования или чтобы повесить план на холодильник.',
+        video: '/7.mp4',
     },
 ];
 
@@ -117,19 +124,16 @@ const FeaturesPage: React.FC<FeaturesPageProps> = ({ onStart, onBack, onShowPric
                             {feature.description}
                         </p>
 
-                        {/* Screenshot placeholder */}
+                        {/* Video */}
                         <div className="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
-                            {feature.screenshot ? (
-                                <img
-                                    src={feature.screenshot}
-                                    alt={feature.title}
-                                    className="w-full h-auto"
-                                />
-                            ) : (
-                                <div className="aspect-video bg-gray-100 flex items-center justify-center text-gray-400">
-                                    <span className="text-sm">Скриншот: {feature.title}</span>
-                                </div>
-                            )}
+                            <video
+                                src={feature.video}
+                                autoPlay
+                                loop
+                                muted
+                                playsInline
+                                className="w-full h-auto"
+                            />
                         </div>
                     </div>
                 ))}
