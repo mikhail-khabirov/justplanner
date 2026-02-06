@@ -54,9 +54,9 @@ const features: FeatureSection[] = [
 
 const FeaturesPage: React.FC<FeaturesPageProps> = ({ onStart, onBack, onShowPricing }) => {
     return (
-        <div className="min-h-screen bg-[#F5F5F0] font-sans text-gray-900">
+        <div className="min-h-screen bg-gray-50 font-sans text-gray-900">
             {/* Header / Nav */}
-            <nav className="fixed top-0 left-0 right-0 z-50 bg-[#F5F5F0]/90 backdrop-blur-md border-b border-gray-200">
+            <nav className="fixed top-0 left-0 right-0 z-50 bg-gray-50/90 backdrop-blur-md border-b border-gray-200">
                 <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
                     <button
                         onClick={onBack}
@@ -155,7 +155,7 @@ const FeaturesPage: React.FC<FeaturesPageProps> = ({ onStart, onBack, onShowPric
             </section>
 
             {/* Footer */}
-            <footer className="py-8 bg-[#F5F5F0] border-t border-gray-200 text-center text-gray-500 text-sm">
+            <footer className="py-8 bg-gray-50 border-t border-gray-200 text-center text-gray-500 text-sm">
                 <p>&copy; {new Date().getFullYear()} JustPlanner. Все права защищены</p>
             </footer>
         </div>
