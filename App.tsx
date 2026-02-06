@@ -997,7 +997,7 @@ const App: React.FC = () => {
           onToggleSubtask={handleToggleSubtask}
           onDeleteSubtask={handleDeleteSubtask}
           isPremium={isPremium}
-          onShowUpgradePrompt={() => showUpgradePromptWithReason('colors')}
+          onShowUpgradePrompt={(reason) => showUpgradePromptWithReason(reason || 'colors')}
         />
       )}
 

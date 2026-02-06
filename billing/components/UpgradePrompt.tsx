@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Crown, X, Loader2, Sparkles, Info } from 'lucide-react';
 import { useBilling } from '../BillingContext';
 
-export type UpgradeReason = 'task_limit' | 'colors' | 'week_planning';
+export type UpgradeReason = 'task_limit' | 'colors' | 'week_planning' | 'recurrence';
 
 interface UpgradePromptProps {
     isOpen: boolean;
@@ -23,6 +23,10 @@ const REASON_CONTENT: Record<UpgradeReason, { title: string; subtitle: string }>
     week_planning: {
         title: 'Планирование недели',
         subtitle: 'Планирование на следующие недели доступно в Pro'
+    },
+    recurrence: {
+        title: 'Повторяющиеся задачи',
+        subtitle: 'Автоматическое повторение задач доступно в Pro'
     }
 };
 
@@ -92,6 +96,10 @@ const UpgradePrompt: React.FC<UpgradePromptProps> = ({ isOpen, onClose, reason =
                         <div className="flex items-center gap-3 text-gray-700">
                             <Sparkles size={18} className="text-amber-500 flex-shrink-0" />
                             <span className="text-sm">Все цвета для карточек</span>
+                        </div>
+                        <div className="flex items-center gap-3 text-gray-700">
+                            <Sparkles size={18} className="text-amber-500 flex-shrink-0" />
+                            <span className="text-sm">Повторяющиеся задачи</span>
                         </div>
                         <div className="flex items-center gap-3 text-gray-700">
                             <Sparkles size={18} className="text-amber-500 flex-shrink-0" />

@@ -15,7 +15,7 @@ interface TaskModalProps {
     onToggleSubtask: (taskId: string, subtaskId: string) => void;
     onDeleteSubtask: (taskId: string, subtaskId: string) => void;
     isPremium?: boolean;
-    onShowUpgradePrompt?: () => void;
+    onShowUpgradePrompt?: (reason?: 'colors' | 'recurrence') => void;
 }
 
 const HOURS_OPTIONS = [
@@ -154,7 +154,7 @@ const TaskModal: React.FC<TaskModalProps> = ({
     const handleColorClick = (color: TaskColor) => {
         // Free users can only use white color
         if (!isPremium && color !== TaskColor.DEFAULT) {
-            onShowUpgradePrompt?.();
+            onShowUpgradePrompt?.('colors');
             return;
         }
         onColorChange(task.id, color);
@@ -322,7 +322,13 @@ const TaskModal: React.FC<TaskModalProps> = ({
                         {isDateColumn(task.columnId) && (
                             <div className="relative">
                                 <button
-                                    onClick={() => setIsRecurrenceOpen(!isRecurrenceOpen)}
+                                    onClick={() => {
+                                        if (!isPremium) {
+                                            onShowUpgradePrompt?.('recurrence');
+                                            return;
+                                        }
+                                        setIsRecurrenceOpen(!isRecurrenceOpen);
+                                    }}
                                     className={`
                                         flex items-center gap-1.5 px-2 py-1 rounded border transition-all
                                         ${task.recurrence
