@@ -7,6 +7,7 @@ interface QuickAddInputProps {
   onCancel: () => void;
   defaultColor?: TaskColor;
   isPremium?: boolean;
+  onShowUpgradePrompt?: () => void;
 }
 
 const ALL_COLORS = [
@@ -18,14 +19,16 @@ const ALL_COLORS = [
   TaskColor.BLUE
 ];
 
-const QuickAddInput: React.FC<QuickAddInputProps> = ({ onConfirm, onCancel, defaultColor = TaskColor.DEFAULT, isPremium = false }) => {
+const QuickAddInput: React.FC<QuickAddInputProps> = ({
+  onConfirm,
+  onCancel,
+  defaultColor = TaskColor.DEFAULT,
+  isPremium = false,
+  onShowUpgradePrompt
+}) => {
   const [content, setContent] = useState('');
-  // For free users, always use default color
-  const [selectedColor, setSelectedColor] = useState<TaskColor>(isPremium ? defaultColor : TaskColor.DEFAULT);
+  const [selectedColor, setSelectedColor] = useState<TaskColor>(TaskColor.DEFAULT);
   const containerRef = useRef<HTMLDivElement>(null);
-
-  // Colors available based on plan
-  const colors = isPremium ? ALL_COLORS : [TaskColor.DEFAULT];
 
   // Refs to keep track of latest state inside event listener
   const contentRef = useRef(content);
@@ -74,6 +77,15 @@ const QuickAddInput: React.FC<QuickAddInputProps> = ({ onConfirm, onCancel, defa
     }
   };
 
+  const handleColorClick = (color: TaskColor) => {
+    // Free users can only use white color
+    if (!isPremium && color !== TaskColor.DEFAULT) {
+      onShowUpgradePrompt?.();
+      return;
+    }
+    setSelectedColor(color);
+  };
+
   const getColorBg = (color: TaskColor) => {
     switch (color) {
       case TaskColor.YELLOW: return 'bg-accent-yellow';
@@ -105,36 +117,28 @@ const QuickAddInput: React.FC<QuickAddInputProps> = ({ onConfirm, onCancel, defa
         className="w-full bg-transparent border-none outline-none text-sm font-medium text-gray-900 placeholder:text-gray-400 mb-2"
       />
 
-      {/* Color picker - only show multiple colors for Premium */}
-      {isPremium ? (
-        <div className="flex gap-1.5">
-          {colors.map(color => (
-            <button
-              key={color}
-              onClick={() => setSelectedColor(color)}
-              className={`
-                        w-4 h-4 rounded-full border border-black/10 flex items-center justify-center transition-transform hover:scale-110
-                        ${color === selectedColor ? 'ring-2 ring-offset-1 ring-gray-400 scale-110' : ''}
-                        ${color === TaskColor.DEFAULT ? 'bg-white' : ''}
-                        ${color === TaskColor.YELLOW ? 'bg-yellow-200' : ''}
-                        ${color === TaskColor.GREEN ? 'bg-green-200' : ''}
-                        ${color === TaskColor.PURPLE ? 'bg-purple-200' : ''}
-                        ${color === TaskColor.RED ? 'bg-red-200' : ''}
-                        ${color === TaskColor.BLUE ? 'bg-blue-200' : ''}
-                    `}
-            />
-          ))}
-          <div className="ml-auto text-[10px] text-gray-400 flex items-center">
-            Enter
-          </div>
+      {/* Color picker - all colors visible, non-white shows upgrade prompt for free */}
+      <div className="flex gap-1.5">
+        {ALL_COLORS.map(color => (
+          <button
+            key={color}
+            onClick={() => handleColorClick(color)}
+            className={`
+                      w-4 h-4 rounded-full border border-black/10 flex items-center justify-center transition-transform hover:scale-110
+                      ${color === selectedColor ? 'ring-2 ring-offset-1 ring-gray-400 scale-110' : ''}
+                      ${color === TaskColor.DEFAULT ? 'bg-white' : ''}
+                      ${color === TaskColor.YELLOW ? 'bg-yellow-200' : ''}
+                      ${color === TaskColor.GREEN ? 'bg-green-200' : ''}
+                      ${color === TaskColor.PURPLE ? 'bg-purple-200' : ''}
+                      ${color === TaskColor.RED ? 'bg-red-200' : ''}
+                      ${color === TaskColor.BLUE ? 'bg-blue-200' : ''}
+                  `}
+          />
+        ))}
+        <div className="ml-auto text-[10px] text-gray-400 flex items-center">
+          Enter
         </div>
-      ) : (
-        <div className="flex justify-end">
-          <div className="text-[10px] text-gray-400 flex items-center">
-            Enter
-          </div>
-        </div>
-      )}
+      </div>
     </div>
   );
 };

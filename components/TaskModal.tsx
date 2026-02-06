@@ -15,6 +15,7 @@ interface TaskModalProps {
     onToggleSubtask: (taskId: string, subtaskId: string) => void;
     onDeleteSubtask: (taskId: string, subtaskId: string) => void;
     isPremium?: boolean;
+    onShowUpgradePrompt?: () => void;
 }
 
 const HOURS_OPTIONS = [
@@ -39,7 +40,8 @@ const TaskModal: React.FC<TaskModalProps> = ({
     onAddSubtask,
     onToggleSubtask,
     onDeleteSubtask,
-    isPremium = false
+    isPremium = false,
+    onShowUpgradePrompt
 }) => {
     const [title, setTitle] = useState(task.content);
     const [newSubtask, setNewSubtask] = useState('');
@@ -146,9 +148,17 @@ const TaskModal: React.FC<TaskModalProps> = ({
         setIsRecurrenceOpen(false);
     };
 
-    // Colors: all for Premium, only white for Free
+    // All colors visible, but non-white requires Premium
     const allColors = [TaskColor.RED, TaskColor.GREEN, TaskColor.YELLOW, TaskColor.PURPLE, TaskColor.BLUE, TaskColor.DEFAULT];
-    const colors = isPremium ? allColors : [TaskColor.DEFAULT];
+
+    const handleColorClick = (color: TaskColor) => {
+        // Free users can only use white color
+        if (!isPremium && color !== TaskColor.DEFAULT) {
+            onShowUpgradePrompt?.();
+            return;
+        }
+        onColorChange(task.id, color);
+    };
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
@@ -168,10 +178,10 @@ const TaskModal: React.FC<TaskModalProps> = ({
                 {/* Header / Controls */}
                 <div className="flex items-center justify-between px-6 pt-5 pb-1">
                     <div className="flex gap-2">
-                        {colors.map(c => (
+                        {allColors.map(c => (
                             <button
                                 key={c}
-                                onClick={() => onColorChange(task.id, c)}
+                                onClick={() => handleColorClick(c)}
                                 className={`
                             w-4 h-4 rounded-full border border-black/5 hover:scale-110 transition-transform
                             ${c === task.color ? 'ring-2 ring-offset-1 ring-gray-400' : ''}
@@ -186,16 +196,13 @@ const TaskModal: React.FC<TaskModalProps> = ({
                         ))}
                     </div>
                     <div className="flex items-center gap-1">
-                        {/* Delete button - only for Premium */}
-                        {isPremium && (
-                            <button
-                                onClick={() => onDelete(task.id)}
-                                className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-full transition-colors"
-                                title="Удалить задачу"
-                            >
-                                <Trash2 size={16} />
-                            </button>
-                        )}
+                        <button
+                            onClick={() => onDelete(task.id)}
+                            className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-full transition-colors"
+                            title="Удалить задачу"
+                        >
+                            <Trash2 size={16} />
+                        </button>
                         <button
                             onClick={onClose}
                             className="p-1.5 text-gray-400 hover:text-gray-800 hover:bg-black/5 rounded-full transition-colors"

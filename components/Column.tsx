@@ -43,6 +43,7 @@ interface ColumnProps {
   onOpenModal: (id: string) => void;
   onTouchDragEnd?: (taskId: string, targetElement: Element | null) => void;
   isPremium?: boolean;
+  onShowUpgradePrompt?: () => void;
 }
 
 const Column: React.FC<ColumnProps> = ({
@@ -63,7 +64,8 @@ const Column: React.FC<ColumnProps> = ({
   onToggleComplete,
   onOpenModal,
   onTouchDragEnd,
-  isPremium = false
+  isPremium = false,
+  onShowUpgradePrompt
 }) => {
   // Get user settings
   const { settings } = useSettings();
@@ -162,6 +164,7 @@ const Column: React.FC<ColumnProps> = ({
                   onConfirm={onCommitQuickAdd}
                   onCancel={onCancelQuickAdd}
                   isPremium={isPremium}
+                  onShowUpgradePrompt={onShowUpgradePrompt}
                 />
               </div>
             )}
@@ -242,6 +245,7 @@ const Column: React.FC<ColumnProps> = ({
                 onConfirm={onCommitQuickAdd}
                 onCancel={onCancelQuickAdd}
                 isPremium={isPremium}
+                onShowUpgradePrompt={onShowUpgradePrompt}
               />
             </div>
           ) : (

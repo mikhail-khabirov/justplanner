@@ -916,6 +916,7 @@ const App: React.FC = () => {
               onOpenModal={setActiveTaskId}
               onTouchDragEnd={handleTouchDragEnd}
               isPremium={isPremium}
+              onShowUpgradePrompt={() => setShowUpgradePrompt(true)}
             />
           ))}
         </div>
@@ -949,6 +950,7 @@ const App: React.FC = () => {
                 onOpenModal={setActiveTaskId}
                 onTouchDragEnd={handleTouchDragEnd}
                 isPremium={isPremium}
+                onShowUpgradePrompt={() => setShowUpgradePrompt(true)}
               />
             </div>
           ))}
@@ -969,6 +971,7 @@ const App: React.FC = () => {
           onToggleSubtask={handleToggleSubtask}
           onDeleteSubtask={handleDeleteSubtask}
           isPremium={isPremium}
+          onShowUpgradePrompt={() => setShowUpgradePrompt(true)}
         />
       )}
 
