@@ -133,6 +133,9 @@ const FeaturesPage: React.FC<FeaturesPageProps> = ({ onStart, onBack, onShowPric
                                 muted
                                 playsInline
                                 className="w-full h-auto"
+                                onLoadedMetadata={(e) => {
+                                    (e.target as HTMLVideoElement).playbackRate = 0.75;
+                                }}
                             />
                         </div>
                     </div>
