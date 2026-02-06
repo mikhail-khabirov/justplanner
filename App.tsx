@@ -843,7 +843,18 @@ const App: React.FC = () => {
                     showUpgradePromptWithReason('pdf');
                     return;
                   }
-                  window.print(); // For now, uses print dialog with PDF option
+                  // Set document title for PDF filename
+                  const originalTitle = document.title;
+                  const endOfWeek = new Date(startDate);
+                  endOfWeek.setDate(startDate.getDate() + 6);
+                  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                  const startDay = startDate.getDate();
+                  const endDay = endOfWeek.getDate();
+                  const month = months[startDate.getMonth()];
+                  document.title = `${startDay}-${endDay} ${month}. Justplanner`;
+                  window.print();
+                  // Restore title after print dialog
+                  setTimeout(() => { document.title = originalTitle; }, 1000);
                 }}
                 className="p-2 rounded-full bg-gray-50 text-gray-600 hover:bg-gray-100 transition-colors"
                 title="Сохранить в PDF"
@@ -860,7 +871,17 @@ const App: React.FC = () => {
                     showUpgradePromptWithReason('print');
                     return;
                   }
+                  // Set document title for print
+                  const originalTitle = document.title;
+                  const endOfWeek = new Date(startDate);
+                  endOfWeek.setDate(startDate.getDate() + 6);
+                  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                  const startDay = startDate.getDate();
+                  const endDay = endOfWeek.getDate();
+                  const month = months[startDate.getMonth()];
+                  document.title = `${startDay}-${endDay} ${month}. Justplanner`;
                   window.print();
+                  setTimeout(() => { document.title = originalTitle; }, 1000);
                 }}
                 className="p-2 rounded-full bg-gray-50 text-gray-600 hover:bg-gray-100 transition-colors"
                 title="Распечатать"
