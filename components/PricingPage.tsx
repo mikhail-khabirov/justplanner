@@ -13,10 +13,11 @@ const PricingPage: React.FC<PricingPageProps> = ({ onBack, onSelectPlan }) => {
             price: '0',
             description: 'Для тех, кто начинает свой путь к продуктивности',
             features: [
-                'Ограничение до 3-х задач в час',
-                'Базовые цвета оформления',
-                'Работает на всех устройствах',
-                'Быстрый перенос задач'
+                'До 3-х задач в час',
+                'Недельный вид на 7 дней',
+                'Drag & Drop перенос задач',
+                'Базовые цвета задач',
+                'Работает на всех устройствах'
             ],
             buttonText: 'Начать бесплатно',
             highlight: false
@@ -25,15 +26,16 @@ const PricingPage: React.FC<PricingPageProps> = ({ onBack, onSelectPlan }) => {
             name: 'Премиум',
             price: '99',
             period: 'мес',
-            description: 'Для тех, кому нужно больше возможностей',
+            description: 'Полный доступ ко всем функциям',
             features: [
                 'Безлимитные задачи',
-                'Эксклюзивные цвета и темы',
-                'Синхронизация с календарем',
+                'Все цвета оформления',
+                'Повторяющиеся задачи',
                 'Статистика продуктивности',
+                'Печать и сохранение в PDF',
                 'Приоритетная поддержка'
             ],
-            buttonText: 'Попробовать сейчас',
+            buttonText: 'Оформить подписку',
             highlight: true
         }
     ];
@@ -99,8 +101,8 @@ const PricingPage: React.FC<PricingPageProps> = ({ onBack, onSelectPlan }) => {
                                 <button
                                     onClick={() => onSelectPlan(plan.highlight ? 'premium' : 'free')}
                                     className={`w-full py-4 px-6 rounded-2xl font-bold text-lg transition-all ${plan.highlight
-                                            ? 'bg-[#26A69A] text-white hover:bg-[#218F84] shadow-[0_8px_20px_rgba(38,166,154,0.3)]'
-                                            : 'bg-gray-100 text-gray-900 hover:bg-gray-200'
+                                        ? 'bg-[#26A69A] text-white hover:bg-[#218F84] shadow-[0_8px_20px_rgba(38,166,154,0.3)]'
+                                        : 'bg-gray-100 text-gray-900 hover:bg-gray-200'
                                         }`}
                                 >
                                     {plan.buttonText}
