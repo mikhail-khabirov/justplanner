@@ -67,6 +67,10 @@ app.use('/api/admin', adminRoutes);
 import settingsRoutes from './routes/settings.js';
 app.use('/api/settings', settingsRoutes);
 
+// Billing routes
+import billingRoutes from './billing/routes.js';
+app.use('/api/billing', billingRoutes);
+
 // Health check
 app.get('/api/health', (req, res) => {
     res.json({ status: 'ok', timestamp: new Date().toISOString() });

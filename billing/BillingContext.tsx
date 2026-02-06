@@ -1,0 +1,106 @@
+import React, { createContext, useContext, useState, useEffect, useCallback, useMemo, ReactNode } from 'react';
+import { billingApi } from './api';
+import type { Subscription, PlanType } from './types';
+
+const FREE_TASK_LIMIT = 5;
+
+interface BillingContextType {
+    subscription: Subscription | null;
+    isLoading: boolean;
+    isPremium: boolean;
+    plan: PlanType;
+    canAddTask: (currentTaskCount: number) => boolean;
+    taskLimit: number;
+    refresh: () => Promise<void>;
+    cancelAutoRenew: () => Promise<void>;
+    resumeAutoRenew: () => Promise<void>;
+    startPayment: () => Promise<string>; // returns confirmation URL
+}
+
+const BillingContext = createContext<BillingContextType | undefined>(undefined);
+
+interface BillingProviderProps {
+    children: ReactNode;
+    isAuthenticated: boolean;
+}
+
+export const BillingProvider: React.FC<BillingProviderProps> = ({ children, isAuthenticated }) => {
+    const [subscription, setSubscription] = useState<Subscription | null>(null);
+    const [isLoading, setIsLoading] = useState(false);
+
+    const fetchSubscription = useCallback(async () => {
+        if (!isAuthenticated) {
+            setSubscription(null);
+            return;
+        }
+        setIsLoading(true);
+        try {
+            const sub = await billingApi.getSubscription();
+            setSubscription(sub);
+        } catch (error) {
+            console.error('Failed to fetch subscription:', error);
+        } finally {
+            setIsLoading(false);
+        }
+    }, [isAuthenticated]);
+
+    useEffect(() => {
+        fetchSubscription();
+    }, [fetchSubscription]);
+
+    const isPremium = useMemo(() => {
+        if (!subscription) return false;
+        return subscription.plan === 'premium' && subscription.status === 'active';
+    }, [subscription]);
+
+    const plan = useMemo((): PlanType => {
+        return isPremium ? 'premium' : 'free';
+    }, [isPremium]);
+
+    const canAddTask = useCallback((currentTaskCount: number): boolean => {
+        if (isPremium) return true;
+        return currentTaskCount < FREE_TASK_LIMIT;
+    }, [isPremium]);
+
+    const cancelAutoRenew = useCallback(async () => {
+        await billingApi.cancelAutoRenew();
+        await fetchSubscription();
+    }, [fetchSubscription]);
+
+    const resumeAutoRenew = useCallback(async () => {
+        await billingApi.resumeAutoRenew();
+        await fetchSubscription();
+    }, [fetchSubscription]);
+
+    const startPayment = useCallback(async (): Promise<string> => {
+        const response = await billingApi.createPayment();
+        return response.confirmationUrl;
+    }, []);
+
+    const value = useMemo(() => ({
+        subscription,
+        isLoading,
+        isPremium,
+        plan,
+        canAddTask,
+        taskLimit: FREE_TASK_LIMIT,
+        refresh: fetchSubscription,
+        cancelAutoRenew,
+        resumeAutoRenew,
+        startPayment
+    }), [subscription, isLoading, isPremium, plan, canAddTask, fetchSubscription, cancelAutoRenew, resumeAutoRenew, startPayment]);
+
+    return (
+        <BillingContext.Provider value={value}>
+            {children}
+        </BillingContext.Provider>
+    );
+};
+
+export const useBilling = (): BillingContextType => {
+    const context = useContext(BillingContext);
+    if (!context) {
+        throw new Error('useBilling must be used within a BillingProvider');
+    }
+    return context;
+};
