@@ -70,11 +70,15 @@ const UpgradePrompt: React.FC<UpgradePromptProps> = ({ isOpen, onClose }) => {
                         </div>
                         <div className="flex items-center gap-3 text-gray-700">
                             <Sparkles size={18} className="text-amber-500 flex-shrink-0" />
-                            <span className="text-sm">Все функции без ограничений</span>
+                            <span className="text-sm">Все цвета для карточек</span>
                         </div>
                         <div className="flex items-center gap-3 text-gray-700">
                             <Sparkles size={18} className="text-amber-500 flex-shrink-0" />
-                            <span className="text-sm">Поддержка 24/7</span>
+                            <span className="text-sm">Удаление задач</span>
+                        </div>
+                        <div className="flex items-center gap-3 text-gray-700">
+                            <Sparkles size={18} className="text-amber-500 flex-shrink-0" />
+                            <span className="text-sm">Планирование на любую неделю</span>
                         </div>
                     </div>
 

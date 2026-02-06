@@ -42,6 +42,7 @@ interface ColumnProps {
   onToggleComplete: (id: string) => void;
   onOpenModal: (id: string) => void;
   onTouchDragEnd?: (taskId: string, targetElement: Element | null) => void;
+  isPremium?: boolean;
 }
 
 const Column: React.FC<ColumnProps> = ({
@@ -61,7 +62,8 @@ const Column: React.FC<ColumnProps> = ({
   onDragStart,
   onToggleComplete,
   onOpenModal,
-  onTouchDragEnd
+  onTouchDragEnd,
+  isPremium = false
 }) => {
   // Get user settings
   const { settings } = useSettings();
@@ -159,6 +161,7 @@ const Column: React.FC<ColumnProps> = ({
                 <QuickAddInput
                   onConfirm={onCommitQuickAdd}
                   onCancel={onCancelQuickAdd}
+                  isPremium={isPremium}
                 />
               </div>
             )}
@@ -238,6 +241,7 @@ const Column: React.FC<ColumnProps> = ({
               <QuickAddInput
                 onConfirm={onCommitQuickAdd}
                 onCancel={onCancelQuickAdd}
+                isPremium={isPremium}
               />
             </div>
           ) : (

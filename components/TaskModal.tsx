@@ -14,6 +14,7 @@ interface TaskModalProps {
     onAddSubtask: (taskId: string, content: string) => void;
     onToggleSubtask: (taskId: string, subtaskId: string) => void;
     onDeleteSubtask: (taskId: string, subtaskId: string) => void;
+    isPremium?: boolean;
 }
 
 const HOURS_OPTIONS = [
@@ -37,7 +38,8 @@ const TaskModal: React.FC<TaskModalProps> = ({
     onDelete,
     onAddSubtask,
     onToggleSubtask,
-    onDeleteSubtask
+    onDeleteSubtask,
+    isPremium = false
 }) => {
     const [title, setTitle] = useState(task.content);
     const [newSubtask, setNewSubtask] = useState('');
@@ -144,7 +146,9 @@ const TaskModal: React.FC<TaskModalProps> = ({
         setIsRecurrenceOpen(false);
     };
 
-    const colors = [TaskColor.RED, TaskColor.GREEN, TaskColor.YELLOW, TaskColor.PURPLE, TaskColor.BLUE, TaskColor.DEFAULT];
+    // Colors: all for Premium, only white for Free
+    const allColors = [TaskColor.RED, TaskColor.GREEN, TaskColor.YELLOW, TaskColor.PURPLE, TaskColor.BLUE, TaskColor.DEFAULT];
+    const colors = isPremium ? allColors : [TaskColor.DEFAULT];
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
@@ -182,13 +186,16 @@ const TaskModal: React.FC<TaskModalProps> = ({
                         ))}
                     </div>
                     <div className="flex items-center gap-1">
-                        <button
-                            onClick={() => onDelete(task.id)}
-                            className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-full transition-colors"
-                            title="Удалить задачу"
-                        >
-                            <Trash2 size={16} />
-                        </button>
+                        {/* Delete button - only for Premium */}
+                        {isPremium && (
+                            <button
+                                onClick={() => onDelete(task.id)}
+                                className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-full transition-colors"
+                                title="Удалить задачу"
+                            >
+                                <Trash2 size={16} />
+                            </button>
+                        )}
                         <button
                             onClick={onClose}
                             className="p-1.5 text-gray-400 hover:text-gray-800 hover:bg-black/5 rounded-full transition-colors"
@@ -456,7 +463,7 @@ const TaskModal: React.FC<TaskModalProps> = ({
                     </div>
                 </div>
             </div>
-        </div>
+        </div >
     );
 };
 

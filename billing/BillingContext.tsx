@@ -2,7 +2,7 @@ import React, { createContext, useContext, useState, useEffect, useCallback, use
 import { billingApi } from './api';
 import type { Subscription, PlanType } from './types';
 
-const FREE_TASK_LIMIT = 5;
+const FREE_TASK_LIMIT = 10;
 
 interface BillingContextType {
     subscription: Subscription | null;

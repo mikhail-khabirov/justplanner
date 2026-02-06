@@ -422,11 +422,27 @@ const App: React.FC = () => {
   const handleDropOnColumn = useCallback((e: React.DragEvent, targetColumnId: string, hour?: number) => {
     e.preventDefault();
     const taskId = e.dataTransfer.getData('text/plain');
+
+    // Week restriction for free users (can only move to current week)
+    if (!isPremium && isDateColumn(targetColumnId)) {
+      const targetDate = new Date(targetColumnId);
+      // Calculate end of current week (Sunday)
+      const endOfWeek = new Date(startDate);
+      endOfWeek.setDate(startDate.getDate() + 6);
+      endOfWeek.setHours(23, 59, 59, 999);
+
+      if (targetDate > endOfWeek) {
+        setShowUpgradePrompt(true);
+        setDraggedTaskId(null);
+        return;
+      }
+    }
+
     if (taskId) {
       moveTask(taskId, targetColumnId, hour);
     }
     setDraggedTaskId(null);
-  }, []);
+  }, [isPremium, startDate]);
 
   const handleDropOnTask = useCallback((e: React.DragEvent, targetTaskId: string) => {
     e.preventDefault();
@@ -484,11 +500,24 @@ const App: React.FC = () => {
     }
 
     if (targetColumnId && taskId !== targetTaskId) {
+      // Week restriction for free users (can only move to current week)
+      if (!isPremium && isDateColumn(targetColumnId)) {
+        const targetDate = new Date(targetColumnId);
+        const endOfWeek = new Date(startDate);
+        endOfWeek.setDate(startDate.getDate() + 6);
+        endOfWeek.setHours(23, 59, 59, 999);
+
+        if (targetDate > endOfWeek) {
+          setShowUpgradePrompt(true);
+          setDraggedTaskId(null);
+          return;
+        }
+      }
       moveTask(taskId, targetColumnId, targetHour, targetTaskId || undefined);
     }
 
     setDraggedTaskId(null);
-  }, []);
+  }, [isPremium, startDate]);
 
   // --- Task Management ---
 
@@ -497,6 +526,19 @@ const App: React.FC = () => {
     if (isAuthenticated && !canAddTask(tasks.length)) {
       setShowUpgradePrompt(true);
       return;
+    }
+    // Check week restriction for free users (can only plan current week)
+    if (isAuthenticated && !isPremium && isDateColumn(columnId)) {
+      const targetDate = new Date(columnId);
+      // Calculate end of current week (Sunday)
+      const endOfWeek = new Date(startDate);
+      endOfWeek.setDate(startDate.getDate() + 6);
+      endOfWeek.setHours(23, 59, 59, 999);
+
+      if (targetDate > endOfWeek) {
+        setShowUpgradePrompt(true);
+        return;
+      }
     }
     // Check limits for calendar view
     if (isDateColumn(columnId) && hour !== undefined) {
@@ -873,6 +915,7 @@ const App: React.FC = () => {
               onToggleComplete={handleToggleComplete}
               onOpenModal={setActiveTaskId}
               onTouchDragEnd={handleTouchDragEnd}
+              isPremium={isPremium}
             />
           ))}
         </div>
@@ -905,6 +948,7 @@ const App: React.FC = () => {
                 onToggleComplete={handleToggleComplete}
                 onOpenModal={setActiveTaskId}
                 onTouchDragEnd={handleTouchDragEnd}
+                isPremium={isPremium}
               />
             </div>
           ))}
@@ -924,6 +968,7 @@ const App: React.FC = () => {
           onAddSubtask={handleAddSubtask}
           onToggleSubtask={handleToggleSubtask}
           onDeleteSubtask={handleDeleteSubtask}
+          isPremium={isPremium}
         />
       )}
 
