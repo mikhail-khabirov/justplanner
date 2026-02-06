@@ -1,6 +1,7 @@
 // Yookassa Payment Service
 import YooKassa from 'yookassa';
-import { v4 as uuidv4 } from 'uuid';
+import pkg from 'uuid';
+const { v4: uuidv4 } = pkg;
 
 // Initialize Yookassa with credentials
 const yookassa = new YooKassa({
