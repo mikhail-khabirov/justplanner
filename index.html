@@ -98,20 +98,12 @@
     /* Print styles: scale down for proper PDF fit */
     @media print {
 
-      /* Remove browser header/footer (date, URL, title) */
-      @page {
-        margin: 0;
-        size: A4 landscape;
-      }
-
       /* Scale down the entire page by ~35% */
       body {
         transform: scale(0.65);
         transform-origin: top left;
         width: 154%;
         /* 100% / 0.65 to compensate for scale */
-        margin: 10mm;
-        /* Add margin for content since @page margin is 0 */
       }
 
       /* Hide non-essential UI elements */
