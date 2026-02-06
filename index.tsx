@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom/client';
 import App from './App';
 import { AuthProvider } from './contexts/AuthContext';
 import { SettingsProvider } from './contexts/SettingsContext';
+import { BillingProviderWrapper } from './billing';
 
 import * as Sentry from "@sentry/react";
 
@@ -31,7 +32,9 @@ root.render(
   <React.StrictMode>
     <AuthProvider>
       <SettingsProvider>
-        <App />
+        <BillingProviderWrapper>
+          <App />
+        </BillingProviderWrapper>
       </SettingsProvider>
     </AuthProvider>
   </React.StrictMode>

@@ -3,6 +3,7 @@ import { X, Clock, Trash2, AlertTriangle } from 'lucide-react';
 import { useSettings } from '../contexts/SettingsContext';
 import { useAuth } from '../contexts/AuthContext';
 import { toISODate } from '../utils';
+import { SubscriptionStatus } from '../billing';
 
 interface SettingsModalProps {
     onClose: () => void;
@@ -121,6 +122,13 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, currentDate, onT
                             Задачи, назначенные на более раннее время, будут отображаться в свёрнутой секции
                         </p>
                     </div>
+
+                    {/* Subscription Status - only for authenticated users */}
+                    {isAuthenticated && (
+                        <div className="pt-4 border-t border-gray-100">
+                            <SubscriptionStatus />
+                        </div>
+                    )}
 
                     {/* Danger Zone */}
                     {isAuthenticated && (
