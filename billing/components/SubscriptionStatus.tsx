@@ -134,14 +134,14 @@ const SubscriptionStatus: React.FC<SubscriptionStatusProps> = ({ onUpgrade }) =>
                 <button
                     onClick={onUpgrade || handleUpgrade}
                     disabled={isProcessing}
-                    className="w-full py-2.5 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-lg text-sm font-medium hover:from-amber-600 hover:to-orange-600 transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2 disabled:opacity-50"
+                    className="w-full py-2.5 bg-[#26A69A] text-white rounded-lg text-sm font-medium hover:bg-[#218F84] transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2 disabled:opacity-50"
                 >
                     {isProcessing ? (
                         <Loader2 size={16} className="animate-spin" />
                     ) : (
                         <>
                             <Crown size={16} />
-                            Перейти на Pro — 99 ₽/мес
+                            Перейти на Pro — <span className="line-through opacity-70">299₽</span> 99 ₽/мес
                         </>
                     )}
                 </button>
