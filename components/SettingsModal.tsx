@@ -92,7 +92,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, currentDate, onT
                 </div>
 
                 {/* Content */}
-                <div className="px-6 py-5 space-y-8">
+                <div className="px-6 py-5 space-y-8 max-h-[70vh] overflow-y-auto">
                     {/* Day Start Hour Setting */}
                     <div className="space-y-3">
                         <div className="flex items-center gap-2 text-gray-700">
@@ -185,8 +185,8 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, currentDate, onT
                                         disabled={!isPremium}
                                         placeholder={section.label}
                                         className={`w-full px-3 py-2 text-sm border rounded-lg transition-colors ${isPremium
-                                                ? 'border-gray-200 focus:border-blue-500 focus:ring-1 focus:ring-blue-500'
-                                                : 'bg-gray-50 border-gray-100 text-gray-400 cursor-not-allowed'
+                                            ? 'border-gray-200 focus:border-blue-500 focus:ring-1 focus:ring-blue-500'
+                                            : 'bg-gray-50 border-gray-100 text-gray-400 cursor-not-allowed'
                                             }`}
                                     />
                                 </div>
