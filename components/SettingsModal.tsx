@@ -146,6 +146,62 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, currentDate, onT
                         )}
                     </div>
 
+                    {/* Section Names Setting */}
+                    <div className="space-y-3 pt-4 border-t border-gray-100">
+                        <div className="flex items-center gap-2 text-gray-700">
+                            <span className="font-medium">Названия разделов</span>
+                            {!isPremium && (
+                                <span className="ml-auto flex items-center gap-1 text-xs text-amber-600 bg-amber-50 px-2 py-1 rounded-full border border-amber-200">
+                                    <Crown size={12} />
+                                    Pro
+                                </span>
+                            )}
+                        </div>
+                        <p className="text-sm text-gray-500">
+                            Переименуйте разделы бэклога под свои задачи
+                        </p>
+                        <div className="grid grid-cols-2 gap-3">
+                            {[
+                                { id: 'inbox', label: 'Входящие' },
+                                { id: 'urgent', label: 'Срочно' },
+                                { id: 'someday', label: 'Когда-нибудь' },
+                                { id: 'ideas', label: 'Идеи' }
+                            ].map(section => (
+                                <div key={section.id} className="space-y-1">
+                                    <label className="text-xs text-gray-500">{section.label}</label>
+                                    <input
+                                        type="text"
+                                        value={settings.sectionNames?.[section.id as keyof typeof settings.sectionNames] || section.label}
+                                        onChange={(e) => {
+                                            if (isPremium) {
+                                                updateSettings({
+                                                    sectionNames: {
+                                                        ...settings.sectionNames,
+                                                        [section.id]: e.target.value || section.label
+                                                    }
+                                                });
+                                            }
+                                        }}
+                                        disabled={!isPremium}
+                                        placeholder={section.label}
+                                        className={`w-full px-3 py-2 text-sm border rounded-lg transition-colors ${isPremium
+                                                ? 'border-gray-200 focus:border-blue-500 focus:ring-1 focus:ring-blue-500'
+                                                : 'bg-gray-50 border-gray-100 text-gray-400 cursor-not-allowed'
+                                            }`}
+                                    />
+                                </div>
+                            ))}
+                        </div>
+                        {!isPremium && (
+                            <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg flex items-center gap-2">
+                                <Crown size={16} className="text-amber-600 shrink-0" />
+                                <p className="text-sm text-amber-700 font-medium">
+                                    Оформите Pro подписку, чтобы переименовать разделы
+                                </p>
+                            </div>
+                        )}
+                    </div>
+
                     {/* Subscription Status - only for authenticated users */}
                     {isAuthenticated && (
                         <div className="pt-4 border-t border-gray-100">

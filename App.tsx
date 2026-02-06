@@ -13,6 +13,7 @@ import PublicOffer from './components/Legal/PublicOffer';
 import PrivacyPolicy from './components/Legal/PrivacyPolicy';
 import PricingPage from './components/PricingPage';
 import { useAuth } from './contexts/AuthContext';
+import { useSettings } from './contexts/SettingsContext';
 import { useBilling, ProBadge, UpgradePrompt, UpgradeReason } from './billing';
 import { tasksApi } from './api';
 import { User, MoreHorizontal, ChevronLeft, ChevronRight, TrendingUp, LogOut, Settings, LifeBuoy, X, Crown, FileDown, Printer, Zap } from 'lucide-react';
@@ -24,6 +25,14 @@ const BOTTOM_COLUMNS = [
   { id: 'someday', label: 'Когда-нибудь' },
   { id: 'ideas', label: 'Идеи' }
 ];
+
+// Default section names for settings
+export const DEFAULT_SECTION_NAMES = {
+  inbox: 'Входящие',
+  urgent: 'Срочно',
+  someday: 'Когда-нибудь',
+  ideas: 'Идеи'
+};
 
 // Helper to check if an ID is a date (YYYY-MM-DD)
 const isDateColumn = (id: string) => /^\d{4}-\d{2}-\d{2}$/.test(id);
@@ -88,6 +97,7 @@ const StatsDisplay = ({ stats }: { stats: any }) => (
 const App: React.FC = () => {
   const { user, isAuthenticated, isLoading: authLoading, logout, token } = useAuth();
   const { isPremium, startPayment, canAddTask } = useBilling();
+  const { settings } = useSettings();
 
   // Start date: Jan 26, 2026
   // Start date: Monday of the current week
@@ -1028,7 +1038,7 @@ const App: React.FC = () => {
               <Column
                 column={{
                   id: colDef.id,
-                  dateLabel: colDef.label,
+                  dateLabel: settings.sectionNames?.[colDef.id as keyof typeof settings.sectionNames] || colDef.label,
                   dayLabel: '',
                 }}
                 quickAddState={quickAddState}

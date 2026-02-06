@@ -52,4 +52,10 @@ export const ItemTypes = {
 
 export interface UserSettings {
   dayStartHour: number; // 5, 6, 7, 8, 9, 10
+  sectionNames?: {
+    inbox?: string;
+    urgent?: string;
+    someday?: string;
+    ideas?: string;
+  };
 }
