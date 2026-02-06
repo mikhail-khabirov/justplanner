@@ -12,8 +12,9 @@ import PublicOffer from './components/Legal/PublicOffer';
 import PrivacyPolicy from './components/Legal/PrivacyPolicy';
 import PricingPage from './components/PricingPage';
 import { useAuth } from './contexts/AuthContext';
+import { useBilling, ProBadge } from './billing';
 import { tasksApi } from './api';
-import { User, MoreHorizontal, ChevronLeft, ChevronRight, TrendingUp, LogOut, Settings, LifeBuoy, X } from 'lucide-react';
+import { User, MoreHorizontal, ChevronLeft, ChevronRight, TrendingUp, LogOut, Settings, LifeBuoy, X, Crown } from 'lucide-react';
 
 // Configuration for the 4 bottom columns
 const BOTTOM_COLUMNS = [
@@ -85,6 +86,7 @@ const StatsDisplay = ({ stats }: { stats: any }) => (
 
 const App: React.FC = () => {
   const { user, isAuthenticated, isLoading: authLoading, logout, token } = useAuth();
+  const { isPremium, startPayment } = useBilling();
 
   // Start date: Jan 26, 2026
   // Start date: Monday of the current week
@@ -753,6 +755,11 @@ const App: React.FC = () => {
               </button>
             )}
 
+            {/* Pro Badge for premium users */}
+            {isAuthenticated && isPremium && (
+              <ProBadge size="md" />
+            )}
+
             <div className="relative">
               <button
                 onClick={() => setShowMenuDropdown(!showMenuDropdown)}
@@ -778,6 +785,25 @@ const App: React.FC = () => {
                       <Settings size={16} />
                       Настройки
                     </button>
+
+                    {/* Upgrade to Pro - only for free users */}
+                    {isAuthenticated && !isPremium && (
+                      <button
+                        onClick={async () => {
+                          setShowMenuDropdown(false);
+                          try {
+                            const url = await startPayment();
+                            window.location.href = url;
+                          } catch (e) {
+                            console.error('Payment failed:', e);
+                          }
+                        }}
+                        className="w-full text-left px-4 py-2 text-sm text-amber-600 hover:bg-amber-50 flex items-center gap-2 font-medium"
+                      >
+                        <Crown size={16} />
+                        Перейти на Pro
+                      </button>
+                    )}
 
                     <button
                       onClick={() => {

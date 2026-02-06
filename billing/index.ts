@@ -4,4 +4,5 @@ export { BillingProviderWrapper } from './BillingProviderWrapper';
 export { useSubscription } from './hooks/useSubscription';
 export { billingApi } from './api';
 export { default as SubscriptionStatus } from './components/SubscriptionStatus';
+export { default as ProBadge } from './components/ProBadge';
 export * from './types';
