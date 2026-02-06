@@ -93,6 +93,13 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, currentDate, onT
 
                 {/* Content */}
                 <div className="px-6 py-5 space-y-8 max-h-[70vh] overflow-y-auto">
+                    {/* Subscription Status - only for authenticated users */}
+                    {isAuthenticated && (
+                        <div className="pb-4 border-b border-gray-100">
+                            <SubscriptionStatus />
+                        </div>
+                    )}
+
                     {/* Day Start Hour Setting */}
                     <div className="space-y-3">
                         <div className="flex items-center gap-2 text-gray-700">
@@ -202,13 +209,6 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, currentDate, onT
                         )}
                     </div>
 
-                    {/* Subscription Status - only for authenticated users */}
-                    {isAuthenticated && (
-                        <div className="pt-4 border-t border-gray-100">
-                            <SubscriptionStatus />
-                        </div>
-                    )}
-
                     {/* Danger Zone */}
                     {isAuthenticated && (
                         <div className="pt-6 border-t border-gray-100 space-y-3">
@@ -245,7 +245,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, currentDate, onT
                     </button>
                 </div>
             </div>
-        </div>
+        </div >
     );
 };
 
