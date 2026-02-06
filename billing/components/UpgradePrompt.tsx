@@ -1,0 +1,107 @@
+import React, { useState } from 'react';
+import { Crown, X, Loader2, Sparkles } from 'lucide-react';
+import { useBilling } from '../BillingContext';
+
+interface UpgradePromptProps {
+    isOpen: boolean;
+    onClose: () => void;
+}
+
+/**
+ * Modal prompting free users to upgrade when they hit the 5 task limit
+ */
+const UpgradePrompt: React.FC<UpgradePromptProps> = ({ isOpen, onClose }) => {
+    const { startPayment, taskLimit } = useBilling();
+    const [isProcessing, setIsProcessing] = useState(false);
+
+    if (!isOpen) return null;
+
+    const handleUpgrade = async () => {
+        setIsProcessing(true);
+        try {
+            const url = await startPayment();
+            window.location.href = url;
+        } catch (error) {
+            console.error('Payment failed:', error);
+            alert('Ошибка при создании платежа. Попробуйте позже.');
+        } finally {
+            setIsProcessing(false);
+        }
+    };
+
+    return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            {/* Backdrop */}
+            <div
+                className="absolute inset-0 bg-gray-900/30 backdrop-blur-sm"
+                onClick={onClose}
+            />
+
+            {/* Modal */}
+            <div className="relative w-full max-w-sm bg-white rounded-2xl shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+                {/* Gradient Header */}
+                <div className="bg-gradient-to-r from-amber-400 via-orange-500 to-pink-500 px-6 py-8 text-center relative">
+                    <button
+                        onClick={onClose}
+                        className="absolute top-3 right-3 p-1.5 text-white/70 hover:text-white hover:bg-white/20 rounded-full transition-colors"
+                    >
+                        <X size={18} />
+                    </button>
+
+                    <div className="inline-flex items-center justify-center w-16 h-16 bg-white/20 rounded-full mb-4">
+                        <Crown size={32} className="text-white" />
+                    </div>
+
+                    <h2 className="text-xl font-bold text-white mb-1">
+                        Лимит достигнут
+                    </h2>
+                    <p className="text-white/80 text-sm">
+                        Бесплатный план: максимум {taskLimit} задач
+                    </p>
+                </div>
+
+                {/* Content */}
+                <div className="px-6 py-5">
+                    <div className="space-y-3 mb-6">
+                        <div className="flex items-center gap-3 text-gray-700">
+                            <Sparkles size={18} className="text-amber-500 flex-shrink-0" />
+                            <span className="text-sm">Неограниченное количество задач</span>
+                        </div>
+                        <div className="flex items-center gap-3 text-gray-700">
+                            <Sparkles size={18} className="text-amber-500 flex-shrink-0" />
+                            <span className="text-sm">Все функции без ограничений</span>
+                        </div>
+                        <div className="flex items-center gap-3 text-gray-700">
+                            <Sparkles size={18} className="text-amber-500 flex-shrink-0" />
+                            <span className="text-sm">Поддержка 24/7</span>
+                        </div>
+                    </div>
+
+                    <button
+                        onClick={handleUpgrade}
+                        disabled={isProcessing}
+                        className="w-full py-3 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-xl text-sm font-bold hover:from-amber-600 hover:to-orange-600 transition-all shadow-lg hover:shadow-xl flex items-center justify-center gap-2 disabled:opacity-50"
+                    >
+                        {isProcessing ? (
+                            <Loader2 size={18} className="animate-spin" />
+                        ) : (
+                            <>
+                                <Crown size={18} />
+                                Перейти на Pro — 99 ₽/мес
+                            </>
+                        )}
+                    </button>
+
+                    <button
+                        onClick={onClose}
+                        className="w-full mt-3 py-2.5 text-gray-500 text-sm hover:text-gray-700 transition-colors"
+                    >
+                        Остаться на бесплатном плане
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+export default UpgradePrompt;

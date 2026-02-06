@@ -12,7 +12,7 @@ import PublicOffer from './components/Legal/PublicOffer';
 import PrivacyPolicy from './components/Legal/PrivacyPolicy';
 import PricingPage from './components/PricingPage';
 import { useAuth } from './contexts/AuthContext';
-import { useBilling, ProBadge } from './billing';
+import { useBilling, ProBadge, UpgradePrompt } from './billing';
 import { tasksApi } from './api';
 import { User, MoreHorizontal, ChevronLeft, ChevronRight, TrendingUp, LogOut, Settings, LifeBuoy, X, Crown } from 'lucide-react';
 
@@ -86,7 +86,7 @@ const StatsDisplay = ({ stats }: { stats: any }) => (
 
 const App: React.FC = () => {
   const { user, isAuthenticated, isLoading: authLoading, logout, token } = useAuth();
-  const { isPremium, startPayment } = useBilling();
+  const { isPremium, startPayment, canAddTask } = useBilling();
 
   // Start date: Jan 26, 2026
   // Start date: Monday of the current week
@@ -110,6 +110,8 @@ const App: React.FC = () => {
   const [legalView, setLegalView] = useState<'terms' | 'privacy' | 'pricing' | null>(null);
   // Blocking auth state: triggered by smart timer/clicks in demo mode
   const [blockingAuth, setBlockingAuth] = useState(false);
+  // Upgrade prompt for free users hitting task limit
+  const [showUpgradePrompt, setShowUpgradePrompt] = useState(false);
   const [authMode, setAuthMode] = useState<'login' | 'register'>('login');
 
   // Quick Add State
@@ -491,6 +493,11 @@ const App: React.FC = () => {
   // --- Task Management ---
 
   const handleInitiateQuickAdd = (columnId: string, hour?: number) => {
+    // Check task limit for free users
+    if (isAuthenticated && !canAddTask(tasks.length)) {
+      setShowUpgradePrompt(true);
+      return;
+    }
     // Check limits for calendar view
     if (isDateColumn(columnId) && hour !== undefined) {
       const count = tasks.filter(t => t.columnId === columnId && t.hour === hour).length;
@@ -977,6 +984,12 @@ const App: React.FC = () => {
         isOpen={showOnboarding}
         userId={user?.id}
         onComplete={() => setShowOnboarding(false)}
+      />
+
+      {/* Upgrade Prompt for free users hitting task limit */}
+      <UpgradePrompt
+        isOpen={showUpgradePrompt}
+        onClose={() => setShowUpgradePrompt(false)}
       />
     </div>
   );
