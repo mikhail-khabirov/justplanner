@@ -94,12 +94,12 @@ const UpgradePrompt: React.FC<UpgradePromptProps> = ({ isOpen, onClose }) => {
                     </button>
 
                     {/* Auto-renewal terms link */}
-                    <p className="text-center mt-2">
+                    <p className="text-center mt-1">
                         <button
                             onClick={() => setShowTerms(true)}
-                            className="text-xs text-gray-400 hover:text-gray-600 underline underline-offset-2 transition-colors"
+                            className="text-[10px] text-gray-400 hover:text-gray-600 underline underline-offset-2 transition-colors"
                         >
-                            далее 99 ₽/мес
+                            Условия автопродления
                         </button>
                     </p>
 
