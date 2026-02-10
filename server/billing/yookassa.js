@@ -160,13 +160,14 @@ export async function createCardBindingPayment(userId, userEmail) {
  */
 export async function refundPayment(paymentId, amount) {
     const idempotenceKey = uuidv4();
-    return await yookassa.createRefund({
-        payment_id: paymentId,
-        amount: {
+    return await yookassa.createRefund(
+        paymentId,
+        {
             value: amount,
             currency: 'RUB'
-        }
-    }, idempotenceKey);
+        },
+        idempotenceKey
+    );
 }
 
 export default yookassa;
