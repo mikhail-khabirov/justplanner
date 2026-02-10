@@ -117,15 +117,50 @@ const App: React.FC = () => {
   const [showSupportModal, setShowSupportModal] = useState(false);
   const [showMenuDropdown, setShowMenuDropdown] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
-  const [showLanding, setShowLanding] = useState(!isAuthenticated);
-  const [showFeaturesPage, setShowFeaturesPage] = useState(false);
-  const [legalView, setLegalView] = useState<'terms' | 'privacy' | 'pricing' | null>(null);
+  // URL-based routing: initialize state from current pathname
+  const initPath = typeof window !== 'undefined' ? window.location.pathname : '/';
+  const [showLanding, setShowLanding] = useState(() => {
+    if (isAuthenticated) return false;
+    return initPath === '/' || initPath === '/features' || initPath === '/pricing' || initPath === '/terms' || initPath === '/privacy';
+  });
+  const [showFeaturesPage, setShowFeaturesPage] = useState(initPath === '/features');
+  const [legalView, setLegalView] = useState<'terms' | 'privacy' | 'pricing' | null>(() => {
+    if (initPath === '/pricing') return 'pricing';
+    if (initPath === '/terms') return 'terms';
+    if (initPath === '/privacy') return 'privacy';
+    return null;
+  });
   // Blocking auth state: triggered by smart timer/clicks in demo mode
   const [blockingAuth, setBlockingAuth] = useState(false);
   // Upgrade prompt for free users hitting various limits
   const [showUpgradePrompt, setShowUpgradePrompt] = useState(false);
   const [upgradeReason, setUpgradeReason] = useState<UpgradeReason>('task_limit');
   const [authMode, setAuthMode] = useState<'login' | 'register'>('login');
+
+  // Helper: navigate to a URL and update state
+  const navigateTo = useCallback((path: string) => {
+    window.history.pushState({}, '', path);
+  }, []);
+
+  // Handle browser back/forward
+  useEffect(() => {
+    const handlePopState = () => {
+      const path = window.location.pathname;
+      setLegalView(
+        path === '/pricing' ? 'pricing' :
+          path === '/terms' ? 'terms' :
+            path === '/privacy' ? 'privacy' : null
+      );
+      setShowFeaturesPage(path === '/features');
+      if (path === '/app') {
+        setShowLanding(false);
+      } else if (path === '/' && !isAuthenticated) {
+        setShowLanding(true);
+      }
+    };
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, [isAuthenticated]);
 
   // Helper to show upgrade prompt with specific reason
   const showUpgradePromptWithReason = useCallback((reason: UpgradeReason) => {
@@ -722,17 +757,18 @@ const App: React.FC = () => {
   }
 
   if (legalView === 'terms') {
-    return <PublicOffer onBack={() => setLegalView(null)} />;
+    return <PublicOffer onBack={() => { setLegalView(null); window.history.back(); }} />;
   }
   if (legalView === 'privacy') {
-    return <PrivacyPolicy onBack={() => setLegalView(null)} />;
+    return <PrivacyPolicy onBack={() => { setLegalView(null); window.history.back(); }} />;
   }
   if (legalView === 'pricing') {
     return (
       <PricingPage
-        onBack={() => setLegalView(null)}
+        onBack={() => { setLegalView(null); window.history.back(); }}
         onSelectPlan={(plan) => {
           setLegalView(null);
+          navigateTo('/app');
           if (plan === 'pro') {
             setAuthMode('register');
             setShowAuthModal(true);
@@ -752,14 +788,18 @@ const App: React.FC = () => {
           onStart={() => {
             setShowFeaturesPage(false);
             setShowLanding(false);
+            navigateTo('/app');
           }}
           onBack={() => {
             setShowFeaturesPage(false);
             if (!isAuthenticated) {
               setShowLanding(true);
+              navigateTo('/');
+            } else {
+              navigateTo('/app');
             }
           }}
-          onShowPricing={() => setLegalView('pricing')}
+          onShowPricing={() => { setLegalView('pricing'); navigateTo('/pricing'); }}
         />
         {legalView === 'pricing' && (
           <PricingPage
@@ -781,16 +821,17 @@ const App: React.FC = () => {
       <>
         <LandingPage
           onStart={() => {
-            setShowLanding(false); // Go to demo
+            setShowLanding(false);
+            navigateTo('/app');
           }}
           onLogin={() => {
             setAuthMode('login');
             setShowAuthModal(true);
           }}
-          onShowTerms={() => setLegalView('terms')}
-          onShowPrivacy={() => setLegalView('privacy')}
-          onShowPricing={() => setLegalView('pricing')}
-          onShowFeatures={() => setShowFeaturesPage(true)}
+          onShowTerms={() => { setLegalView('terms'); navigateTo('/terms'); }}
+          onShowPrivacy={() => { setLegalView('privacy'); navigateTo('/privacy'); }}
+          onShowPricing={() => { setLegalView('pricing'); navigateTo('/pricing'); }}
+          onShowFeatures={() => { setShowFeaturesPage(true); navigateTo('/features'); }}
         />
         {/* Render AuthModal here too in case they click Login from landing */}
         {showAuthModal && (
@@ -936,6 +977,7 @@ const App: React.FC = () => {
                       onClick={() => {
                         setShowFeaturesPage(true);
                         setShowMenuDropdown(false);
+                        navigateTo('/features');
                       }}
                       className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
                     >

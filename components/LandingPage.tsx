@@ -56,13 +56,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart, onLogin, onShowTerms
             {/* Hero Section */}
             <section className="pt-20 sm:pt-32 pb-20 px-4 sm:px-6 lg:px-8 max-w-6xl mx-auto">
                 <div className="text-center max-w-3xl mx-auto mb-12">
-                    <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-gradient-to-r from-emerald-50 to-green-50 border border-emerald-200 text-emerald-700 font-bold mb-8 shadow-[0_2px_8px_rgba(16,185,129,0.15)] animate-in fade-in slide-in-from-bottom-2">
-                        <span className="relative flex h-2.5 w-2.5">
-                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                            <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
-                        </span>
-                        <span className="text-sm tracking-wide">Бесплатно навсегда</span>
-                    </div>
+
                     <h1 className="text-3xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight mb-6 leading-tight">
                         Организуй свой день
                         <span className="text-[#26A69A] block mt-2">просто и эффективно за 30 секунд</span>

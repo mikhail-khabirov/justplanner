@@ -105,7 +105,10 @@ const PricingPage: React.FC<PricingPageProps> = ({ onBack, onSelectPlan }) => {
                                 </ul>
 
                                 <button
-                                    onClick={() => onSelectPlan(plan.highlight ? 'pro' : 'free')}
+                                    onClick={() => {
+                                        window.history.pushState({}, '', '/app');
+                                        onSelectPlan(plan.highlight ? 'pro' : 'free');
+                                    }}
                                     className={`w-full py-4 px-6 rounded-2xl font-bold text-lg transition-all ${plan.highlight
                                         ? 'bg-[#26A69A] text-white hover:bg-[#218F84] shadow-[0_8px_20px_rgba(38,166,154,0.3)]'
                                         : 'bg-gray-100 text-gray-900 hover:bg-gray-200'
