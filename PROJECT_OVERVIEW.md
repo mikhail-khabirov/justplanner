@@ -1,135 +1,403 @@
-# JustPlanner — Обзор проекта
+# JustPlanner — Полная документация проекта
 
 ## 📌 Описание проекта
-**JustPlanner** — это современный еженедельный планировщик задач, разработанный для максимальной простоты и эффективности. Он позволяет пользователям организовывать свои дела в формате недельного календаря, использовать бэклог для долгосрочных задач и отслеживать продуктивность.
 
-### Ключевые возможности:
-- **Недельный календарь**: Визуальное расписание с 5:00 до 23:00.
-- **Drag & Drop**: Быстрое перемещение задач между днями, часами и бэклогом.
-- **Умный бэклог**: 4 категории внизу экрана ("Входящие", "Срочно", "Когда-нибудь", "Идеи").
-- **Мягкая регистрация**: Можно начать пользоваться без входа (Демо-режим). Окно регистрации появляется ненавязчиво через определенное количество действий.
-- **Адаптивность**: Полная поддержка мобильных устройств.
-- **Синхронизация**: Сохранение данных на сервере для зарегистрированных пользователей.
+**JustPlanner** — это современный еженедельный планировщик задач с моделью подписки (freemium). Позволяет пользователям организовывать дела в формате недельного календаря, использовать бэклог для долгосрочных задач и отслеживать продуктивность.
+
+**Сайт**: [justplanner.ru](https://justplanner.ru)  
+**Сервер**: VPS 5.35.94.142 (Ubuntu, PM2, Nginx)  
+**Репозиторий**: [github.com/wfmvgo/justplanner](https://github.com/wfmvgo/justplanner)
 
 ---
 
-## 🏗 Структура проекта
+## 🎯 Ключевые возможности
 
-### Технологии
-- **Frontend**: React 18, TypeScript, Vite, Tailwind CSS, Lucide React (иконки).
-- **Backend**: Node.js, Express.
-- **База данных**: PostgreSQL.
-- **Авторизация**: JWT + Google OAuth.
+- **Недельный календарь**: Визуальное расписание с настраиваемым началом дня (по умолчанию 7:00).
+- **Drag & Drop**: Перемещение задач между днями, часами и бэклогом.
+- **Умный бэклог**: 4 настраиваемые категории ("Входящие", "Срочно", "Когда-нибудь", "Идеи") с возможностью переименования (Pro).
+- **Подзадачи**: Чеклисты внутри задач.
+- **Цветовая маркировка**: 6 цветов для визуального кодирования (только Pro).
+- **Повторяющиеся задачи**: Рекуррентные задачи (только Pro).
+- **Мягкая регистрация**: Демо-режим → окно регистрации после 20 действий.
+- **Google OAuth**: Вход через Google.
+- **PDF/Печать**: Экспорт расписания (только Pro).
+- **Адаптивность**: Полная поддержка мобильных устройств.
+- **Синхронизация**: Данные на сервере для зарегистрированных пользователей.
 
-### Файловая структура
+---
+
+## 💰 Модель монетизации (Freemium)
+
+### Free план
+- 10 активных задач
+- Только текущая неделя
+- Без цветов, рекуррентности, PDF
+- Без настройки названий секций бэклога
+
+### Pro план — 99₽/мес
+- Безлимитные задачи
+- Все недели (прошлые и будущие)
+- Цветовая маркировка
+- Повторяющиеся задачи
+- Настройка начала дня
+- Переименование секций бэклога
+- PDF/Печать
+- Автопродление через 30 дней
+
+### Платёжная система — YooKassa
+- **Оплата**: 99₽ через YooKassa (банковские карты).
+- **Привязка карты**: При оплате карта сохраняется (`save_payment_method`).
+- **Отвязка карты**: Пользователь может отвязать карту в настройках.
+- **Повторная привязка**: Заряд 1₽ с мгновенным возвратом.
+- **Автопродление**: Cron-задача ежедневно в 3:00 (MSK) проверяет истёкшие подписки и списывает 99₽ с сохранённой карты.
+- **Retry-логика**: До 3 попыток с интервалом 24 часа, затем даунгрейд на Free.
+- **Webhook**: Обработка событий `payment.succeeded`, `payment.canceled`, `refund.succeeded`.
+
+### Ранние пользователи
+Все пользователи, зарегистрированные до 10.02.2026, имеют бессрочный Pro (дата окончания 2099-12-31), без привязки карт и автопродления.
+
+---
+
+## 🏗 Технологии
+
+| Компонент | Технология |
+|-----------|-----------|
+| Frontend | React 18, TypeScript, Vite, Tailwind CSS |
+| Backend | Node.js, Express, ES Modules |
+| База данных | PostgreSQL |
+| Авторизация | JWT + Google OAuth 2.0 |
+| Платежи | YooKassa SDK |
+| Процесс-менеджер | PM2 |
+| Веб-сервер | Nginx |
+| CI/CD | GitHub Actions |
+| Аналитика | Yandex Metrika (106590123) |
+| Мониторинг | Sentry |
+
+---
+
+## 📁 Структура проекта
 
 ```
 justplanner/
-├── .env                  # Переменные окружения сервера
-├── App.tsx               # Главный компонент (Layout, State, Routing logic)
-├── components/           # UI Компоненты
-│   ├── AuthModal.tsx         # Окно входа/регистрации
-│   ├── Column.tsx            # Колонка дня или бэклога
-│   ├── LandingAnimation.tsx  # Анимация на лендинге
-│   ├── LandingPage.tsx       # Стартовая страница
-│   ├── OnboardingOverlay.tsx # Обучение для новых пользователей
-│   ├── OnboardingTooltip.tsx # Подсказки
-│   ├── QuickAddInput.tsx     # Инпут быстрого создания задачи
-│   ├── SettingsModal.tsx     # Настройки (начало дня, аккаунт)
-│   ├── TaskItem.tsx          # Карточка задачи
-│   └── TaskModal.tsx         # Детальное окно задачи
-├── contexts/             # React Contexts
-│   ├── AuthContext.tsx       # Логика авторизации
-│   └── SettingsContext.tsx   # Глобальные настройки
-├── server/               # Backend
-│   ├── config/db.js          # Подключение к PostgreSQL
-│   ├── routes/               # API роуты
-│   │   ├── admin.js          # Админка
-│   │   ├── auth.js           # Auth endpoints
-│   │   └── tasks.js          # CRUD задач
-│   └── server.js             # Точка входа сервера
-└── utils.ts              # Утилиты (даты, генераторы ID)
+├── index.html                    # HTML точка входа + Yandex Metrika
+├── index.tsx                     # React точка входа
+├── App.tsx                       # Главный компонент (~1200 строк)
+├── api.ts                        # API клиент (задачи, настройки)
+├── types.ts                      # TypeScript типы (Task, Column, Subtask, TaskColor)
+├── utils.ts                      # Утилиты (даты, ID, праздники РФ)
+├── vite.config.ts                # Vite конфигурация (proxy /api → :3001)
+├── tsconfig.json                 # TypeScript конфигурация
+├── package.json                  # Frontend зависимости
+├── deploy.sh                     # Скрипт деплоя (rsync → build → pm2 restart)
+├── ecosystem.config.js           # PM2 конфигурация
+├── nginx.conf.example            # Пример конфига Nginx
+├── setup-vps.sh                  # Скрипт первичной настройки VPS
+│
+├── components/                   # UI Компоненты
+│   ├── AuthModal.tsx             # Окно входа/регистрации (Email + Google)
+│   ├── Column.tsx                # Колонка дня или бэклога
+│   ├── FeaturesPage.tsx          # Страница возможностей (/features)
+│   ├── LandingPage.tsx           # Лендинг (/)
+│   ├── LandingAnimation.tsx      # Анимация на лендинге
+│   ├── OnboardingOverlay.tsx     # Обучение для новых пользователей
+│   ├── OnboardingTooltip.tsx     # Подсказки онбординга
+│   ├── PricingPage.tsx           # Страница тарифов (/pricing)
+│   ├── QuickAddInput.tsx         # Инпут быстрого создания задачи
+│   ├── SettingsModal.tsx         # Настройки (аккаунт, начало дня, секции, подписка)
+│   ├── TaskItem.tsx              # Карточка задачи
+│   ├── TaskModal.tsx             # Модальное окно задачи (редактирование, подзадачи, рекуррентность)
+│   └── Legal/
+│       ├── PrivacyPolicy.tsx     # Политика конфиденциальности
+│       └── PublicOffer.tsx       # Публичная оферта
+│
+├── billing/                      # Модуль биллинга (frontend)
+│   ├── api.ts                    # API клиент (subscribe, verify, cancel, bindCard, unbindCard)
+│   ├── types.ts                  # Типы подписки (SubscriptionStatus, Plan)
+│   ├── index.ts                  # Реэкспорт модуля
+│   ├── BillingContext.tsx        # React Context для управления подпиской
+│   ├── BillingProviderWrapper.tsx # Обёртка-провайдер
+│   ├── components/
+│   │   ├── SubscriptionStatus.tsx # UI статуса подписки (в настройках)
+│   │   ├── UpgradePrompt.tsx     # Попап "Обновите до Pro"
+│   │   └── ProBadge.tsx          # Бейдж "Pro" в хедере
+│   └── hooks/
+│       └── useSubscription.ts    # Хук для проверки подписки
+│
+├── contexts/                     # React Contexts
+│   ├── AuthContext.tsx           # Авторизация (JWT, Google OAuth)
+│   └── SettingsContext.tsx       # Настройки пользователя (начало дня, секции)
+│
+├── public/                       # Статика
+│   ├── favicon.svg               # Фавикон
+│   ├── logo.png                  # Логотип
+│   ├── main.mp4                  # Видео на лендинге
+│   ├── 1.mp4 - 8.mp4             # Видео для страницы Features
+│   ├── robots.txt                # SEO
+│   ├── sitemap.xml               # SEO
+│   └── back/
+│       └── index.html            # Админ-панель (standalone HTML)
+│
+└── server/                       # Backend
+    ├── index.js                  # Точка входа (Express, CORS, OAuth, маршруты)
+    ├── package.json              # Backend зависимости
+    ├── schema.sql                # SQL схема (users, tasks)
+    ├── config/
+    │   └── db.js                 # Подключение к PostgreSQL (DATABASE_URL)
+    ├── middleware/
+    │   └── auth.js               # JWT middleware (authenticateToken)
+    ├── models/
+    │   ├── User.js               # Модель пользователя
+    │   └── Task.js               # Модель задачи
+    ├── routes/
+    │   ├── auth.js               # Auth endpoints (register, login, google)
+    │   ├── tasks.js              # CRUD задач
+    │   ├── settings.js           # Настройки пользователя
+    │   └── admin.js              # Админ-панель API
+    ├── billing/
+    │   ├── schema.sql            # SQL схема (subscriptions, payments)
+    │   ├── yookassa.js           # YooKassa SDK (createPayment, createRecurringPayment, refundPayment, createCardBindingPayment)
+    │   ├── routes.js             # Billing API (subscribe, verify, cancel, webhook, bind-card, unbind-card)
+    │   └── renewal.js            # Cron автопродления (processRenewals)
+    └── utils/
+        └── email.js              # Утилиты email (если есть)
 ```
 
 ---
 
-## 📜 История изменений (Change Log)
+## � Переменные окружения (server/.env)
 
-### Основные обновления UI/UX
-1. **Sticky Header для Бэклога**:
-   - Заголовки категорий бэклога ("Входящие" и т.д.) зафиксированы при скролле.
-   - Добавлено визуальное разделение зоны бэклога (фон, тень, граница).
-
-2. **Оптимизация отображения текста**:
-   - Исправлен перенос длинных слов в задачах (`overflow-wrap: anywhere`).
-   - Улучшено отображение email пользователя (уменьшен шрифт, увеличена допустимая ширина).
-
-3. **Навигация**:
-   - **"Сегодня"**: При открытии приложения автоматически открывается текущая неделя (расчет от текущей даты).
-   - **Возврат**: Клик по заголовку месяца возвращает календарь на текущую неделю.
-   - **Mobile Scroll**: Исправлена автопрокрутка к текущему дню на мобильных устройствах сразу после входа.
-
-### Система регистрации и онбординга
-1. **Мягкий вход (Soft Auth)**:
-   - Убран таймер принудительного окна.
-   - Окно регистрации появляется только после 20 активных кликов.
-   - Окно можно закрыть и продолжить работу (счетчик кликов сбрасывается).
-2. **Контекстный режим окна**:
-   - При срабатывании лимита кликов открывается вкладка **"Регистрация"**.
-   - При нажатии кнопки "Войти" — вкладка **"Вход"**.
-3. **Предупреждение гостей**:
-   - Добавлен красный баннер вверху для незарегистрированных пользователей ("Вы не зарегистрированы. Данные не сохранятся...").
-4. **Обновленный онбординг**:
-   - Добавлены шаги про "Настройку начала дня" и "Бэклог".
-
-### Маркетинг и поддержка
-1. **Бейджи**:
-   - **Beta** возле логотипа.
-   - **"Бесплатно навсегда"** (с пульсирующей точкой) на лендинге.
-2. **Поддержка**:
-   - Реализовано модальное окно поддержки вместо `mailto:` ссылки в меню.
-   - Контактный email: `support@justplanner.ru`.
-
-### Админка
-- Доступ по `admin` / `JustPlannerAdmin2026!`.
-
-### Аналитика (02.02.2026 21:09)
-- **Цели (Goals)**: Добавлены JS-события для отслеживания конверсий:
-  - `btn_login_click` — Клик по "Войти"
-  - `btn_start_click` — Клик по "Начать планировать"
-  - `btn_start_free_click` — Клик по "Начать бесплатно сейчас"
-  - `form_register_submit` — Успешная отправка формы регистрации
-  - `form_login_submit` — Успешная отправка формы входа
-  - `auth_google` — Клик по "Войти через Google"
-- **Вебмастер (02.02.2026 21:17)**:
-  - Добавлен мета-тег верификации Yandex `8e9d0e8e649f6ce2` в `head`.
-- **SEO (02.02.2026 21:20)**:
-  - Добавлен файл `robots.txt` в папку `public`.
-  - Разрешена индексация всего сайта, скрыты технические папки (`/api/`, `/server/`, `/node_modules/`).
-- **Sitemap (02.02.2026 21:23)**:
-  - Добавлен `sitemap.xml` в папку `public`.
-- **Virtual Page Hits** (Обновлено 02.02.2026 21:30):
-  - Лендинг: `/`
-  - Приложение: `/app`
-  - Вход: `/auth/login`
-  - Регистрация: `/auth/register`
-  - Настройки: `/app/settings`
-- Подключена **Yandex Metrika** (счетчик 106590123).
-- Код счетчика добавлен в `index.html` (head + noscript body).
+```env
+DATABASE_URL=postgresql://...
+JWT_SECRET=...
+GOOGLE_CLIENT_ID=...
+GOOGLE_CLIENT_SECRET=...
+FRONTEND_URL=https://justplanner.ru
+YOOKASSA_SHOP_ID=...
+YOOKASSA_SECRET_KEY=...
+YOOKASSA_RETURN_URL=https://justplanner.ru
+ADMIN_USERNAME=admin
+ADMIN_PASSWORD=...
+PORT=3001
+```
 
 ---
 
-## 🚀 Как запустить
+## 🚀 Деплой
 
-1. **Frontend**:
-   ```bash
-   npm install
-   npm run dev
-   ```
+### Скрипт `deploy.sh`
+```
+1. rsync файлов на сервер (исключая node_modules, .git)
+2. npm install на сервере
+3. npm run build (Vite production build)
+4. pm2 restart justplanner-api
+```
 
-2. **Backend**:
-   ```bash
-   cd server
-   npm install
-   npm run dev
-   ```
+### Запуск вручную
+```bash
+bash deploy.sh
+```
+
+### GitHub Actions
+- **deploy.yml** — деплой при push в `main`
+- **deploy-dev.yml** — деплой dev-ветки
+
+---
+
+## 🛠 Как запустить локально
+
+### Frontend
+```bash
+npm install
+npm run dev
+# Доступ: http://localhost:3000
+```
+
+### Backend
+```bash
+cd server
+npm install
+cp .env.example .env    # Заполнить переменные
+npm run dev
+# API: http://localhost:3001
+```
+
+---
+
+## 📊 Админ-панель
+
+**URL**: `https://justplanner.ru/back/`  
+**Доступ**: `admin` / `JustPlannerAdmin2026!`
+
+### Возможности:
+- Список всех пользователей
+- Столбцы: ID, Email, Подписка (Pro/Free), Тип (Email/Google), Источник, Кампания, Регистрация, Активность, Задачи (+24ч)
+- Сортировка по любому столбцу
+- Удаление пользователей
+- Статистика: всего пользователей, всего задач, задач за 24ч
+
+---
+
+## 📜 История изменений (полная)
+
+### Фаза 0: Основа (январь 2026)
+- Создание проекта (React + Vite + TypeScript)
+- Недельный календарь с Drag & Drop
+- Компоненты: Column, TaskItem, TaskModal, QuickAddInput
+- Подзадачи, цветовая маркировка
+- Праздники РФ 2026 года
+- Backend: Express + PostgreSQL
+- Auth: JWT + Google OAuth
+- Демо-режим и мягкая регистрация (после 20 действий)
+
+### Фаза 1: Лендинг и маркетинг
+- LandingPage с анимацией
+- FeaturesPage с видеороликами (1-8.mp4)
+- PricingPage (Free vs Pro)
+- Бейдж "Beta" возле логотипа
+- SEO: robots.txt, sitemap.xml
+- Юридические документы (Публичная оферта, Политика конфиденциальности)
+- Yandex Metrika (счетчик 106590123)
+- Virtual Page Hits для SPA
+- UTM-трекинг: сохранение source и campaign при регистрации
+
+### Фаза 2: Админ-панель
+- Standalone HTML (`/back/index.html`)
+- Аутентификация через JWT
+- Таблица пользователей с сортировкой
+- Статистика задач (общая + за 24ч)
+- Столбцы: ID, Email, Подписка, Тип, Источник, Кампания, Регистрация, Активность, Задачи
+- Удаление пользователей
+
+### Фаза 3: DevOps
+- GitHub Actions для CI/CD (main + dev)
+- PM2 конфигурация (ecosystem.config.js)
+- Скрипт деплоя (deploy.sh) через rsync
+- Скрипт первичной настройки VPS (setup-vps.sh)
+- Sentry для мониторинга ошибок
+
+### Фаза 4: Freemium и ограничения
+- Разделение на Free / Pro план
+- **Ограничения Free**: 10 задач, только текущая неделя, без цветов, без рекуррентности, без PDF
+- Компонент UpgradePrompt с контекстными сообщениями
+- ProBadge в хедере для Pro-подписчиков
+- Настройка начала дня — Pro feature
+- Переименование секций бэклога — Pro feature
+- PDF/Печать — Pro feature
+
+### Фаза 5: Биллинг (YooKassa)
+- **Подключение YooKassa SDK**: createPayment, getPaymentStatus
+- **Endpoints**: `/subscribe`, `/verify-payment`, `/cancel-subscription`, `/webhook`
+- **Frontend**: BillingContext, billingApi, SubscriptionStatus компонент
+- **Табличная система**: subscriptions, payments в PostgreSQL
+- **Гранты для ранних пользователей**: бессрочный Pro (до 2099-12-31)
+
+### Фаза 6: Автопродление и привязка карт
+- **Рекуррентные платежи**: createRecurringPayment (99₽ с сохранённой карты)
+- **Cron-задача renewal.js**: ежедневная проверка истёкших подписок в 3:00 MSK
+- **Retry-логика**: 3 попытки, потом даунгрейд на Free
+- **Привязка карты**: save_payment_method при первой оплате
+- **Отвязка карты**: endpoint `/unbind-card`, очистка yookassa_subscription_id
+- **Переключатель автопродления**: toggle в настройках подписки
+- **Показ привязанной карты**: "Bank card *XXXX" в настройках
+- **Verify-payment fallback**: автоматическая проверка при загрузке приложения
+
+### Фаза 7: Привязка карты через 1₽ (10.02.2026)
+- **Сценарий**: Пользователь отвязал карту → для повторной привязки заряд 1₽ с мгновенным возвратом
+- **createCardBindingPayment**: платёж на 1₽ с `save_payment_method: true`
+- **refundPayment**: возврат через YooKassa API
+- **Endpoint `/bind-card`**: инициация привязки
+- **Кнопка "Привязать карту (1₽ с возвратом)"**: в настройках подписки
+- **Исправлен баг**: неправильные аргументы `createRefund` (объект вместо позиционных)
+- **Исправлен баг**: webhook `refund.succeeded` ошибочно даунгрейдил на Free при возврате 1₽ — добавлена проверка суммы ≤1₽
+
+---
+
+## 🗄 Схема базы данных
+
+### Таблица `users`
+| Столбец | Тип | Описание |
+|---------|-----|----------|
+| id | SERIAL PK | ID пользователя |
+| email | VARCHAR UNIQUE | Email |
+| password_hash | VARCHAR | Хеш пароля (bcrypt) |
+| google_id | VARCHAR | Google OAuth ID |
+| plan | VARCHAR | Текущий план (free/pro) |
+| registration_source | VARCHAR | Источник регистрации (UTM) |
+| registration_campaign | VARCHAR | Кампания (UTM) |
+| last_login | TIMESTAMP | Последний вход |
+| created_at | TIMESTAMP | Дата регистрации |
+
+### Таблица `tasks`
+| Столбец | Тип | Описание |
+|---------|-----|----------|
+| id | SERIAL PK | ID задачи |
+| user_id | INTEGER FK | Владелец |
+| content | TEXT | Текст задачи |
+| column_id | VARCHAR | Колонка (дата или бэклог) |
+| hour | INTEGER | Час в расписании |
+| color | VARCHAR | Цвет |
+| completed | BOOLEAN | Выполнена |
+| subtasks | JSONB | Массив подзадач |
+| sort_order | INTEGER | Порядок сортировки |
+| recurrence | JSONB | Настройки рекуррентности |
+| created_at | TIMESTAMP | Дата создания |
+
+### Таблица `subscriptions`
+| Столбец | Тип | Описание |
+|---------|-----|----------|
+| id | SERIAL PK | ID подписки |
+| user_id | INTEGER FK UNIQUE | Пользователь |
+| plan | VARCHAR | План (free/pro) |
+| status | VARCHAR | Статус (active/cancelled/expired) |
+| current_period_end | TIMESTAMP | Дата окончания подписки |
+| yookassa_subscription_id | VARCHAR | ID сохранённого способа оплаты |
+| payment_method_title | VARCHAR | Название карты ("Bank card *XXXX") |
+| auto_renew | BOOLEAN | Автопродление включено |
+| renewal_retries | INTEGER | Счётчик неудачных попыток списания |
+| last_renewal_attempt | TIMESTAMP | Последняя попытка продления |
+| created_at / updated_at | TIMESTAMP | Метки времени |
+
+### Таблица `payments`
+| Столбец | Тип | Описание |
+|---------|-----|----------|
+| id | SERIAL PK | ID записи |
+| user_id | INTEGER FK | Пользователь |
+| yookassa_payment_id | VARCHAR | ID платежа в YooKassa |
+| amount | DECIMAL | Сумма |
+| currency | VARCHAR | Валюта (RUB) |
+| status | VARCHAR | Статус (pending/succeeded/refunded) |
+| description | VARCHAR | Описание платежа |
+| created_at | TIMESTAMP | Дата платежа |
+
+---
+
+## 🔄 Потоки данных
+
+### Поток оплаты подписки
+```
+Пользователь → Кнопка "Оформить Pro" → POST /api/billing/subscribe
+→ YooKassa createPayment (99₽, save_payment_method) → Redirect на YooKassa
+→ Пользователь оплачивает → YooKassa callback
+→ GET /api/billing/verify-payment (fallback) или POST /webhook (основной)
+→ Обновление subscriptions (plan=pro, period_end +30 дней, карта сохранена)
+→ Обновление users (plan=pro)
+```
+
+### Поток автопродления
+```
+Cron (3:00 MSK ежедневно) → processRenewals()
+→ SELECT подписки WHERE auto_renew=TRUE AND current_period_end <= NOW()
+→ createRecurringPayment(99₽) с сохранённой картой
+→ Успех: period_end +30 дней, retries=0
+→ Неудача: retries++, если retries >= 3 → даунгрейд на Free
+```
+
+### Поток привязки карты (1₽)
+```
+Пользователь → "Привязать карту" → POST /api/billing/bind-card
+→ createCardBindingPayment (1₽, save_payment_method)
+→ Redirect на YooKassa → Оплата
+→ Webhook payment.succeeded → Сохранение карты, auto_renew=TRUE
+→ refundPayment(1₽) → Мгновенный возврат
+→ Webhook refund.succeeded → (пропускаем, сумма ≤1₽, не даунгрейдим)
+```
