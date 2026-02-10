@@ -35,3 +35,8 @@ CREATE INDEX IF NOT EXISTS idx_subscriptions_user_id ON subscriptions(user_id);
 CREATE INDEX IF NOT EXISTS idx_subscriptions_status ON subscriptions(status);
 CREATE INDEX IF NOT EXISTS idx_payments_user_id ON payments(user_id);
 CREATE INDEX IF NOT EXISTS idx_payments_yookassa_id ON payments(yookassa_payment_id);
+
+-- Renewal tracking columns (for recurring payments)
+ALTER TABLE subscriptions ADD COLUMN IF NOT EXISTS renewal_retries INTEGER DEFAULT 0;
+ALTER TABLE subscriptions ADD COLUMN IF NOT EXISTS last_renewal_attempt TIMESTAMP;
+ALTER TABLE subscriptions ADD COLUMN IF NOT EXISTS payment_method_title VARCHAR(255);

@@ -71,9 +71,30 @@ app.use('/api/settings', settingsRoutes);
 import billingRoutes from './billing/routes.js';
 app.use('/api/billing', billingRoutes);
 
+// Subscription renewal cron job
+import cron from 'node-cron';
+import { processRenewals } from './billing/renewal.js';
+
 // Health check
 app.get('/api/health', (req, res) => {
     res.json({ status: 'ok', timestamp: new Date().toISOString() });
+});
+
+// Admin: force renewal (for testing)
+import { authenticateToken } from './middleware/auth.js';
+app.post('/api/billing/force-renewal', authenticateToken, async (req, res) => {
+    // Simple admin check — you may want to enhance this
+    const { default: poolDb } = await import('./config/db.js');
+    const userResult = await poolDb.query('SELECT plan FROM users WHERE id = $1', [req.user.id]);
+    if (userResult.rows.length === 0) {
+        return res.status(403).json({ error: 'Forbidden' });
+    }
+    try {
+        await processRenewals();
+        res.json({ success: true, message: 'Renewal process completed' });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
 });
 
 // Auto-migration helper
@@ -85,7 +106,20 @@ async function updateSchema() {
             ADD COLUMN IF NOT EXISTS registration_source VARCHAR(255),
             ADD COLUMN IF NOT EXISTS registration_campaign VARCHAR(255);
         `);
-        console.log('✅ Database schema updated (UTM columns)');
+        // Add renewal tracking columns for recurring payments
+        await pool.query(`
+            ALTER TABLE subscriptions 
+            ADD COLUMN IF NOT EXISTS renewal_retries INTEGER DEFAULT 0;
+        `);
+        await pool.query(`
+            ALTER TABLE subscriptions 
+            ADD COLUMN IF NOT EXISTS last_renewal_attempt TIMESTAMP;
+        `);
+        await pool.query(`
+            ALTER TABLE subscriptions 
+            ADD COLUMN IF NOT EXISTS payment_method_title VARCHAR(255);
+        `);
+        console.log('✅ Database schema updated');
     } catch (err) {
         console.error('⚠️ Schema update failed:', err.message);
     }
@@ -94,5 +128,13 @@ async function updateSchema() {
 // Start server
 app.listen(PORT, async () => {
     await updateSchema();
+
+    // Schedule renewal cron: every day at 3:00 AM (server time)
+    cron.schedule('0 3 * * *', async () => {
+        console.log('⏰ Cron: Starting scheduled subscription renewal...');
+        await processRenewals();
+    });
+
     console.log(`🚀 Server running on http://localhost:${PORT}`);
+    console.log('📅 Subscription renewal cron scheduled: daily at 3:00 AM');
 });

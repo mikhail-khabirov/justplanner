@@ -82,6 +82,15 @@ const SubscriptionStatus: React.FC<SubscriptionStatusProps> = ({ onUpgrade }) =>
                         </span>
                     </div>
 
+                    {subscription.paymentMethodTitle && (
+                        <div className="flex items-center justify-between pt-2 border-t border-amber-200">
+                            <span className="text-sm text-gray-600">Способ оплаты</span>
+                            <span className="text-sm text-gray-700 font-medium">
+                                {subscription.paymentMethodTitle}
+                            </span>
+                        </div>
+                    )}
+
                     <div className="flex items-center justify-between pt-2 border-t border-amber-200">
                         <span className="text-sm text-gray-600">Автопродление</span>
                         <button

@@ -12,6 +12,7 @@ router.get('/subscription', authenticateToken, async (req, res) => {
             `SELECT 
                 s.id, s.plan, s.status, s.yookassa_subscription_id,
                 s.current_period_end, s.auto_renew, s.created_at,
+                s.payment_method_title,
                 u.plan as user_plan, u.email
             FROM users u
             LEFT JOIN subscriptions s ON s.user_id = u.id
@@ -45,6 +46,7 @@ router.get('/subscription', authenticateToken, async (req, res) => {
             yookassaSubscriptionId: row.yookassa_subscription_id,
             currentPeriodEnd: row.current_period_end,
             autoRenew: row.auto_renew,
+            paymentMethodTitle: row.payment_method_title || null,
             createdAt: row.created_at
         });
     } catch (error) {
@@ -133,11 +135,11 @@ router.post('/webhook', async (req, res) => {
                 [userId]
             );
 
-            // Save payment method ID for recurring payments
+            // Save payment method ID and card title for recurring payments
             if (payment.payment_method?.saved) {
                 await pool.query(
-                    `UPDATE subscriptions SET yookassa_subscription_id = $1 WHERE user_id = $2`,
-                    [payment.payment_method.id, userId]
+                    `UPDATE subscriptions SET yookassa_subscription_id = $1, payment_method_title = $2 WHERE user_id = $3`,
+                    [payment.payment_method.id, payment.payment_method.title || null, userId]
                 );
             }
 
@@ -149,6 +151,17 @@ router.post('/webhook', async (req, res) => {
                 `UPDATE payments SET status = 'cancelled' WHERE yookassa_payment_id = $1`,
                 [payment.id]
             );
+
+            // If payment method access was revoked, disable auto-renewal
+            if (payment.cancellation_details?.reason === 'permission_revoked' && payment.metadata?.userId) {
+                const userId = parseInt(payment.metadata.userId);
+                await pool.query(
+                    `UPDATE subscriptions SET yookassa_subscription_id = NULL, auto_renew = FALSE, updated_at = NOW() WHERE user_id = $1`,
+                    [userId]
+                );
+                console.log(`⚠️ Payment method revoked for user ${userId}, auto-renew disabled`);
+            }
+
             console.log(`Payment cancelled: ${payment.id}`);
         }
         else if (event.event === 'refund.succeeded') {

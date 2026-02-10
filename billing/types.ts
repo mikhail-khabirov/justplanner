@@ -12,6 +12,7 @@ export interface Subscription {
     yookassaSubscriptionId?: string;
     currentPeriodEnd?: string; // ISO date
     autoRenew: boolean;
+    paymentMethodTitle?: string; // e.g., "Bank card *4444"
     createdAt: string;
 }
 
