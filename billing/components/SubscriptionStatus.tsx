@@ -84,28 +84,32 @@ const SubscriptionStatus: React.FC<SubscriptionStatusProps> = ({ onUpgrade }) =>
 
                     <div className="flex items-center justify-between pt-2 border-t border-amber-200">
                         <span className="text-sm text-gray-600">Автопродление</span>
-                        <button
-                            onClick={handleToggleAutoRenew}
-                            disabled={isProcessing}
-                            className="flex items-center gap-2 text-sm font-medium transition-colors disabled:opacity-50"
-                        >
-                            {isProcessing ? (
-                                <Loader2 size={18} className="animate-spin text-gray-400" />
-                            ) : subscription.autoRenew ? (
-                                <>
-                                    <ToggleRight size={24} className="text-green-500" />
-                                    <span className="text-green-600">Включено</span>
-                                </>
-                            ) : (
-                                <>
-                                    <ToggleLeft size={24} className="text-gray-400" />
-                                    <span className="text-gray-500">Отключено</span>
-                                </>
-                            )}
-                        </button>
+                        {subscription.paymentMethodTitle ? (
+                            <button
+                                onClick={handleToggleAutoRenew}
+                                disabled={isProcessing}
+                                className="flex items-center gap-2 text-sm font-medium transition-colors disabled:opacity-50"
+                            >
+                                {isProcessing ? (
+                                    <Loader2 size={18} className="animate-spin text-gray-400" />
+                                ) : subscription.autoRenew ? (
+                                    <>
+                                        <ToggleRight size={24} className="text-green-500" />
+                                        <span className="text-green-600">Включено</span>
+                                    </>
+                                ) : (
+                                    <>
+                                        <ToggleLeft size={24} className="text-gray-400" />
+                                        <span className="text-gray-500">Отключено</span>
+                                    </>
+                                )}
+                            </button>
+                        ) : (
+                            <span className="text-sm text-gray-400">Нет карты</span>
+                        )}
                     </div>
 
-                    {subscription.paymentMethodTitle && (
+                    {subscription.paymentMethodTitle ? (
                         <div className="flex items-center justify-between pt-2 border-t border-amber-200">
                             <span className="text-sm text-gray-600">Карта</span>
                             <div className="flex items-center gap-2">
@@ -125,6 +129,23 @@ const SubscriptionStatus: React.FC<SubscriptionStatusProps> = ({ onUpgrade }) =>
                                     Отвязать
                                 </button>
                             </div>
+                        </div>
+                    ) : (
+                        <div className="pt-2 border-t border-amber-200">
+                            <button
+                                onClick={handleUpgrade}
+                                disabled={isProcessing}
+                                className="w-full py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+                            >
+                                {isProcessing ? (
+                                    <Loader2 size={16} className="animate-spin" />
+                                ) : (
+                                    <>
+                                        <CreditCard size={16} />
+                                        Привязать карту
+                                    </>
+                                )}
+                            </button>
                         </div>
                     )}
                 </div>
