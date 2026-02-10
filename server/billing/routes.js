@@ -325,31 +325,42 @@ router.post('/webhook', async (req, res) => {
             const refund = event.object;
             const paymentId = refund.payment_id;
 
-            // Get payment to find user
-            const paymentResult = await pool.query(
-                `SELECT user_id FROM payments WHERE yookassa_payment_id = $1`,
-                [paymentId]
-            );
-
-            if (paymentResult.rows.length > 0) {
-                const userId = paymentResult.rows[0].user_id;
-
-                // Downgrade to free
-                await pool.query(
-                    `UPDATE subscriptions SET plan = 'free', status = 'cancelled' WHERE user_id = $1`,
-                    [userId]
-                );
-                await pool.query(
-                    `UPDATE users SET plan = 'free' WHERE id = $1`,
-                    [userId]
-                );
-
+            // Skip downgrade for card-binding refunds (1 RUB)
+            const refundAmount = parseFloat(refund.amount?.value || '0');
+            if (refundAmount <= 1.00) {
+                console.log(`↩️ Card-binding refund received for payment ${paymentId}, skipping downgrade`);
                 await pool.query(
                     `UPDATE payments SET status = 'refunded' WHERE yookassa_payment_id = $1`,
                     [paymentId]
                 );
+                // Don't downgrade — this was just a card binding refund
+            } else {
+                // Get payment to find user
+                const paymentResult = await pool.query(
+                    `SELECT user_id FROM payments WHERE yookassa_payment_id = $1`,
+                    [paymentId]
+                );
 
-                console.log(`Refund processed for user ${userId}`);
+                if (paymentResult.rows.length > 0) {
+                    const userId = paymentResult.rows[0].user_id;
+
+                    // Downgrade to free
+                    await pool.query(
+                        `UPDATE subscriptions SET plan = 'free', status = 'cancelled' WHERE user_id = $1`,
+                        [userId]
+                    );
+                    await pool.query(
+                        `UPDATE users SET plan = 'free' WHERE id = $1`,
+                        [userId]
+                    );
+
+                    await pool.query(
+                        `UPDATE payments SET status = 'refunded' WHERE yookassa_payment_id = $1`,
+                        [paymentId]
+                    );
+
+                    console.log(`Refund processed for user ${userId}`);
+                }
             }
         }
 
