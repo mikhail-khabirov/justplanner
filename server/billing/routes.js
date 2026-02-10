@@ -295,4 +295,18 @@ router.post('/resume-auto-renew', authenticateToken, async (req, res) => {
     }
 });
 
+// Unbind saved card (also disables auto-renew)
+router.post('/unbind-card', authenticateToken, async (req, res) => {
+    try {
+        await pool.query(
+            `UPDATE subscriptions SET yookassa_subscription_id = NULL, payment_method_title = NULL, auto_renew = FALSE, updated_at = NOW() WHERE user_id = $1`,
+            [req.user.id]
+        );
+        res.json({ success: true, message: 'Card unbound, auto-renewal disabled' });
+    } catch (error) {
+        console.error('Error unbinding card:', error);
+        res.status(500).json({ error: 'Failed to unbind card' });
+    }
+});
+
 export default router;

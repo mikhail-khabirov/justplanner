@@ -79,5 +79,16 @@ export const billingApi = {
             throw new Error('Failed to verify payment');
         }
         return await response.json();
+    },
+
+    // Unbind saved card
+    async unbindCard(): Promise<void> {
+        const response = await fetch(`${API_URL}/api/billing/unbind-card`, {
+            method: 'POST',
+            headers: getAuthHeaders()
+        });
+        if (!response.ok) {
+            throw new Error('Failed to unbind card');
+        }
     }
 };

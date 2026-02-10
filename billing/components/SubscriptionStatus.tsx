@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Crown, Calendar, ToggleLeft, ToggleRight, Loader2, ExternalLink } from 'lucide-react';
+import { Crown, Calendar, ToggleLeft, ToggleRight, Loader2, ExternalLink, CreditCard, X } from 'lucide-react';
 import { useBilling } from '../BillingContext';
 
 interface SubscriptionStatusProps {
@@ -7,7 +7,7 @@ interface SubscriptionStatusProps {
 }
 
 const SubscriptionStatus: React.FC<SubscriptionStatusProps> = ({ onUpgrade }) => {
-    const { subscription, isPremium, plan, cancelAutoRenew, resumeAutoRenew, startPayment, isLoading } = useBilling();
+    const { subscription, isPremium, plan, cancelAutoRenew, resumeAutoRenew, unbindCard, startPayment, isLoading } = useBilling();
     const [isProcessing, setIsProcessing] = useState(false);
 
     const formatDate = (dateString: string | null | undefined) => {
@@ -108,9 +108,23 @@ const SubscriptionStatus: React.FC<SubscriptionStatusProps> = ({ onUpgrade }) =>
                     {subscription.paymentMethodTitle && (
                         <div className="flex items-center justify-between pt-2 border-t border-amber-200">
                             <span className="text-sm text-gray-600">Карта</span>
-                            <span className="text-sm text-gray-700 font-medium">
-                                {subscription.paymentMethodTitle}
-                            </span>
+                            <div className="flex items-center gap-2">
+                                <span className="text-sm text-gray-700 font-medium">
+                                    {subscription.paymentMethodTitle}
+                                </span>
+                                <button
+                                    onClick={async () => {
+                                        setIsProcessing(true);
+                                        try { await unbindCard(); } catch (e) { console.error(e); }
+                                        finally { setIsProcessing(false); }
+                                    }}
+                                    disabled={isProcessing}
+                                    className="text-xs text-red-400 hover:text-red-600 transition-colors disabled:opacity-50"
+                                    title="Отвязать карту"
+                                >
+                                    Отвязать
+                                </button>
+                            </div>
                         </div>
                     )}
                 </div>

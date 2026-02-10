@@ -14,6 +14,7 @@ interface BillingContextType {
     refresh: () => Promise<void>;
     cancelAutoRenew: () => Promise<void>;
     resumeAutoRenew: () => Promise<void>;
+    unbindCard: () => Promise<void>;
     startPayment: () => Promise<string>; // returns confirmation URL
 }
 
@@ -87,6 +88,11 @@ export const BillingProvider: React.FC<BillingProviderProps> = ({ children, isAu
         await fetchSubscription();
     }, [fetchSubscription]);
 
+    const unbindCard = useCallback(async () => {
+        await billingApi.unbindCard();
+        await fetchSubscription();
+    }, [fetchSubscription]);
+
     const startPayment = useCallback(async (): Promise<string> => {
         const response = await billingApi.createPayment();
         return response.confirmationUrl;
@@ -102,8 +108,9 @@ export const BillingProvider: React.FC<BillingProviderProps> = ({ children, isAu
         refresh: fetchSubscription,
         cancelAutoRenew,
         resumeAutoRenew,
+        unbindCard,
         startPayment
-    }), [subscription, isLoading, isPremium, plan, canAddTask, fetchSubscription, cancelAutoRenew, resumeAutoRenew, startPayment]);
+    }), [subscription, isLoading, isPremium, plan, canAddTask, fetchSubscription, cancelAutoRenew, resumeAutoRenew, unbindCard, startPayment]);
 
     return (
         <BillingContext.Provider value={value}>
