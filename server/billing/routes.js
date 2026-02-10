@@ -118,10 +118,10 @@ router.post('/webhook', async (req, res) => {
             // Create or update subscription
             await pool.query(
                 `INSERT INTO subscriptions (user_id, plan, status, current_period_end, auto_renew)
-                 VALUES ($1, 'premium', 'active', $2, TRUE)
+                 VALUES ($1, 'pro', 'active', $2, TRUE)
                  ON CONFLICT (user_id) 
                  DO UPDATE SET 
-                    plan = 'premium', 
+                    plan = 'pro', 
                     status = 'active', 
                     current_period_end = $2,
                     auto_renew = TRUE,
@@ -131,7 +131,7 @@ router.post('/webhook', async (req, res) => {
 
             // Update user's plan for quick access
             await pool.query(
-                `UPDATE users SET plan = 'premium' WHERE id = $1`,
+                `UPDATE users SET plan = 'pro' WHERE id = $1`,
                 [userId]
             );
 

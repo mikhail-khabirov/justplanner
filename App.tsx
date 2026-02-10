@@ -733,7 +733,7 @@ const App: React.FC = () => {
         onBack={() => setLegalView(null)}
         onSelectPlan={(plan) => {
           setLegalView(null);
-          if (plan === 'premium') {
+          if (plan === 'pro') {
             setAuthMode('register');
             setShowAuthModal(true);
           } else {

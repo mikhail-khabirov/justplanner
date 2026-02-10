@@ -51,7 +51,7 @@ export async function createPayment(userId, userEmail) {
                 payment_subject: 'service'
             }]
         },
-        save_payment_method: true
+        // save_payment_method: true // TODO: Enable when recurring payments are activated in YooKassa dashboard
     }, idempotenceKey);
 
     return {
