@@ -10,7 +10,7 @@ interface SettingsContextType {
 }
 
 const defaultSettings: UserSettings = {
-    dayStartHour: 8
+    dayStartHour: 7
 };
 
 const SettingsContext = createContext<SettingsContextType | undefined>(undefined);

@@ -35,7 +35,7 @@ router.get('/', auth, async (req, res) => {
         }
 
         res.json({
-            settings: result.rows[0].settings || { dayStartHour: 8 }
+            settings: result.rows[0].settings || { dayStartHour: 7 }
         });
     } catch (error) {
         console.error('Get settings error:', error);
