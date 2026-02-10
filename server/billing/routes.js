@@ -203,14 +203,14 @@ router.post('/webhook', async (req, res) => {
     }
 });
 
-// Cancel auto-renewal
+// Cancel auto-renewal (also unbinds saved card)
 router.post('/cancel-auto-renew', authenticateToken, async (req, res) => {
     try {
         await pool.query(
-            `UPDATE subscriptions SET auto_renew = FALSE, updated_at = NOW() WHERE user_id = $1`,
+            `UPDATE subscriptions SET auto_renew = FALSE, yookassa_subscription_id = NULL, payment_method_title = NULL, updated_at = NOW() WHERE user_id = $1`,
             [req.user.id]
         );
-        res.json({ success: true, message: 'Auto-renewal cancelled' });
+        res.json({ success: true, message: 'Auto-renewal cancelled, card unbound' });
     } catch (error) {
         console.error('Error cancelling auto-renewal:', error);
         res.status(500).json({ error: 'Failed to cancel auto-renewal' });
