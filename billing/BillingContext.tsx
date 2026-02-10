@@ -50,11 +50,11 @@ export const BillingProvider: React.FC<BillingProviderProps> = ({ children, isAu
 
     const isPremium = useMemo(() => {
         if (!subscription) return false;
-        return subscription.plan === 'premium' && subscription.status === 'active';
+        return subscription.plan === 'pro' && subscription.status === 'active';
     }, [subscription]);
 
     const plan = useMemo((): PlanType => {
-        return isPremium ? 'premium' : 'free';
+        return isPremium ? 'pro' : 'free';
     }, [isPremium]);
 
     const canAddTask = useCallback((currentTaskCount: number): boolean => {

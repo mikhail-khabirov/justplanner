@@ -1,6 +1,6 @@
 // Billing Types
 
-export type PlanType = 'free' | 'premium';
+export type PlanType = 'free' | 'pro';
 export type SubscriptionStatus = 'active' | 'cancelled' | 'past_due';
 export type PaymentStatus = 'pending' | 'succeeded' | 'cancelled' | 'refunded';
 

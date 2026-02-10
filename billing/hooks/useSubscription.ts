@@ -30,7 +30,7 @@ export function useSubscription(taskCount: number = 0): BillingState & {
 
     const isPremium = useMemo(() => {
         if (!subscription) return false;
-        return subscription.plan === 'premium' && subscription.status === 'active';
+        return subscription.plan === 'pro' && subscription.status === 'active';
     }, [subscription]);
 
     const canAddTask = useMemo(() => {
