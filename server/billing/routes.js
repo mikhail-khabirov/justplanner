@@ -90,6 +90,70 @@ router.post('/create-payment', authenticateToken, async (req, res) => {
     }
 });
 
+// Verify payment status (fallback when webhook is delayed/missing)
+router.post('/verify-payment', authenticateToken, async (req, res) => {
+    try {
+        // Get the latest pending payment for this user
+        const paymentResult = await pool.query(
+            `SELECT yookassa_payment_id FROM payments WHERE user_id = $1 AND status = 'pending' ORDER BY created_at DESC LIMIT 1`,
+            [req.user.id]
+        );
+
+        if (paymentResult.rows.length === 0) {
+            return res.json({ status: 'no_pending_payment' });
+        }
+
+        const yookassaPaymentId = paymentResult.rows[0].yookassa_payment_id;
+        const payment = await getPaymentStatus(yookassaPaymentId);
+
+        if (payment.status === 'succeeded') {
+            // Update payment status
+            await pool.query(
+                `UPDATE payments SET status = 'succeeded' WHERE yookassa_payment_id = $1`,
+                [payment.id]
+            );
+
+            const periodEnd = new Date();
+            periodEnd.setDate(periodEnd.getDate() + 30);
+
+            // Create or update subscription
+            await pool.query(
+                `INSERT INTO subscriptions (user_id, plan, status, current_period_end, auto_renew)
+                 VALUES ($1, 'pro', 'active', $2, TRUE)
+                 ON CONFLICT (user_id) DO UPDATE SET 
+                    plan = 'pro', 
+                    status = 'active', 
+                    current_period_end = $2,
+                    auto_renew = TRUE,
+                    updated_at = NOW()`,
+                [req.user.id, periodEnd]
+            );
+
+            // Update user plan
+            await pool.query(
+                `UPDATE users SET plan = 'pro' WHERE id = $1`,
+                [req.user.id]
+            );
+
+            // Save payment method if available
+            if (payment.payment_method?.saved) {
+                await pool.query(
+                    `UPDATE subscriptions SET yookassa_subscription_id = $1, payment_method_title = $2 WHERE user_id = $3`,
+                    [payment.payment_method.id, payment.payment_method.title || null, req.user.id]
+                );
+            }
+
+            console.log(`✅ Payment verified and Pro activated for user ${req.user.id}`);
+            return res.json({ status: 'activated', plan: 'pro' });
+        }
+
+        res.json({ status: payment.status });
+    } catch (error) {
+        console.error('Error verifying payment:', error);
+        res.status(500).json({ error: 'Failed to verify payment' });
+    }
+});
+
 // Webhook handler for Yookassa events
 router.post('/webhook', async (req, res) => {
     try {

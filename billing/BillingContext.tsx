@@ -45,8 +45,23 @@ export const BillingProvider: React.FC<BillingProviderProps> = ({ children, isAu
     }, [isAuthenticated]);
 
     useEffect(() => {
-        fetchSubscription();
-    }, [fetchSubscription]);
+        const init = async () => {
+            await fetchSubscription();
+            // After fetching subscription, verify any pending payments (webhook fallback)
+            if (isAuthenticated) {
+                try {
+                    const result = await billingApi.verifyPayment();
+                    if (result.status === 'activated') {
+                        // Payment was confirmed — refresh subscription data
+                        await fetchSubscription();
+                    }
+                } catch (e) {
+                    // Silently ignore — no pending payment or verification failed
+                }
+            }
+        };
+        init();
+    }, [fetchSubscription, isAuthenticated]);
 
     const isPremium = useMemo(() => {
         if (!subscription) return false;

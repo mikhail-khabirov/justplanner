@@ -67,5 +67,17 @@ export const billingApi = {
         if (!response.ok) {
             throw new Error('Failed to resume auto-renewal');
         }
+    },
+
+    // Verify pending payment status (fallback for webhook delays)
+    async verifyPayment(): Promise<{ status: string; plan?: string }> {
+        const response = await fetch(`${API_URL}/api/billing/verify-payment`, {
+            method: 'POST',
+            headers: getAuthHeaders()
+        });
+        if (!response.ok) {
+            throw new Error('Failed to verify payment');
+        }
+        return await response.json();
     }
 };
