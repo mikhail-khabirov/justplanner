@@ -119,6 +119,22 @@ async function updateSchema() {
             ALTER TABLE subscriptions 
             ADD COLUMN IF NOT EXISTS payment_method_title VARCHAR(255);
         `);
+
+        // One-time migration: grant permanent Pro to early adopters (created before 2026-02-11)
+        await pool.query(`
+            UPDATE users SET plan = 'pro' WHERE created_at < '2026-02-11' AND plan = 'free';
+        `);
+        await pool.query(`
+            INSERT INTO subscriptions (user_id, plan, status, current_period_end, auto_renew)
+            SELECT id, 'pro', 'active', '2099-12-31', FALSE
+            FROM users WHERE created_at < '2026-02-11'
+            ON CONFLICT (user_id) DO UPDATE SET 
+                plan = 'pro', 
+                status = 'active', 
+                current_period_end = '2099-12-31',
+                auto_renew = FALSE;
+        `);
+
         console.log('✅ Database schema updated');
     } catch (err) {
         console.error('⚠️ Schema update failed:', err.message);
