@@ -1,7 +1,7 @@
 import express from 'express';
 import pool from '../config/db.js';
 import { authenticateToken } from '../middleware/auth.js';
-import { createPayment as createYookassaPayment, getPaymentStatus } from './yookassa.js';
+import { createPayment as createYookassaPayment, getPaymentStatus, createCardBindingPayment, refundPayment } from './yookassa.js';
 
 const router = express.Router();
 
@@ -90,6 +90,41 @@ router.post('/create-payment', authenticateToken, async (req, res) => {
     }
 });
 
+// Create payment for linking a card (1 RUB)
+router.post('/bind-card', authenticateToken, async (req, res) => {
+    try {
+        // Get user email
+        const userResult = await pool.query(
+            'SELECT email FROM users WHERE id = $1',
+            [req.user.id]
+        );
+
+        if (userResult.rows.length === 0) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+
+        const userEmail = userResult.rows[0].email;
+
+        // Create card binding payment via Yookassa
+        const { confirmationUrl, paymentId } = await createCardBindingPayment(
+            req.user.id,
+            userEmail
+        );
+
+        // Log payment attempt (1 RUB)
+        await pool.query(
+            `INSERT INTO payments (user_id, yookassa_payment_id, amount, currency, status, description)
+             VALUES ($1, $2, $3, $4, $5, $6)`,
+            [req.user.id, paymentId, 1, 'RUB', 'pending', 'Card binding']
+        );
+
+        res.json({ confirmationUrl, paymentId });
+    } catch (error) {
+        console.error('Error creating binding payment:', error);
+        res.status(500).json({ error: 'Failed to create payment', message: error.message });
+    }
+});
+
 // Verify payment status (fallback when webhook is delayed/missing)
 router.post('/verify-payment', authenticateToken, async (req, res) => {
     try {
@@ -113,38 +148,69 @@ router.post('/verify-payment', authenticateToken, async (req, res) => {
                 [payment.id]
             );
 
-            const periodEnd = new Date();
-            periodEnd.setDate(periodEnd.getDate() + 30);
+            const isCardBinding = parseFloat(payment.amount.value) === 1.00;
 
-            // Create or update subscription
-            await pool.query(
-                `INSERT INTO subscriptions (user_id, plan, status, current_period_end, auto_renew)
-                 VALUES ($1, 'pro', 'active', $2, TRUE)
-                 ON CONFLICT (user_id) DO UPDATE SET 
-                    plan = 'pro', 
-                    status = 'active', 
-                    current_period_end = $2,
-                    auto_renew = TRUE,
-                    updated_at = NOW()`,
-                [req.user.id, periodEnd]
-            );
+            if (isCardBinding) {
+                // Handle card binding (1 RUB)
+                console.log(`💳 Card binding payment verified for user ${req.user.id}`);
 
-            // Update user plan
-            await pool.query(
-                `UPDATE users SET plan = 'pro' WHERE id = $1`,
-                [req.user.id]
-            );
+                // Save payment method and enable auto-renew (without extending period)
+                if (payment.payment_method?.saved) {
+                    await pool.query(
+                        `UPDATE subscriptions SET 
+                            yookassa_subscription_id = $1, 
+                            payment_method_title = $2, 
+                            auto_renew = TRUE,
+                            updated_at = NOW()
+                         WHERE user_id = $3`,
+                        [payment.payment_method.id, payment.payment_method.title || null, req.user.id]
+                    );
+                }
 
-            // Save payment method if available
-            if (payment.payment_method?.saved) {
+                // Auto-refund the 1 RUB
+                try {
+                    await refundPayment(payment.id, '1.00');
+                    console.log(`↩️ Refunded 1 RUB for card binding to user ${req.user.id}`);
+                } catch (refundError) {
+                    console.error('Failed to auto-refund card binding:', refundError);
+                }
+
+                return res.json({ status: 'activated', plan: 'pro', type: 'card_binding' });
+            } else {
+                // Handle regular subscription payment
+                const periodEnd = new Date();
+                periodEnd.setDate(periodEnd.getDate() + 30);
+
+                // Create or update subscription
                 await pool.query(
-                    `UPDATE subscriptions SET yookassa_subscription_id = $1, payment_method_title = $2 WHERE user_id = $3`,
-                    [payment.payment_method.id, payment.payment_method.title || null, req.user.id]
+                    `INSERT INTO subscriptions (user_id, plan, status, current_period_end, auto_renew)
+                     VALUES ($1, 'pro', 'active', $2, TRUE)
+                     ON CONFLICT (user_id) DO UPDATE SET 
+                        plan = 'pro', 
+                        status = 'active', 
+                        current_period_end = $2,
+                        auto_renew = TRUE,
+                        updated_at = NOW()`,
+                    [req.user.id, periodEnd]
                 );
-            }
 
-            console.log(`✅ Payment verified and Pro activated for user ${req.user.id}`);
-            return res.json({ status: 'activated', plan: 'pro' });
+                // Update user plan
+                await pool.query(
+                    `UPDATE users SET plan = 'pro' WHERE id = $1`,
+                    [req.user.id]
+                );
+
+                // Save payment method if available
+                if (payment.payment_method?.saved) {
+                    await pool.query(
+                        `UPDATE subscriptions SET yookassa_subscription_id = $1, payment_method_title = $2 WHERE user_id = $3`,
+                        [payment.payment_method.id, payment.payment_method.title || null, req.user.id]
+                    );
+                }
+
+                console.log(`✅ Payment verified and Pro activated for user ${req.user.id}`);
+                return res.json({ status: 'activated', plan: 'pro' });
+            }
         }
 
         res.json({ status: payment.status });
@@ -175,39 +241,66 @@ router.post('/webhook', async (req, res) => {
                 [payment.id]
             );
 
-            // Calculate subscription end date (30 days from now)
-            const periodEnd = new Date();
-            periodEnd.setDate(periodEnd.getDate() + 30);
+            const isCardBinding = parseFloat(payment.amount.value) === 1.00;
 
-            // Create or update subscription
-            await pool.query(
-                `INSERT INTO subscriptions (user_id, plan, status, current_period_end, auto_renew)
-                 VALUES ($1, 'pro', 'active', $2, TRUE)
-                 ON CONFLICT (user_id) 
-                 DO UPDATE SET 
-                    plan = 'pro', 
-                    status = 'active', 
-                    current_period_end = $2,
-                    auto_renew = TRUE,
-                    updated_at = NOW()`,
-                [userId, periodEnd]
-            );
+            if (isCardBinding) {
+                console.log(`💳 Card binding webhook processed for user ${userId}`);
 
-            // Update user's plan for quick access
-            await pool.query(
-                `UPDATE users SET plan = 'pro' WHERE id = $1`,
-                [userId]
-            );
+                // Save payment method and enable auto-renew (without extending period)
+                if (payment.payment_method?.saved) {
+                    await pool.query(
+                        `UPDATE subscriptions SET 
+                            yookassa_subscription_id = $1, 
+                            payment_method_title = $2, 
+                            auto_renew = TRUE,
+                            updated_at = NOW()
+                         WHERE user_id = $3`,
+                        [payment.payment_method.id, payment.payment_method.title || null, userId]
+                    );
+                }
 
-            // Save payment method ID and card title for recurring payments
-            if (payment.payment_method?.saved) {
+                // Auto-refund the 1 RUB
+                try {
+                    await refundPayment(payment.id, '1.00');
+                    console.log(`↩️ Refunded 1 RUB for card binding to user ${userId}`);
+                } catch (refundError) {
+                    console.error('Failed to auto-refund card binding in webhook:', refundError);
+                }
+            } else {
+                // Calculate subscription end date (30 days from now)
+                const periodEnd = new Date();
+                periodEnd.setDate(periodEnd.getDate() + 30);
+
+                // Create or update subscription
                 await pool.query(
-                    `UPDATE subscriptions SET yookassa_subscription_id = $1, payment_method_title = $2 WHERE user_id = $3`,
-                    [payment.payment_method.id, payment.payment_method.title || null, userId]
+                    `INSERT INTO subscriptions (user_id, plan, status, current_period_end, auto_renew)
+                     VALUES ($1, 'pro', 'active', $2, TRUE)
+                     ON CONFLICT (user_id) 
+                     DO UPDATE SET 
+                        plan = 'pro', 
+                        status = 'active', 
+                        current_period_end = $2,
+                        auto_renew = TRUE,
+                        updated_at = NOW()`,
+                    [userId, periodEnd]
                 );
-            }
 
-            console.log(`✅ Premium activated for user ${userId} until ${periodEnd}`);
+                // Update user's plan for quick access
+                await pool.query(
+                    `UPDATE users SET plan = 'pro' WHERE id = $1`,
+                    [userId]
+                );
+
+                // Save payment method ID and card title for recurring payments
+                if (payment.payment_method?.saved) {
+                    await pool.query(
+                        `UPDATE subscriptions SET yookassa_subscription_id = $1, payment_method_title = $2 WHERE user_id = $3`,
+                        [payment.payment_method.id, payment.payment_method.title || null, userId]
+                    );
+                }
+
+                console.log(`✅ Premium activated for user ${userId} until ${periodEnd}`);
+            }
         }
         else if (event.event === 'payment.canceled') {
             const payment = event.object;

@@ -7,7 +7,7 @@ interface SubscriptionStatusProps {
 }
 
 const SubscriptionStatus: React.FC<SubscriptionStatusProps> = ({ onUpgrade }) => {
-    const { subscription, isPremium, plan, cancelAutoRenew, resumeAutoRenew, unbindCard, startPayment, isLoading } = useBilling();
+    const { subscription, isPremium, plan, cancelAutoRenew, resumeAutoRenew, unbindCard, startPayment, bindCard, isLoading } = useBilling();
     const [isProcessing, setIsProcessing] = useState(false);
 
     const formatDate = (dateString: string | null | undefined) => {
@@ -43,7 +43,18 @@ const SubscriptionStatus: React.FC<SubscriptionStatusProps> = ({ onUpgrade }) =>
         } catch (error) {
             console.error('Failed to create payment:', error);
             alert('Ошибка при создании платежа. Попробуйте позже.');
-        } finally {
+            setIsProcessing(false);
+        }
+    };
+
+    const handleBindCard = async () => {
+        setIsProcessing(true);
+        try {
+            const confirmationUrl = await bindCard();
+            window.location.href = confirmationUrl;
+        } catch (error) {
+            console.error('Failed to create binding payment:', error);
+            alert('Ошибка при привязке карты. Попробуйте позже.');
             setIsProcessing(false);
         }
     };
@@ -133,7 +144,7 @@ const SubscriptionStatus: React.FC<SubscriptionStatusProps> = ({ onUpgrade }) =>
                     ) : (
                         <div className="pt-2 border-t border-amber-200">
                             <button
-                                onClick={handleUpgrade}
+                                onClick={handleBindCard}
                                 disabled={isProcessing}
                                 className="w-full py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
                             >
@@ -142,7 +153,7 @@ const SubscriptionStatus: React.FC<SubscriptionStatusProps> = ({ onUpgrade }) =>
                                 ) : (
                                     <>
                                         <CreditCard size={16} />
-                                        Привязать карту
+                                        Привязать карту (1₽ с возвратом)
                                     </>
                                 )}
                             </button>

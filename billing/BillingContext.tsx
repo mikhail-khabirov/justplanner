@@ -16,6 +16,7 @@ interface BillingContextType {
     resumeAutoRenew: () => Promise<void>;
     unbindCard: () => Promise<void>;
     startPayment: () => Promise<string>; // returns confirmation URL
+    bindCard: () => Promise<string>; // returns confirmation URL for 1 RUB
 }
 
 const BillingContext = createContext<BillingContextType | undefined>(undefined);
@@ -98,6 +99,11 @@ export const BillingProvider: React.FC<BillingProviderProps> = ({ children, isAu
         return response.confirmationUrl;
     }, []);
 
+    const bindCard = useCallback(async (): Promise<string> => {
+        const response = await billingApi.bindCard();
+        return response.confirmationUrl;
+    }, []);
+
     const value = useMemo(() => ({
         subscription,
         isLoading,
@@ -109,8 +115,9 @@ export const BillingProvider: React.FC<BillingProviderProps> = ({ children, isAu
         cancelAutoRenew,
         resumeAutoRenew,
         unbindCard,
-        startPayment
-    }), [subscription, isLoading, isPremium, plan, canAddTask, fetchSubscription, cancelAutoRenew, resumeAutoRenew, unbindCard, startPayment]);
+        startPayment,
+        bindCard
+    }), [subscription, isLoading, isPremium, plan, canAddTask, fetchSubscription, cancelAutoRenew, resumeAutoRenew, unbindCard, startPayment, bindCard]);
 
     return (
         <BillingContext.Provider value={value}>

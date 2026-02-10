@@ -90,5 +90,17 @@ export const billingApi = {
         if (!response.ok) {
             throw new Error('Failed to unbind card');
         }
+    },
+
+    // Initiate card binding (1 RUB)
+    async bindCard(): Promise<{ confirmationUrl: string; paymentId: string }> {
+        const response = await fetch(`${API_URL}/api/billing/bind-card`, {
+            method: 'POST',
+            headers: getAuthHeaders()
+        });
+        if (!response.ok) {
+            throw new Error('Failed to initiate card binding');
+        }
+        return await response.json();
     }
 };

@@ -110,4 +110,63 @@ export async function createRecurringPayment(paymentMethodId, userId, userEmail)
     return payment;
 }
 
+export async function createCardBindingPayment(userId, userEmail) {
+    const idempotenceKey = uuidv4();
+
+    const payment = await yookassa.createPayment({
+        amount: {
+            value: '1.00',
+            currency: 'RUB'
+        },
+        capture: true,
+        confirmation: {
+            type: 'redirect',
+            return_url: process.env.YOOKASSA_RETURN_URL || 'https://justplanner.ru'
+        },
+        description: 'Привязка банковской карты JustPlanner',
+        metadata: {
+            userId: userId.toString(),
+            type: 'card_binding'
+        },
+        receipt: {
+            customer: {
+                email: userEmail
+            },
+            items: [{
+                description: 'Привязка банковской карты',
+                quantity: '1',
+                amount: {
+                    value: '1.00',
+                    currency: 'RUB'
+                },
+                vat_code: 1,
+                payment_mode: 'full_payment',
+                payment_subject: 'service'
+            }]
+        },
+        save_payment_method: true
+    }, idempotenceKey);
+
+    return {
+        confirmationUrl: payment.confirmation.confirmation_url,
+        paymentId: payment.id
+    };
+}
+
+/**
+ * Refund a payment
+ * @param {string} paymentId - Payment ID
+ * @param {string} amount - Amount to refund
+ */
+export async function refundPayment(paymentId, amount) {
+    const idempotenceKey = uuidv4();
+    return await yookassa.createRefund({
+        payment_id: paymentId,
+        amount: {
+            value: amount,
+            currency: 'RUB'
+        }
+    }, idempotenceKey);
+}
+
 export default yookassa;
