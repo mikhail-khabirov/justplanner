@@ -55,6 +55,7 @@ router.get('/users', adminAuth, async (req, res) => {
                 u.created_at, 
                 u.last_login, 
                 u.google_id, 
+                u.plan,
                 u.registration_source, 
                 u.registration_campaign,
                 COUNT(t.id) as total_tasks,
@@ -71,9 +72,9 @@ router.get('/users', adminAuth, async (req, res) => {
             created_at: user.created_at,
             lastSession: user.last_login,
             registrationType: user.google_id ? 'Google' : 'Email',
+            plan: user.plan || 'free',
             source: user.registration_source || 'direct/organic',
             campaign: user.registration_campaign || '-',
-            // Parse counts as integers (Postgres returns string for COUNT)
             totalTasks: parseInt(user.total_tasks || 0),
             tasks24h: parseInt(user.tasks_24h || 0)
         }));
