@@ -2,6 +2,7 @@ import express from 'express';
 import { User } from '../models/User.js';
 import { generateToken } from '../middleware/auth.js';
 import passport from 'passport';
+import { notifyNewUser } from '../utils/telegram.js';
 
 const router = express.Router();
 
@@ -73,6 +74,9 @@ router.post('/verify', async (req, res) => {
         // Send Welcome Email
         const { sendWelcomeEmail } = await import('../utils/email.js');
         sendWelcomeEmail(email).catch(console.error); // Async send
+
+        // Telegram notification
+        notifyNewUser(email, 'email');
 
         // Login user
         await User.updateLastLogin(user.id);

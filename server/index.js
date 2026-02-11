@@ -4,6 +4,7 @@ import cors from 'cors';
 import passport from 'passport';
 import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
 import { User } from './models/User.js';
+import { notifyNewUser } from './utils/telegram.js';
 import authRoutes from './routes/auth.js';
 import tasksRoutes from './routes/tasks.js';
 
@@ -43,6 +44,7 @@ if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
             if (isNew) {
                 const { sendWelcomeEmail } = await import('./utils/email.js');
                 sendWelcomeEmail(email).catch(console.error);
+                notifyNewUser(email, 'google');
             }
 
             await User.updateLastLogin(user.id);

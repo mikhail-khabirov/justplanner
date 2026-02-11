@@ -2,6 +2,7 @@ import express from 'express';
 import pool from '../config/db.js';
 import { authenticateToken } from '../middleware/auth.js';
 import { createPayment as createYookassaPayment, getPaymentStatus, createCardBindingPayment, refundPayment } from './yookassa.js';
+import { notifyPayment } from '../utils/telegram.js';
 
 const router = express.Router();
 
@@ -300,6 +301,11 @@ router.post('/webhook', async (req, res) => {
                 }
 
                 console.log(`✅ Premium activated for user ${userId} until ${periodEnd}`);
+
+                // Telegram notification
+                const userResult = await pool.query('SELECT email FROM users WHERE id = $1', [userId]);
+                const userEmail = userResult.rows[0]?.email || `user#${userId}`;
+                notifyPayment(userEmail, payment.amount.value, 'Подписка Pro');
             }
         }
         else if (event.event === 'payment.canceled') {
