@@ -894,6 +894,14 @@ const App: React.FC = () => {
 
           </div>
 
+          {/* Feedback prompt */}
+          <div className="hidden lg:block text-center flex-1 mx-4">
+            <p className="text-xs text-gray-400">
+              Что бы вы хотели видеть из нового функционала?{' '}
+              <a href="mailto:support@justplanner.ru" className="text-[#26A69A] hover:underline">support@justplanner.ru</a>
+            </p>
+          </div>
+
           <div className="flex items-center gap-2 md:gap-4">
             {/* Print - Pro only, before divider */}
             {isAuthenticated && (
