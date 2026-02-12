@@ -115,6 +115,7 @@ const App: React.FC = () => {
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
   const [showSupportModal, setShowSupportModal] = useState(false);
+  const [feedbackHidden, setFeedbackHidden] = useState(() => localStorage.getItem('feedbackHidden') === '1');
   const [showMenuDropdown, setShowMenuDropdown] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
   // URL-based routing: initialize state from current pathname
@@ -895,12 +896,23 @@ const App: React.FC = () => {
           </div>
 
           {/* Feedback prompt */}
-          <div className="hidden lg:block text-center flex-1 mx-4">
-            <p className="text-xs text-gray-400">
-              Что бы вы хотели видеть из нового функционала?{' '}
-              <a href="mailto:support@justplanner.ru" className="text-[#26A69A] hover:underline">support@justplanner.ru</a>
-            </p>
-          </div>
+          {!feedbackHidden && (
+            <div className="hidden lg:flex items-center gap-2 flex-1 justify-center mx-4">
+              <div className="inline-flex items-center gap-2 bg-gray-50 border border-gray-100 rounded-full px-4 py-1.5 shadow-sm">
+                <span className="text-xs text-gray-500">Есть идеи? Напишите нам</span>
+                <a href="mailto:support@justplanner.ru" className="text-xs font-medium text-[#26A69A] hover:underline">support@justplanner.ru</a>
+                {isPremium && (
+                  <button
+                    onClick={() => { setFeedbackHidden(true); localStorage.setItem('feedbackHidden', '1'); }}
+                    className="ml-1 p-0.5 text-gray-300 hover:text-gray-500 transition-colors rounded-full"
+                    title="Скрыть"
+                  >
+                    <X size={14} />
+                  </button>
+                )}
+              </div>
+            </div>
+          )}
 
           <div className="flex items-center gap-2 md:gap-4">
             {/* Print - Pro only, before divider */}
