@@ -37,29 +37,35 @@ export const DEFAULT_SECTION_NAMES = {
 // Helper to check if an ID is a date (YYYY-MM-DD)
 const isDateColumn = (id: string) => /^\d{4}-\d{2}-\d{2}$/.test(id);
 
-// Demo tasks for guests (not logged in)
-const DEMO_TASKS: Task[] = [
-  // Monday 26 янв
-  { id: 'd1', content: 'Скорректировать код продукта', columnId: '2026-01-26', hour: 8, color: TaskColor.RED, completed: false, subtasks: [] },
-  { id: 'd2', content: 'Провести встречу с партнером', columnId: '2026-01-26', hour: 8, color: TaskColor.PURPLE, completed: false, subtasks: [] },
-  { id: 'd3', content: 'Забрать вещи', columnId: '2026-01-26', hour: 9, color: TaskColor.DEFAULT, completed: false, subtasks: [] },
-  // Tuesday 27 янв
-  { id: 'd4', content: 'Забрать вещи', columnId: '2026-01-27', hour: 10, color: TaskColor.GREEN, completed: false, subtasks: [] },
-  // Wednesday 28 янв
-  { id: 'd5', content: 'Записаться к доктору', columnId: '2026-01-28', hour: 11, color: TaskColor.YELLOW, completed: false, subtasks: [] },
-  // Thursday 29 янв - 6:00 task to highlight 5-8 button
-  { id: 'd6a', content: 'Утренняя пробежка', columnId: '2026-01-29', hour: 6, color: TaskColor.PURPLE, completed: false, subtasks: [] },
-  { id: 'd6', content: 'Провести оплату', columnId: '2026-01-29', hour: 14, color: TaskColor.GREEN, completed: false, subtasks: [] },
-  // Friday 30 янв
-  { id: 'd7', content: 'Написать письмо', columnId: '2026-01-30', hour: 16, color: TaskColor.YELLOW, completed: false, subtasks: [] },
-  // Saturday 31 янв
-  { id: 'd8', content: 'Проверить задачи', columnId: '2026-01-31', hour: 9, color: TaskColor.RED, completed: false, subtasks: [] },
-  // Backlogs
-  { id: 'd9', content: 'Написать письмо Вике', columnId: 'inbox', color: TaskColor.YELLOW, completed: false, subtasks: [] },
-  { id: 'd10', content: 'Позвонить Диме', columnId: 'urgent', color: TaskColor.YELLOW, completed: false, subtasks: [] },
-  { id: 'd11', content: 'Купить автомобиль', columnId: 'someday', color: TaskColor.BLUE, completed: false, subtasks: [] },
-  { id: 'd12', content: 'Запустить телеграм бота по подписке', columnId: 'ideas', color: TaskColor.DEFAULT, completed: false, subtasks: [] },
+// Demo tasks template: dayOffset 0=Mon, 1=Tue, ... 6=Sun; null=backlog
+const DEMO_TASKS_TEMPLATE: { id: string; content: string; dayOffset: number | null; backlogColumn?: string; hour?: number; color: TaskColor; }[] = [
+  { id: 'd1', content: 'Скорректировать код продукта', dayOffset: 0, hour: 8, color: TaskColor.RED },
+  { id: 'd2', content: 'Провести встречу с партнером', dayOffset: 0, hour: 10, color: TaskColor.PURPLE },
+  { id: 'd3', content: 'Забрать вещи', dayOffset: 0, hour: 9, color: TaskColor.DEFAULT },
+  { id: 'd4', content: 'Подготовить отчёт', dayOffset: 1, hour: 10, color: TaskColor.GREEN },
+  { id: 'd5', content: 'Записаться к доктору', dayOffset: 2, hour: 11, color: TaskColor.YELLOW },
+  { id: 'd6a', content: 'Утренняя пробежка', dayOffset: 3, hour: 6, color: TaskColor.PURPLE },
+  { id: 'd6', content: 'Провести оплату', dayOffset: 3, hour: 14, color: TaskColor.GREEN },
+  { id: 'd7', content: 'Написать письмо', dayOffset: 4, hour: 16, color: TaskColor.YELLOW },
+  { id: 'd8', content: 'Проверить задачи', dayOffset: 5, hour: 9, color: TaskColor.RED },
+  { id: 'd9', content: 'Написать письмо Вике', dayOffset: null, backlogColumn: 'inbox', color: TaskColor.YELLOW },
+  { id: 'd10', content: 'Позвонить Диме', dayOffset: null, backlogColumn: 'urgent', color: TaskColor.YELLOW },
+  { id: 'd11', content: 'Купить автомобиль', dayOffset: null, backlogColumn: 'someday', color: TaskColor.BLUE },
+  { id: 'd12', content: 'Запустить телеграм бота по подписке', dayOffset: null, backlogColumn: 'ideas', color: TaskColor.DEFAULT },
 ];
+
+// Generate demo tasks for a given week (monday date)
+function generateDemoTasks(monday: Date): Task[] {
+  const fmt = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  return DEMO_TASKS_TEMPLATE.map(t => {
+    if (t.dayOffset !== null) {
+      const d = new Date(monday);
+      d.setDate(monday.getDate() + t.dayOffset);
+      return { id: t.id, content: t.content, columnId: fmt(d), hour: t.hour, color: t.color, completed: false, subtasks: [] };
+    }
+    return { id: t.id, content: t.content, columnId: t.backlogColumn!, color: t.color, completed: false, subtasks: [] };
+  });
+}
 
 interface QuickAddState {
   columnId: string;
@@ -266,7 +272,7 @@ const App: React.FC = () => {
     // If NOT authenticated, show demo tasks and LANDING by default
     else if (!isAuthenticated) {
       hasLoadedFromServer.current = false;
-      setTasks(DEMO_TASKS);
+      setTasks(generateDemoTasks(startDate));
       setShowOnboarding(false);
 
       // Smart Auth Trigger Logic (Demo Mode)
@@ -291,7 +297,7 @@ const App: React.FC = () => {
         };
       }
     }
-  }, [isAuthenticated, user?.id, showLanding, showAuthModal]);
+  }, [isAuthenticated, user?.id, showLanding, showAuthModal, startDate]);
 
   // Auto-sync tasks to server when they change (with debounce)
   useEffect(() => {

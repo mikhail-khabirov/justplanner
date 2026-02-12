@@ -66,9 +66,10 @@ export const BillingProvider: React.FC<BillingProviderProps> = ({ children, isAu
     }, [fetchSubscription, isAuthenticated]);
 
     const isPremium = useMemo(() => {
+        if (!isAuthenticated) return true; // Demo mode: full Pro for guests
         if (!subscription) return false;
         return subscription.plan === 'pro' && subscription.status === 'active';
-    }, [subscription]);
+    }, [isAuthenticated, subscription]);
 
     const plan = useMemo((): PlanType => {
         return isPremium ? 'pro' : 'free';
