@@ -39,6 +39,7 @@ async function getRegistrationStats() {
                     AND created_at < CURRENT_DATE AT TIME ZONE 'Europe/Moscow') AS yesterday,
                 COUNT(*) AS total
             FROM users
+            WHERE is_verified = true
         `);
         return result.rows[0];
     } catch (err) {
