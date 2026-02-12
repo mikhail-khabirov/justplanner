@@ -176,7 +176,7 @@ const SubscriptionStatus: React.FC<SubscriptionStatusProps> = ({ onUpgrade }) =>
                 <span className="font-medium">Подписка</span>
             </div>
 
-            <div className="bg-gray-50 border border-gray-200 rounded-xl p-4 space-y-3">
+            <div className="bg-gray-50 border border-gray-200 rounded-xl p-4 pb-5 space-y-3">
                 <div className="flex items-center justify-between">
                     <span className="text-gray-600">Бесплатный план</span>
                     <span className="text-xs bg-gray-200 text-gray-600 px-2 py-0.5 rounded-full">Free</span>
