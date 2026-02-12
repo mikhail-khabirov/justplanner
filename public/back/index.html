@@ -336,11 +336,11 @@
                     <td class="px-3 py-2 text-white/80 text-xs whitespace-nowrap">${new Date(user.created_at).toLocaleString('ru-RU')}</td>
                     <td class="px-3 py-2 text-white/80 text-xs whitespace-nowrap">${lastLogin}</td>
                     <td class="px-3 py-2 text-white/90 font-mono text-sm">
-                        <div>
-                            ${user.tasks24h > 0
-                        ? `<div class="text-green-300 text-[10px] leading-tight mb-0.5">+${user.tasks24h}</div>`
-                        : ''}
+                        <div class="flex items-center gap-1">
                             <span class="font-bold">${user.totalTasks}</span>
+                            ${user.tasks24h > 0
+                        ? `<span class="px-1 py-0.5 rounded bg-green-500/10 border border-green-500/20 text-green-300 text-[10px] font-medium">+${user.tasks24h}</span>`
+                        : ''}
                         </div>
                     </td>
                     <td class="px-3 py-2">
