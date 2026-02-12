@@ -1,3 +1,5 @@
+import pool from '../config/db.js';
+
 const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 const TELEGRAM_CHAT_ID = process.env.TELEGRAM_CHAT_ID;
 
@@ -28,16 +30,36 @@ async function sendTelegramMessage(text) {
     }
 }
 
-export function notifyNewUser(email, type = 'email') {
+async function getRegistrationStats() {
+    try {
+        const result = await pool.query(`
+            SELECT 
+                COUNT(*) FILTER (WHERE created_at >= CURRENT_DATE AT TIME ZONE 'Europe/Moscow') AS today,
+                COUNT(*) FILTER (WHERE created_at >= (CURRENT_DATE - INTERVAL '1 day') AT TIME ZONE 'Europe/Moscow' 
+                    AND created_at < CURRENT_DATE AT TIME ZONE 'Europe/Moscow') AS yesterday,
+                COUNT(*) AS total
+            FROM users
+        `);
+        return result.rows[0];
+    } catch (err) {
+        console.error('Failed to get registration stats:', err.message);
+        return { today: '?', yesterday: '?', total: '?' };
+    }
+}
+
+export async function notifyNewUser(email, type = 'email') {
     const icon = type === 'google' ? '🔵' : '📧';
     const method = type === 'google' ? 'Google' : 'Email';
     const now = new Date().toLocaleString('ru-RU', { timeZone: 'Europe/Moscow' });
+    const stats = await getRegistrationStats();
 
     sendTelegramMessage(
         `${icon} <b>Новый пользователь</b>\n\n` +
         `📩 ${email}\n` +
         `🔑 Вход: ${method}\n` +
-        `🕐 ${now}`
+        `🕐 ${now}\n\n` +
+        `📊 <b>Регистрации:</b>\n` +
+        `  Сегодня: ${stats.today} | Вчера: ${stats.yesterday} | Всего: ${stats.total}`
     );
 }
 
