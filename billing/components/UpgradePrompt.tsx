@@ -129,7 +129,7 @@ const UpgradePrompt: React.FC<UpgradePromptProps> = ({ isOpen, onClose, reason =
                         ) : (
                             <>
                                 <Crown size={18} />
-                                Перейти на Pro — 99 ₽/мес
+                                Попробовать Pro — 1 ₽ за 7 дней
                             </>
                         )}
                     </button>
@@ -175,7 +175,7 @@ const UpgradePrompt: React.FC<UpgradePromptProps> = ({ isOpen, onClose, reason =
 
                         <div className="text-sm text-gray-600 space-y-3">
                             <p>
-                                Мы спишем с привязанной карты 99₽ в момент окончания периода и сервис продлится автоматически.
+                                Пробный период: 7 дней за 1 ₽. По окончании пробного периода подписка продлевается автоматически за 99 ₽/мес.
                             </p>
                             <p>
                                 Отменить подписку и отвязать способ оплаты вы сможете в любой момент в настройках.

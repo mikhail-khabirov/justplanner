@@ -17,12 +17,12 @@ const PREMIUM_PRICE = 99; // RUB per month
  * @param {string} userEmail - User email for receipt
  * @returns {Promise<{confirmationUrl: string, paymentId: string}>}
  */
-export async function createPayment(userId, userEmail) {
+export async function createTrialPayment(userId, userEmail) {
     const idempotenceKey = uuidv4();
 
     const payment = await yookassa.createPayment({
         amount: {
-            value: PREMIUM_PRICE.toFixed(2),
+            value: '1.00',
             currency: 'RUB'
         },
         capture: true,
@@ -30,23 +30,23 @@ export async function createPayment(userId, userEmail) {
             type: 'redirect',
             return_url: process.env.YOOKASSA_RETURN_URL || 'https://justplanner.ru'
         },
-        description: 'JustPlanner Premium — ежемесячная подписка',
+        description: 'JustPlanner Pro — пробный период 7 дней',
         metadata: {
             userId: userId.toString(),
-            type: 'premium_subscription'
+            type: 'trial'
         },
         receipt: {
             customer: {
                 email: userEmail
             },
             items: [{
-                description: 'JustPlanner Premium — ежемесячная подписка',
+                description: 'JustPlanner Pro — пробный период 7 дней',
                 quantity: '1',
                 amount: {
-                    value: PREMIUM_PRICE.toFixed(2),
+                    value: '1.00',
                     currency: 'RUB'
                 },
-                vat_code: 1, // НДС не облагается (для самозанятых)
+                vat_code: 1,
                 payment_mode: 'full_payment',
                 payment_subject: 'service'
             }]

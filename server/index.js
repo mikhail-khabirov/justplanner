@@ -121,6 +121,10 @@ async function updateSchema() {
             ALTER TABLE subscriptions 
             ADD COLUMN IF NOT EXISTS payment_method_title VARCHAR(255);
         `);
+        await pool.query(`
+            ALTER TABLE subscriptions 
+            ADD COLUMN IF NOT EXISTS is_trial BOOLEAN DEFAULT FALSE;
+        `);
 
 
         console.log('✅ Database schema updated');

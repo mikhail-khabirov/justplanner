@@ -16,7 +16,7 @@ export async function processRenewals() {
     try {
         // Find all expired active subscriptions with auto_renew and saved payment method
         const result = await pool.query(`
-            SELECT s.user_id, s.yookassa_subscription_id, s.renewal_retries, u.email
+            SELECT s.user_id, s.yookassa_subscription_id, s.renewal_retries, s.is_trial, u.email
             FROM subscriptions s
             JOIN users u ON u.id = s.user_id
             WHERE s.auto_renew = TRUE
@@ -42,9 +42,10 @@ export async function processRenewals() {
 /**
  * Process a single subscription renewal
  */
-async function processOneRenewal({ user_id, yookassa_subscription_id, renewal_retries, email }) {
+async function processOneRenewal({ user_id, yookassa_subscription_id, renewal_retries, is_trial, email }) {
     try {
-        console.log(`🔄 Renewing subscription for user ${user_id} (attempt ${renewal_retries + 1}/${MAX_RETRIES})`);
+        const label = is_trial ? 'trial→paid' : 'renewal';
+        console.log(`🔄 Renewing subscription for user ${user_id} [${label}] (attempt ${renewal_retries + 1}/${MAX_RETRIES})`);
 
         // Update last attempt timestamp
         await pool.query(
@@ -52,28 +53,29 @@ async function processOneRenewal({ user_id, yookassa_subscription_id, renewal_re
             [user_id]
         );
 
-        // Create recurring payment via Yookassa
+        // Create recurring payment via Yookassa (always 99 RUB)
         const payment = await createRecurringPayment(yookassa_subscription_id, user_id, email);
 
         // Log payment
         await pool.query(
             `INSERT INTO payments (user_id, yookassa_payment_id, amount, currency, status, description)
              VALUES ($1, $2, $3, $4, $5, $6)`,
-            [user_id, payment.id, 99, 'RUB', payment.status, 'Premium — автопродление']
+            [user_id, payment.id, 99, 'RUB', payment.status, is_trial ? 'Pro — первая оплата после триала' : 'Premium — автопродление']
         );
 
         if (payment.status === 'succeeded') {
-            // Extend subscription by 30 days
+            // Extend subscription by 30 days, clear trial flag
             await pool.query(
                 `UPDATE subscriptions 
                  SET current_period_end = NOW() + INTERVAL '30 days',
                      renewal_retries = 0,
+                     is_trial = FALSE,
                      last_renewal_attempt = NOW(),
                      updated_at = NOW()
                  WHERE user_id = $1`,
                 [user_id]
             );
-            console.log(`✅ Subscription renewed for user ${user_id}`);
+            console.log(`✅ Subscription renewed for user ${user_id} [${label}]`);
         } else if (payment.status === 'pending') {
             // Payment is pending — webhook will handle success/failure
             console.log(`⏳ Recurring payment pending for user ${user_id}: ${payment.id}`);

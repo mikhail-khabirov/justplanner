@@ -13,6 +13,7 @@ export interface Subscription {
     currentPeriodEnd?: string; // ISO date
     autoRenew: boolean;
     paymentMethodTitle?: string; // e.g., "Bank card *4444"
+    isTrial?: boolean;
     createdAt: string;
 }
 

@@ -79,14 +79,18 @@ const SubscriptionStatus: React.FC<SubscriptionStatusProps> = ({ onUpgrade }) =>
             <div className="space-y-3">
                 <div className="flex items-center gap-2 text-amber-600">
                     <Crown size={18} />
-                    <span className="font-medium">Подписка Pro</span>
+                    <span className="font-medium">
+                        {subscription.isTrial ? 'Пробный период Pro' : 'Подписка Pro'}
+                    </span>
                 </div>
 
                 <div className="bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-xl p-4 space-y-3">
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2 text-amber-700">
                             <Calendar size={16} />
-                            <span className="text-sm">Активна до</span>
+                            <span className="text-sm">
+                                {subscription.isTrial ? 'Пробный период до' : 'Активна до'}
+                            </span>
                         </div>
                         <span className="font-semibold text-amber-900">
                             {formatDate(subscription.currentPeriodEnd)}
@@ -197,7 +201,7 @@ const SubscriptionStatus: React.FC<SubscriptionStatusProps> = ({ onUpgrade }) =>
                     ) : (
                         <>
                             <Crown size={16} />
-                            Перейти на Pro — <span className="line-through opacity-70">299₽</span> 99 ₽/мес
+                            Попробовать Pro — 1 ₽ за 7 дней
                         </>
                     )}
                 </button>
