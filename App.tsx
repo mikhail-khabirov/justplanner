@@ -272,7 +272,14 @@ const App: React.FC = () => {
     // If NOT authenticated, show demo tasks and LANDING by default
     else if (!isAuthenticated) {
       hasLoadedFromServer.current = false;
-      setTasks(generateDemoTasks(startDate));
+      // Demo tasks always on the real current week (not the displayed one)
+      const today = new Date();
+      const dow = today.getDay();
+      const mondayOffset = today.getDate() - dow + (dow === 0 ? -6 : 1);
+      const currentMonday = new Date(today);
+      currentMonday.setHours(0, 0, 0, 0);
+      currentMonday.setDate(mondayOffset);
+      setTasks(generateDemoTasks(currentMonday));
       setShowOnboarding(false);
 
       // Smart Auth Trigger Logic (Demo Mode)
@@ -297,7 +304,7 @@ const App: React.FC = () => {
         };
       }
     }
-  }, [isAuthenticated, user?.id, showLanding, showAuthModal, startDate]);
+  }, [isAuthenticated, user?.id, showLanding, showAuthModal]);
 
   // Auto-sync tasks to server when they change (with debounce)
   useEffect(() => {
