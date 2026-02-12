@@ -107,8 +107,12 @@
                                 <p id="unverifiedUsers" class="text-3xl font-bold text-orange-300">-</p>
                             </div>
                             <div class="bg-white/10 backdrop-blur-lg rounded-xl p-6 border border-white/20">
-                                <p class="text-white/60 text-sm">Новых задач за 24ч</p>
+                                <p class="text-white/60 text-sm">Всего задач</p>
                                 <p id="totalTasks" class="text-3xl font-bold text-white">-</p>
+                                <div class="flex items-center gap-3 mt-1">
+                                    <span id="tasks24h" class="text-white/50 text-xs"></span>
+                                    <span id="tasksDynamic" class="text-xs font-medium"></span>
+                                </div>
                             </div>
                         </div>
 
@@ -179,6 +183,30 @@
                 document.getElementById('totalUsers').textContent = data.totalUsers;
                 document.getElementById('unverifiedUsers').textContent = data.unverifiedUsers;
                 document.getElementById('totalTasks').textContent = data.totalTasks;
+
+                // New tasks in 24h
+                document.getElementById('tasks24h').textContent = `+${data.tasks24h} за 24ч`;
+
+                // Dynamic %: compare current 24h vs previous 24h
+                const dynEl = document.getElementById('tasksDynamic');
+                if (data.tasksPrev24h > 0) {
+                    const change = Math.round(((data.tasks24h - data.tasksPrev24h) / data.tasksPrev24h) * 100);
+                    if (change > 0) {
+                        dynEl.textContent = `↑ ${change}%`;
+                        dynEl.className = 'text-xs font-medium text-green-300';
+                    } else if (change < 0) {
+                        dynEl.textContent = `↓ ${Math.abs(change)}%`;
+                        dynEl.className = 'text-xs font-medium text-red-300';
+                    } else {
+                        dynEl.textContent = '→ 0%';
+                        dynEl.className = 'text-xs font-medium text-white/50';
+                    }
+                } else if (data.tasks24h > 0) {
+                    dynEl.textContent = '↑ новые';
+                    dynEl.className = 'text-xs font-medium text-green-300';
+                } else {
+                    dynEl.textContent = '';
+                }
             } catch (err) {
                 console.error('Failed to load stats:', err);
             }
