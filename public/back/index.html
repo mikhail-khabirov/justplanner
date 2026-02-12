@@ -107,13 +107,8 @@
                                 <p id="unverifiedUsers" class="text-3xl font-bold text-orange-300">-</p>
                             </div>
                             <div class="bg-white/10 backdrop-blur-lg rounded-xl p-6 border border-white/20">
-                                <p class="text-white/60 text-sm">Всего задач</p>
-                                <div class="flex items-center gap-3">
-                                    <p id="totalTasks" class="text-3xl font-bold text-white">-</p>
-                                    <div id="tasksGrowth" class="hidden px-2 py-0.5 rounded bg-green-500/10 border border-green-500/20 text-green-300 text-xs font-medium">
-                                        +<span id="tasks24h">0</span> за 24ч
-                                    </div>
-                                </div>
+                                <p class="text-white/60 text-sm">Новых задач за 24ч</p>
+                                <p id="totalTasks" class="text-3xl font-bold text-white">-</p>
                             </div>
                         </div>
 
@@ -184,13 +179,6 @@
                 document.getElementById('totalUsers').textContent = data.totalUsers;
                 document.getElementById('unverifiedUsers').textContent = data.unverifiedUsers;
                 document.getElementById('totalTasks').textContent = data.totalTasks;
-
-                if (data.tasks24h > 0) {
-                    document.getElementById('tasks24h').textContent = data.tasks24h;
-                    document.getElementById('tasksGrowth').classList.remove('hidden');
-                } else {
-                    document.getElementById('tasksGrowth').classList.add('hidden');
-                }
             } catch (err) {
                 console.error('Failed to load stats:', err);
             }
