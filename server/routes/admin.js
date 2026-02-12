@@ -58,6 +58,7 @@ router.get('/users', adminAuth, async (req, res) => {
                 u.plan,
                 u.registration_source, 
                 u.registration_campaign,
+                u.is_verified,
                 COUNT(t.id) as total_tasks,
                 COUNT(CASE WHEN t.created_at > NOW() - INTERVAL '24 hours' THEN 1 END) as tasks_24h
             FROM users u
@@ -75,6 +76,7 @@ router.get('/users', adminAuth, async (req, res) => {
             plan: user.plan || 'free',
             source: user.registration_source || 'direct/organic',
             campaign: user.registration_campaign || '-',
+            isVerified: user.is_verified,
             totalTasks: parseInt(user.total_tasks || 0),
             tasks24h: parseInt(user.tasks_24h || 0)
         }));

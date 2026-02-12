@@ -293,7 +293,9 @@
             tbody.innerHTML = usersData.map(user => {
                 const typeBadge = user.registrationType === 'Google'
                     ? '<span class="px-2 py-1 rounded bg-blue-500/20 text-blue-300 text-xs text-white">Google</span>'
-                    : '<span class="px-2 py-1 rounded bg-white/10 text-white/70 text-xs">Email</span>';
+                    : !user.isVerified
+                        ? '<span class="px-2 py-1 rounded bg-red-500/20 text-red-300 text-xs">Email ✗</span>'
+                        : '<span class="px-2 py-1 rounded bg-white/10 text-white/70 text-xs">Email</span>';
 
                 const lastLogin = user.lastSession
                     ? new Date(user.lastSession).toLocaleString('ru-RU')
