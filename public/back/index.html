@@ -337,10 +337,10 @@
                     <td class="px-3 py-2 text-white/80 text-xs whitespace-nowrap">${lastLogin}</td>
                     <td class="px-3 py-2 text-white/90 font-mono text-sm">
                         <div>
-                            <span class="font-bold">${user.totalTasks}</span>
                             ${user.tasks24h > 0
-                        ? `<div class="text-green-300 text-[10px] leading-tight mt-0.5">+${user.tasks24h} за 24ч</div>`
+                        ? `<div class="text-green-300 text-[10px] leading-tight mb-0.5">+${user.tasks24h}</div>`
                         : ''}
+                            <span class="font-bold">${user.totalTasks}</span>
                         </div>
                     </td>
                     <td class="px-3 py-2">
