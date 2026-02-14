@@ -144,8 +144,9 @@ router.get('/google/callback',
     passport.authenticate('google', { session: false, failureRedirect: '/login' }),
     (req, res) => {
         const token = generateToken(req.user);
+        const isNew = req.user.isNew ? '&newUser=1' : '';
         // Redirect to frontend with token
-        res.redirect(`${process.env.FRONTEND_URL}?token=${token}`);
+        res.redirect(`${process.env.FRONTEND_URL}?token=${token}${isNew}`);
     }
 );
 

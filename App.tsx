@@ -102,7 +102,7 @@ const StatsDisplay = ({ stats }: { stats: any }) => (
 );
 
 const App: React.FC = () => {
-  const { user, isAuthenticated, isLoading: authLoading, logout, token } = useAuth();
+  const { user, isAuthenticated, isLoading: authLoading, logout, token, isNewRegistration, clearNewRegistration } = useAuth();
   const { isPremium, startPayment, canAddTask } = useBilling();
   const { settings } = useSettings();
 
@@ -180,12 +180,22 @@ const App: React.FC = () => {
     setShowUpgradePrompt(true);
   }, []);
 
-  // Called when user completes registration (not login)
+  // Called when user completes registration (email, not Google)
   const handleRegisterComplete = useCallback(() => {
     startAnnualOffer();
-    setShowAnnualModal(true);
     setShowAnnualWidget(true);
+    // Modal will be shown 10s after onboarding closes
   }, []);
+
+  // Handle Google OAuth new registrations
+  useEffect(() => {
+    if (isNewRegistration && isAuthenticated && !isPremium) {
+      startAnnualOffer();
+      setShowAnnualWidget(true);
+      clearNewRegistration();
+      // Modal will be shown 10s after onboarding closes
+    }
+  }, [isNewRegistration, isAuthenticated, isPremium, clearNewRegistration]);
 
   // Quick Add State
   const [quickAddState, setQuickAddState] = useState<QuickAddState | null>(null);
@@ -1228,7 +1238,13 @@ const App: React.FC = () => {
       <OnboardingOverlay
         isOpen={showOnboarding}
         userId={user?.id}
-        onComplete={() => setShowOnboarding(false)}
+        onComplete={() => {
+          setShowOnboarding(false);
+          // Show annual offer modal 10s after onboarding closes
+          if (isOfferActive() && !isOfferDismissed() && !isPremium) {
+            setTimeout(() => setShowAnnualModal(true), 10000);
+          }
+        }}
       />
 
       {/* Upgrade Prompt for free users hitting various limits */}

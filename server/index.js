@@ -48,7 +48,7 @@ if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
             }
 
             await User.updateLastLogin(user.id);
-            done(null, user);
+            done(null, { ...user, isNew });
         } catch (error) {
             done(error);
         }

@@ -11,6 +11,8 @@ interface AuthContextType {
     token: string | null;
     isLoading: boolean;
     isAuthenticated: boolean;
+    isNewRegistration: boolean;
+    clearNewRegistration: () => void;
     login: (email: string, password: string) => Promise<void>;
     register: (email: string, password: string) => Promise<{ needVerification: boolean }>;
     verifyEmail: (email: string, code: string) => Promise<void>;
@@ -28,6 +30,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const [user, setUser] = useState<User | null>(null);
     const [token, setToken] = useState<string | null>(() => safeLocalStorage.getItem('token'));
     const [isLoading, setIsLoading] = useState(true);
+    const [isNewRegistration, setIsNewRegistration] = useState(false);
 
     // Check token on mount or get token from URL (Google OAuth redirect)
     useEffect(() => {
@@ -39,6 +42,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             if (urlToken) {
                 safeLocalStorage.setItem('token', urlToken);
                 setToken(urlToken);
+                // Check if this is a new Google registration
+                const isNew = urlParams.get('newUser') === '1';
+                if (isNew) setIsNewRegistration(true);
                 // Clean URL
                 window.history.replaceState({}, document.title, window.location.pathname);
             }
@@ -203,12 +209,16 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         );
     }
 
+    const clearNewRegistration = () => setIsNewRegistration(false);
+
     return (
         <AuthContext.Provider value={{
             user,
             token,
             isLoading,
             isAuthenticated: !!user,
+            isNewRegistration,
+            clearNewRegistration,
             login,
             register,
             verifyEmail,
