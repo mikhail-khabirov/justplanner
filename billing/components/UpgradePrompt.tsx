@@ -14,7 +14,7 @@ interface UpgradePromptProps {
 const REASON_CONTENT: Record<UpgradeReason, { title: string; subtitle: string }> = {
     task_limit: {
         title: 'Лимит достигнут',
-        subtitle: 'Бесплатный план: максимум 10 задач'
+        subtitle: 'Бесплатный план: максимум 5 задач'
     },
     colors: {
         title: 'Цвета для Pro',

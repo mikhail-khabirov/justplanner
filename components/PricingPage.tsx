@@ -13,7 +13,7 @@ const PricingPage: React.FC<PricingPageProps> = ({ onBack, onSelectPlan }) => {
             price: '0',
             description: 'Для тех, кто начинает свой путь к продуктивности',
             features: [
-                '10 активных задач',
+                '5 активных задач',
                 'Недельный вид на 7 дней',
                 'Drag & Drop перенос задач',
                 'Базовые цвета задач',

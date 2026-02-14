@@ -183,7 +183,7 @@ const SubscriptionStatus: React.FC<SubscriptionStatusProps> = ({ onUpgrade }) =>
                 </div>
 
                 <div className="text-xs text-gray-500 space-y-1">
-                    <p>• Максимум 10 задач</p>
+                    <p>• Максимум 5 задач</p>
                     <p>• Только белый цвет карточек</p>
                     <p>• Планирование только на текущую неделю</p>
                     <p>• Без повторяющихся задач</p>
