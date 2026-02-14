@@ -16,6 +16,7 @@ import { useAuth } from './contexts/AuthContext';
 import { useSettings } from './contexts/SettingsContext';
 import { useBilling, ProBadge, UpgradePrompt, UpgradeReason } from './billing';
 import { tasksApi } from './api';
+import { AnnualOfferModal, AnnualOfferWidget, startAnnualOffer, isOfferActive, isOfferDismissed } from './annual-offer';
 import { User, MoreHorizontal, ChevronLeft, ChevronRight, TrendingUp, LogOut, Settings, LifeBuoy, X, Crown, FileDown, Printer, Zap } from 'lucide-react';
 
 // Configuration for the 4 bottom columns
@@ -144,6 +145,10 @@ const App: React.FC = () => {
   const [upgradeReason, setUpgradeReason] = useState<UpgradeReason>('task_limit');
   const [authMode, setAuthMode] = useState<'login' | 'register'>('login');
 
+  // Annual offer state
+  const [showAnnualModal, setShowAnnualModal] = useState(false);
+  const [showAnnualWidget, setShowAnnualWidget] = useState(() => isOfferActive() && !isOfferDismissed());
+
   // Helper: navigate to a URL and update state
   const navigateTo = useCallback((path: string) => {
     window.history.pushState({}, '', path);
@@ -173,6 +178,13 @@ const App: React.FC = () => {
   const showUpgradePromptWithReason = useCallback((reason: UpgradeReason) => {
     setUpgradeReason(reason);
     setShowUpgradePrompt(true);
+  }, []);
+
+  // Called when user completes registration (not login)
+  const handleRegisterComplete = useCallback(() => {
+    startAnnualOffer();
+    setShowAnnualModal(true);
+    setShowAnnualWidget(true);
   }, []);
 
   // Quick Add State
@@ -854,6 +866,7 @@ const App: React.FC = () => {
             onClose={() => !blockingAuth && setShowAuthModal(false)}
             allowClose={!blockingAuth}
             initialMode={authMode}
+            onRegister={handleRegisterComplete}
           />
         )}
       </>
@@ -1164,6 +1177,7 @@ const App: React.FC = () => {
         onClose={() => !blockingAuth && setShowAuthModal(false)}
         allowClose={!blockingAuth}
         initialMode={blockingAuth ? "register" : authMode}
+        onRegister={handleRegisterComplete}
       />
 
       {/* Settings Modal */}
@@ -1223,6 +1237,21 @@ const App: React.FC = () => {
         onClose={() => setShowUpgradePrompt(false)}
         reason={upgradeReason}
       />
+
+      {/* Annual Offer — modal + minimized widget */}
+      {isAuthenticated && !isPremium && (
+        <>
+          <AnnualOfferModal
+            isOpen={showAnnualModal}
+            onClose={() => setShowAnnualModal(false)}
+            onPurchased={() => { setShowAnnualModal(false); setShowAnnualWidget(false); }}
+          />
+          <AnnualOfferWidget
+            visible={!showAnnualModal && showAnnualWidget}
+            onClick={() => setShowAnnualModal(true)}
+          />
+        </>
+      )}
     </div>
   );
 };

@@ -1,7 +1,7 @@
 import express from 'express';
 import pool from '../config/db.js';
 import { authenticateToken } from '../middleware/auth.js';
-import { createTrialPayment, getPaymentStatus, createCardBindingPayment, refundPayment } from './yookassa.js';
+import { createTrialPayment, getPaymentStatus, createCardBindingPayment, createAnnualPayment, refundPayment } from './yookassa.js';
 import { notifyPayment } from '../utils/telegram.js';
 
 const router = express.Router();
@@ -88,6 +88,38 @@ router.post('/create-payment', authenticateToken, async (req, res) => {
         res.json({ confirmationUrl, paymentId });
     } catch (error) {
         console.error('Error creating payment:', error);
+        res.status(500).json({ error: 'Failed to create payment', message: error.message });
+    }
+});
+
+// Create annual payment (594 RUB for 365 days Pro)
+router.post('/create-annual-payment', authenticateToken, async (req, res) => {
+    try {
+        const userResult = await pool.query(
+            'SELECT email FROM users WHERE id = $1',
+            [req.user.id]
+        );
+
+        if (userResult.rows.length === 0) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+
+        const userEmail = userResult.rows[0].email;
+
+        const { confirmationUrl, paymentId } = await createAnnualPayment(
+            req.user.id,
+            userEmail
+        );
+
+        await pool.query(
+            `INSERT INTO payments (user_id, yookassa_payment_id, amount, currency, status, description)
+             VALUES ($1, $2, $3, $4, $5, $6)`,
+            [req.user.id, paymentId, 594, 'RUB', 'pending', 'Annual Pro 365 days']
+        );
+
+        res.json({ confirmationUrl, paymentId });
+    } catch (error) {
+        console.error('Error creating annual payment:', error);
         res.status(500).json({ error: 'Failed to create payment', message: error.message });
     }
 });
@@ -209,6 +241,31 @@ router.post('/verify-payment', authenticateToken, async (req, res) => {
 
                 console.log(`🆓 Trial verified and Pro activated for user ${req.user.id}`);
                 return res.json({ status: 'activated', plan: 'pro', type: 'trial' });
+            } else if (paymentType === 'annual') {
+                // Annual: Pro for 365 days, no auto-renew
+                const periodEnd = new Date();
+                periodEnd.setDate(periodEnd.getDate() + 365);
+
+                await pool.query(
+                    `INSERT INTO subscriptions (user_id, plan, status, current_period_end, auto_renew, is_trial)
+                     VALUES ($1, 'pro', 'active', $2, FALSE, FALSE)
+                     ON CONFLICT (user_id) DO UPDATE SET 
+                        plan = 'pro', 
+                        status = 'active', 
+                        current_period_end = $2,
+                        auto_renew = FALSE,
+                        is_trial = FALSE,
+                        updated_at = NOW()`,
+                    [req.user.id, periodEnd]
+                );
+
+                await pool.query(
+                    `UPDATE users SET plan = 'pro' WHERE id = $1`,
+                    [req.user.id]
+                );
+
+                console.log(`📅 Annual Pro verified for user ${req.user.id} until ${periodEnd}`);
+                return res.json({ status: 'activated', plan: 'pro', type: 'annual' });
             } else {
                 // Regular/recurring payment: Pro for 30 days
                 const periodEnd = new Date();
@@ -334,6 +391,35 @@ router.post('/webhook', async (req, res) => {
                 const userResult = await pool.query('SELECT email FROM users WHERE id = $1', [userId]);
                 const userEmail = userResult.rows[0]?.email || `user#${userId}`;
                 notifyPayment(userEmail, payment.amount.value, 'Триал Pro 7 дней');
+            } else if (paymentType === 'annual') {
+                // Annual: Pro for 365 days, no auto-renew
+                const periodEnd = new Date();
+                periodEnd.setDate(periodEnd.getDate() + 365);
+
+                await pool.query(
+                    `INSERT INTO subscriptions (user_id, plan, status, current_period_end, auto_renew, is_trial)
+                     VALUES ($1, 'pro', 'active', $2, FALSE, FALSE)
+                     ON CONFLICT (user_id) 
+                     DO UPDATE SET 
+                        plan = 'pro', 
+                        status = 'active', 
+                        current_period_end = $2,
+                        auto_renew = FALSE,
+                        is_trial = FALSE,
+                        updated_at = NOW()`,
+                    [userId, periodEnd]
+                );
+
+                await pool.query(
+                    `UPDATE users SET plan = 'pro' WHERE id = $1`,
+                    [userId]
+                );
+
+                console.log(`📅 Annual Pro activated for user ${userId} until ${periodEnd}`);
+
+                const userResult = await pool.query('SELECT email FROM users WHERE id = $1', [userId]);
+                const userEmail = userResult.rows[0]?.email || `user#${userId}`;
+                notifyPayment(userEmail, payment.amount.value, 'Годовая подписка Pro');
             } else {
                 // Regular/recurring payment: Pro for 30 days
                 const periodEnd = new Date();

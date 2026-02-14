@@ -7,11 +7,12 @@ interface AuthModalProps {
     onClose: () => void;
     allowClose?: boolean;
     initialMode?: 'login' | 'register';
+    onRegister?: () => void;
 }
 
 const API_URL = '/api';
 
-const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, allowClose = true, initialMode = 'login' }) => {
+const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, allowClose = true, initialMode = 'login', onRegister }) => {
     const [mode, setMode] = useState<'login' | 'register' | 'forgot' | 'reset'>('login');
     const [step, setStep] = useState<'auth' | 'verify'>('auth');
     const [email, setEmail] = useState('');
@@ -83,6 +84,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, allowClose = tru
                 if (result.needVerification) {
                     setStep('verify');
                 } else {
+                    onRegister?.();
                     onClose();
                 }
             } else if (mode === 'forgot') {
@@ -118,6 +120,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, allowClose = tru
 
         try {
             await verifyEmail(email, verificationCode);
+            onRegister?.();
             onClose();
             setStep('auth');
             setEmail('');

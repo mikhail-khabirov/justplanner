@@ -92,6 +92,19 @@ export const billingApi = {
         }
     },
 
+    // Create annual payment (594 RUB for 365 days)
+    async createAnnualPayment(): Promise<CreatePaymentResponse> {
+        const response = await fetch(`${API_URL}/api/billing/create-annual-payment`, {
+            method: 'POST',
+            headers: getAuthHeaders()
+        });
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.message || 'Annual payment creation failed');
+        }
+        return await response.json();
+    },
+
     // Initiate card binding (1 RUB)
     async bindCard(): Promise<{ confirmationUrl: string; paymentId: string }> {
         const response = await fetch(`${API_URL}/api/billing/bind-card`, {

@@ -110,6 +110,51 @@ export async function createRecurringPayment(paymentMethodId, userId, userEmail)
     return payment;
 }
 
+/**
+ * Create annual payment with 50% discount (594 RUB for 365 days)
+ */
+export async function createAnnualPayment(userId, userEmail) {
+    const idempotenceKey = uuidv4();
+
+    const payment = await yookassa.createPayment({
+        amount: {
+            value: '594.00',
+            currency: 'RUB'
+        },
+        capture: true,
+        confirmation: {
+            type: 'redirect',
+            return_url: process.env.YOOKASSA_RETURN_URL || 'https://justplanner.ru'
+        },
+        description: 'JustPlanner Pro — годовая подписка',
+        metadata: {
+            userId: userId.toString(),
+            type: 'annual'
+        },
+        receipt: {
+            customer: {
+                email: userEmail
+            },
+            items: [{
+                description: 'JustPlanner Pro — годовая подписка',
+                quantity: '1',
+                amount: {
+                    value: '594.00',
+                    currency: 'RUB'
+                },
+                vat_code: 1,
+                payment_mode: 'full_payment',
+                payment_subject: 'service'
+            }]
+        }
+    }, idempotenceKey);
+
+    return {
+        confirmationUrl: payment.confirmation.confirmation_url,
+        paymentId: payment.id
+    };
+}
+
 export async function createCardBindingPayment(userId, userEmail) {
     const idempotenceKey = uuidv4();
 
