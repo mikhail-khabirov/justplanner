@@ -96,13 +96,15 @@ router.get('/stats', adminAuth, async (req, res) => {
         const tasksTotal = await pool.query('SELECT COUNT(*) as count FROM tasks');
         const tasks24h = await pool.query("SELECT COUNT(*) as count FROM tasks WHERE created_at > NOW() - INTERVAL '24 hours'");
         const tasksPrev24h = await pool.query("SELECT COUNT(*) as count FROM tasks WHERE created_at > NOW() - INTERVAL '48 hours' AND created_at <= NOW() - INTERVAL '24 hours'");
+        const revenueResult = await pool.query("SELECT COALESCE(SUM(amount), 0) as total FROM payments WHERE status = 'succeeded'");
 
         res.json({
             totalUsers: parseInt(usersResult.rows[0].count),
             unverifiedUsers: parseInt(unverifiedResult.rows[0].count),
             totalTasks: parseInt(tasksTotal.rows[0].count),
             tasks24h: parseInt(tasks24h.rows[0].count),
-            tasksPrev24h: parseInt(tasksPrev24h.rows[0].count)
+            tasksPrev24h: parseInt(tasksPrev24h.rows[0].count),
+            totalRevenue: parseFloat(revenueResult.rows[0].total)
         });
     } catch (error) {
         console.error('Get stats error:', error);

@@ -97,7 +97,7 @@
                             </button>
                         </div>
 
-                        <div id="stats" class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+                        <div id="stats" class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
                             <div class="bg-white/10 backdrop-blur-lg rounded-xl p-6 border border-white/20">
                                 <p class="text-white/60 text-sm">Всего пользователей</p>
                                 <p id="totalUsers" class="text-3xl font-bold text-white">-</p>
@@ -113,6 +113,10 @@
                                     <span id="tasks24h" class="text-white/50 text-xs"></span>
                                     <span id="tasksDynamic" class="text-xs font-medium"></span>
                                 </div>
+                            </div>
+                            <div class="bg-white/10 backdrop-blur-lg rounded-xl p-6 border border-white/20">
+                                <p class="text-white/60 text-sm">Выручка</p>
+                                <p id="totalRevenue" class="text-3xl font-bold text-green-300">-</p>
                             </div>
                         </div>
 
@@ -183,6 +187,7 @@
                 document.getElementById('totalUsers').textContent = data.totalUsers;
                 document.getElementById('unverifiedUsers').textContent = data.unverifiedUsers;
                 document.getElementById('totalTasks').textContent = data.totalTasks;
+                document.getElementById('totalRevenue').textContent = data.totalRevenue.toLocaleString('ru-RU') + ' ₽';
 
                 // New tasks in 24h
                 document.getElementById('tasks24h').textContent = `+${data.tasks24h} за 24ч`;
