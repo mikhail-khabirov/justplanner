@@ -70,25 +70,10 @@ export const sendWelcomeEmail = async (email) => {
                                 <td style="padding: 28px 28px 24px; text-align: center;">
                                     <div style="font-size: 32px; margin-bottom: 8px;">🎁</div>
                                     <div style="font-size: 20px; font-weight: 700; color: #ffffff; margin-bottom: 6px;">Скидка 50% на годовую подписку</div>
-                                    <div style="font-size: 14px; color: rgba(255,255,255,0.9); margin-bottom: 12px;">Только для новых пользователей</div>
-                                    <table role="presentation" cellpadding="0" cellspacing="0" style="margin: 0 auto 16px;">
-                                        <tr>
-                                            <td style="background-color: rgba(0,0,0,0.2); border-radius: 8px; padding: 8px 14px; text-align: center;">
-                                                <div style="font-size: 28px; font-weight: 800; color: #ffffff; letter-spacing: 2px; font-family: 'Courier New', monospace;">24</div>
-                                                <div style="font-size: 10px; color: rgba(255,255,255,0.7); text-transform: uppercase;">часов</div>
-                                            </td>
-                                            <td style="font-size: 24px; font-weight: 700; color: rgba(255,255,255,0.6); padding: 0 6px;">:</td>
-                                            <td style="background-color: rgba(0,0,0,0.2); border-radius: 8px; padding: 8px 14px; text-align: center;">
-                                                <div style="font-size: 28px; font-weight: 800; color: #ffffff; letter-spacing: 2px; font-family: 'Courier New', monospace;">00</div>
-                                                <div style="font-size: 10px; color: rgba(255,255,255,0.7); text-transform: uppercase;">минут</div>
-                                            </td>
-                                            <td style="font-size: 24px; font-weight: 700; color: rgba(255,255,255,0.6); padding: 0 6px;">:</td>
-                                            <td style="background-color: rgba(0,0,0,0.2); border-radius: 8px; padding: 8px 14px; text-align: center;">
-                                                <div style="font-size: 28px; font-weight: 800; color: #ffffff; letter-spacing: 2px; font-family: 'Courier New', monospace;">00</div>
-                                                <div style="font-size: 10px; color: rgba(255,255,255,0.7); text-transform: uppercase;">секунд</div>
-                                            </td>
-                                        </tr>
-                                    </table>
+                                    <div style="font-size: 14px; color: rgba(255,255,255,0.9); margin-bottom: 6px;">Только для новых пользователей</div>
+                                    <div style="display: inline-block; background-color: rgba(0,0,0,0.2); border-radius: 8px; padding: 8px 18px; margin-bottom: 16px;">
+                                        <span style="font-size: 15px; font-weight: 700; color: #ffffff;">⏰ Действует 24 часа с момента регистрации</span>
+                                    </div>
                                     <table role="presentation" cellpadding="0" cellspacing="0" style="margin: 0 auto 16px;">
                                         <tr>
                                             <td style="font-size: 16px; color: rgba(255,255,255,0.7); text-decoration: line-through; padding-right: 12px;">1 188 ₽/год</td>
@@ -211,24 +196,9 @@ export const sendAnnualOfferReminder = async (email) => {
                         <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background: linear-gradient(135deg, #f59e0b 0%, #f97316 100%); border-radius: 14px; overflow: hidden;">
                             <tr>
                                 <td style="padding: 24px 28px; text-align: center;">
-                                    <table role="presentation" cellpadding="0" cellspacing="0" style="margin: 0 auto 16px;">
-                                        <tr>
-                                            <td style="background-color: rgba(0,0,0,0.2); border-radius: 8px; padding: 8px 14px; text-align: center;">
-                                                <div style="font-size: 28px; font-weight: 800; color: #ffffff; letter-spacing: 2px; font-family: 'Courier New', monospace;">05</div>
-                                                <div style="font-size: 10px; color: rgba(255,255,255,0.7); text-transform: uppercase;">часов</div>
-                                            </td>
-                                            <td style="font-size: 24px; font-weight: 700; color: rgba(255,255,255,0.6); padding: 0 6px;">:</td>
-                                            <td style="background-color: rgba(0,0,0,0.2); border-radius: 8px; padding: 8px 14px; text-align: center;">
-                                                <div style="font-size: 28px; font-weight: 800; color: #ffffff; letter-spacing: 2px; font-family: 'Courier New', monospace;">00</div>
-                                                <div style="font-size: 10px; color: rgba(255,255,255,0.7); text-transform: uppercase;">минут</div>
-                                            </td>
-                                            <td style="font-size: 24px; font-weight: 700; color: rgba(255,255,255,0.6); padding: 0 6px;">:</td>
-                                            <td style="background-color: rgba(0,0,0,0.2); border-radius: 8px; padding: 8px 14px; text-align: center;">
-                                                <div style="font-size: 28px; font-weight: 800; color: #ffffff; letter-spacing: 2px; font-family: 'Courier New', monospace;">00</div>
-                                                <div style="font-size: 10px; color: rgba(255,255,255,0.7); text-transform: uppercase;">секунд</div>
-                                            </td>
-                                        </tr>
-                                    </table>
+                                    <div style="display: inline-block; background-color: rgba(0,0,0,0.2); border-radius: 8px; padding: 10px 20px; margin-bottom: 16px;">
+                                        <span style="font-size: 16px; font-weight: 700; color: #ffffff;">⏰ Осталось менее 5 часов!</span>
+                                    </div>
                                     <table role="presentation" cellpadding="0" cellspacing="0" style="margin: 0 auto 16px;">
                                         <tr>
                                             <td style="font-size: 16px; color: rgba(255,255,255,0.7); text-decoration: line-through; padding-right: 12px;">1 188 ₽/год</td>
