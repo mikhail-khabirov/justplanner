@@ -197,6 +197,22 @@ const App: React.FC = () => {
     }
   }, [isNewRegistration, isAuthenticated, isPremium, clearNewRegistration]);
 
+  // Handle ?annualOffer=1 from welcome email link
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('annualOffer') === '1' && isAuthenticated && !isPremium) {
+      if (isOfferActive()) {
+        setShowAnnualModal(true);
+        setShowAnnualWidget(true);
+      }
+      params.delete('annualOffer');
+      const newUrl = params.toString()
+        ? `${window.location.pathname}?${params.toString()}`
+        : window.location.pathname;
+      window.history.replaceState({}, '', newUrl);
+    }
+  }, [isAuthenticated, isPremium]);
+
   // Quick Add State
   const [quickAddState, setQuickAddState] = useState<QuickAddState | null>(null);
 

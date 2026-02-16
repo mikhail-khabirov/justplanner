@@ -46,17 +46,127 @@ export const sendVerificationCode = async (email, code) => {
 
 export const sendWelcomeEmail = async (email) => {
     const html = `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-            <h1 style="color: #26A69A;">Добро пожаловать в JustPlanner! 🚀</h1>
-            <p>Мы рады, что вы с нами!</p>
-            <p>Теперь вы можете планировать свои задачи легко и удобно.</p>
-            <p>Если у вас возникнут вопросы, просто ответьте на это письмо.</p>
-            <br>
-            <p>С наилучшими ожиданиями,<br>Команда JustPlanner</p>
-        </div>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color: #f0f4f8; padding: 32px 16px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;">
+    <tr>
+        <td align="center">
+            <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 24px rgba(0,0,0,0.08);">
+                <tr>
+                    <td style="background: linear-gradient(135deg, #1a9688 0%, #26A69A 100%); padding: 40px 40px 32px; text-align: center;">
+                        <div style="font-size: 28px; font-weight: 700; color: #ffffff; letter-spacing: -0.5px;">📋 JustPlanner</div>
+                        <div style="margin-top: 16px; font-size: 22px; font-weight: 600; color: #ffffff;">Добро пожаловать!</div>
+                        <div style="margin-top: 8px; font-size: 15px; color: rgba(255,255,255,0.7);">Ваш новый способ планировать неделю</div>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="padding: 32px 40px 0;">
+                        <p style="margin: 0; font-size: 16px; color: #334155; line-height: 1.6;">Привет! �</p>
+                        <p style="margin: 12px 0 0; font-size: 16px; color: #334155; line-height: 1.6;">Мы рады, что вы выбрали JustPlanner — простой и удобный планировщик задач на неделю. Никаких сложных настроек, только то, что действительно нужно.</p>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="padding: 28px 40px 0;">
+                        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background: linear-gradient(135deg, #f59e0b 0%, #f97316 100%); border-radius: 14px; overflow: hidden;">
+                            <tr>
+                                <td style="padding: 28px 28px 24px; text-align: center;">
+                                    <div style="font-size: 32px; margin-bottom: 8px;">🎁</div>
+                                    <div style="font-size: 20px; font-weight: 700; color: #ffffff; margin-bottom: 6px;">Скидка 50% на годовую подписку</div>
+                                    <div style="font-size: 14px; color: rgba(255,255,255,0.9); margin-bottom: 16px;">Только для новых пользователей — предложение действует 24 часа</div>
+                                    <table role="presentation" cellpadding="0" cellspacing="0" style="margin: 0 auto 16px;">
+                                        <tr>
+                                            <td style="font-size: 16px; color: rgba(255,255,255,0.7); text-decoration: line-through; padding-right: 12px;">1 188 ₽/год</td>
+                                            <td style="font-size: 24px; font-weight: 800; color: #ffffff;">594 ₽/год</td>
+                                        </tr>
+                                    </table>
+                                    <div style="margin-bottom: 6px;">
+                                        <a href="https://justplanner.ru?annualOffer=1" style="display: inline-block; background-color: #ffffff; color: #ea580c; font-size: 16px; font-weight: 700; padding: 14px 36px; border-radius: 10px; text-decoration: none;">Получить скидку →</a>
+                                    </div>
+                                    <div style="font-size: 12px; color: rgba(255,255,255,0.7); margin-top: 12px;">Это всего 49,5 ₽/мес вместо 99 ₽/мес</div>
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="padding: 28px 40px 0;">
+                        <div style="font-size: 18px; font-weight: 700; color: #0f172a; margin-bottom: 16px;">⚡ Что умеет JustPlanner</div>
+                        <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+                            <tr>
+                                <td style="padding: 12px 16px; background-color: #f8fafc; border-radius: 10px;">
+                                    <table role="presentation" cellpadding="0" cellspacing="0"><tr>
+                                        <td style="vertical-align: top; padding-right: 12px; font-size: 20px;">📅</td>
+                                        <td><div style="font-size: 15px; font-weight: 600; color: #0f172a;">Планирование по дням</div><div style="font-size: 13px; color: #64748b; margin-top: 2px;">Раскидывайте задачи по дням недели — всё наглядно</div></td>
+                                    </tr></table>
+                                </td>
+                            </tr>
+                            <tr><td style="height: 8px;"></td></tr>
+                            <tr>
+                                <td style="padding: 12px 16px; background-color: #f8fafc; border-radius: 10px;">
+                                    <table role="presentation" cellpadding="0" cellspacing="0"><tr>
+                                        <td style="vertical-align: top; padding-right: 12px; font-size: 20px;">🔄</td>
+                                        <td><div style="font-size: 15px; font-weight: 600; color: #0f172a;">Перенос и повторы</div><div style="font-size: 13px; color: #64748b; margin-top: 2px;">Перетаскивайте задачи между днями, настраивайте повторения</div></td>
+                                    </tr></table>
+                                </td>
+                            </tr>
+                            <tr><td style="height: 8px;"></td></tr>
+                            <tr>
+                                <td style="padding: 12px 16px; background-color: #f8fafc; border-radius: 10px;">
+                                    <table role="presentation" cellpadding="0" cellspacing="0"><tr>
+                                        <td style="vertical-align: top; padding-right: 12px; font-size: 20px;">🎨</td>
+                                        <td><div style="font-size: 15px; font-weight: 600; color: #0f172a;">Цвета и категории</div><div style="font-size: 13px; color: #64748b; margin-top: 2px;">Выделяйте задачи цветом — работа, личное, спорт</div></td>
+                                    </tr></table>
+                                </td>
+                            </tr>
+                            <tr><td style="height: 8px;"></td></tr>
+                            <tr>
+                                <td style="padding: 12px 16px; background-color: #f8fafc; border-radius: 10px;">
+                                    <table role="presentation" cellpadding="0" cellspacing="0"><tr>
+                                        <td style="vertical-align: top; padding-right: 12px; font-size: 20px;">📄</td>
+                                        <td><div style="font-size: 15px; font-weight: 600; color: #0f172a;">Экспорт в PDF</div><div style="font-size: 13px; color: #64748b; margin-top: 2px;">Распечатайте план на неделю или сохраните на телефон</div></td>
+                                    </tr></table>
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="padding: 28px 40px 0;">
+                        <div style="font-size: 18px; font-weight: 700; color: #0f172a; margin-bottom: 16px;">🚀 Как начать</div>
+                        <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+                            <tr><td style="padding: 10px 0;"><table role="presentation" cellpadding="0" cellspacing="0"><tr>
+                                <td style="vertical-align: top; padding-right: 14px;"><div style="width: 28px; height: 28px; border-radius: 50%; background: #26A69A; color: white; font-size: 14px; font-weight: 700; text-align: center; line-height: 28px;">1</div></td>
+                                <td style="font-size: 15px; color: #334155; line-height: 1.5; padding-top: 3px;"><strong>Создайте первую задачу</strong> — нажмите + или введите текст в поле быстрого добавления</td>
+                            </tr></table></td></tr>
+                            <tr><td style="padding: 10px 0;"><table role="presentation" cellpadding="0" cellspacing="0"><tr>
+                                <td style="vertical-align: top; padding-right: 14px;"><div style="width: 28px; height: 28px; border-radius: 50%; background: #26A69A; color: white; font-size: 14px; font-weight: 700; text-align: center; line-height: 28px;">2</div></td>
+                                <td style="font-size: 15px; color: #334155; line-height: 1.5; padding-top: 3px;"><strong>Распределите по дням</strong> — перетащите задачи в нужные колонки</td>
+                            </tr></table></td></tr>
+                            <tr><td style="padding: 10px 0;"><table role="presentation" cellpadding="0" cellspacing="0"><tr>
+                                <td style="vertical-align: top; padding-right: 14px;"><div style="width: 28px; height: 28px; border-radius: 50%; background: #26A69A; color: white; font-size: 14px; font-weight: 700; text-align: center; line-height: 28px;">3</div></td>
+                                <td style="font-size: 15px; color: #334155; line-height: 1.5; padding-top: 3px;"><strong>Отмечайте выполненное</strong> — кликните по задаче, чтобы завершить её ✓</td>
+                            </tr></table></td></tr>
+                        </table>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="padding: 28px 40px; text-align: center;">
+                        <a href="https://justplanner.ru" style="display: inline-block; background-color: #26A69A; color: #ffffff; font-size: 16px; font-weight: 600; padding: 14px 40px; border-radius: 10px; text-decoration: none;">Открыть JustPlanner</a>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="padding: 0 40px 32px; text-align: center;">
+                        <div style="border-top: 1px solid #e2e8f0; padding-top: 20px;">
+                            <p style="margin: 0; font-size: 13px; color: #94a3b8; line-height: 1.5;">Есть вопросы? Просто ответьте на это письмо — мы всегда на связи.</p>
+                            <p style="margin: 10px 0 0; font-size: 13px; color: #94a3b8;">С наилучшими, Команда JustPlanner</p>
+                        </div>
+                    </td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+</table>
     `;
-    const text = `Добро пожаловать в JustPlanner!\nМы рады, что вы с нами! Теперь вы можете планировать свои задачи легко и удобно.\n\nС наилучшими ожиданиями,\nКоманда JustPlanner`;
-    return sendEmail(email, 'Добро пожаловать в JustPlanner!', html, text);
+    const text = `Добро пожаловать в JustPlanner!\n\nМы рады, что вы с нами! JustPlanner — простой и удобный планировщик задач на неделю.\n\n🎁 Скидка 50% на годовую подписку — только 24 часа! 594 ₽/год вместо 1188 ₽/год.\nПолучить: https://justplanner.ru?annualOffer=1\n\nКак начать:\n1. Создайте первую задачу\n2. Распределите по дням\n3. Отмечайте выполненное\n\nС наилучшими, Команда JustPlanner`;
+    return sendEmail(email, 'Добро пожаловать в JustPlanner! 🎁 Скидка 50% внутри', html, text);
 };
 
 export const sendPasswordResetEmail = async (email, link) => {
