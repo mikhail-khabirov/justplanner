@@ -125,7 +125,10 @@ async function updateSchema() {
             ALTER TABLE subscriptions 
             ADD COLUMN IF NOT EXISTS is_trial BOOLEAN DEFAULT FALSE;
         `);
-
+        await pool.query(`
+            ALTER TABLE subscriptions 
+            ADD COLUMN IF NOT EXISTS is_annual BOOLEAN DEFAULT FALSE;
+        `);
 
         console.log('✅ Database schema updated');
     } catch (err) {

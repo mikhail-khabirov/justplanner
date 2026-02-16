@@ -10,6 +10,7 @@ const yookassa = new YooKassa({
 });
 
 const PREMIUM_PRICE = 99; // RUB per month
+const ANNUAL_PRICE = 1188; // RUB per year (99 * 12)
 
 /**
  * Create a payment for premium subscription
@@ -122,6 +123,7 @@ export async function createAnnualPayment(userId, userEmail) {
             currency: 'RUB'
         },
         capture: true,
+        save_payment_method: true,
         confirmation: {
             type: 'redirect',
             return_url: process.env.YOOKASSA_RETURN_URL || 'https://justplanner.ru'
@@ -153,6 +155,45 @@ export async function createAnnualPayment(userId, userEmail) {
         confirmationUrl: payment.confirmation.confirmation_url,
         paymentId: payment.id
     };
+}
+
+/**
+ * Create recurring annual payment using saved payment method (1188 RUB for 365 days)
+ */
+export async function createAnnualRecurringPayment(paymentMethodId, userId, userEmail) {
+    const idempotenceKey = uuidv4();
+
+    const payment = await yookassa.createPayment({
+        amount: {
+            value: ANNUAL_PRICE.toFixed(2),
+            currency: 'RUB'
+        },
+        capture: true,
+        payment_method_id: paymentMethodId,
+        description: 'JustPlanner Pro — автопродление годовой подписки',
+        metadata: {
+            userId: userId.toString(),
+            type: 'annual_recurring'
+        },
+        receipt: {
+            customer: {
+                email: userEmail
+            },
+            items: [{
+                description: 'JustPlanner Pro — автопродление годовой подписки',
+                quantity: '1',
+                amount: {
+                    value: ANNUAL_PRICE.toFixed(2),
+                    currency: 'RUB'
+                },
+                vat_code: 1,
+                payment_mode: 'full_payment',
+                payment_subject: 'service'
+            }]
+        }
+    }, idempotenceKey);
+
+    return payment;
 }
 
 export async function createCardBindingPayment(userId, userEmail) {

@@ -242,19 +242,20 @@ router.post('/verify-payment', authenticateToken, async (req, res) => {
                 console.log(`🆓 Trial verified and Pro activated for user ${req.user.id}`);
                 return res.json({ status: 'activated', plan: 'pro', type: 'trial' });
             } else if (paymentType === 'annual') {
-                // Annual: Pro for 365 days, no auto-renew
+                // Annual: Pro for 365 days, with auto-renew
                 const periodEnd = new Date();
                 periodEnd.setDate(periodEnd.getDate() + 365);
 
                 await pool.query(
-                    `INSERT INTO subscriptions (user_id, plan, status, current_period_end, auto_renew, is_trial)
-                     VALUES ($1, 'pro', 'active', $2, FALSE, FALSE)
+                    `INSERT INTO subscriptions (user_id, plan, status, current_period_end, auto_renew, is_trial, is_annual)
+                     VALUES ($1, 'pro', 'active', $2, TRUE, FALSE, TRUE)
                      ON CONFLICT (user_id) DO UPDATE SET 
                         plan = 'pro', 
                         status = 'active', 
                         current_period_end = $2,
-                        auto_renew = FALSE,
+                        auto_renew = TRUE,
                         is_trial = FALSE,
+                        is_annual = TRUE,
                         updated_at = NOW()`,
                     [req.user.id, periodEnd]
                 );
@@ -263,6 +264,13 @@ router.post('/verify-payment', authenticateToken, async (req, res) => {
                     `UPDATE users SET plan = 'pro' WHERE id = $1`,
                     [req.user.id]
                 );
+
+                if (payment.payment_method?.saved) {
+                    await pool.query(
+                        `UPDATE subscriptions SET yookassa_subscription_id = $1, payment_method_title = $2 WHERE user_id = $3`,
+                        [payment.payment_method.id, payment.payment_method.title || null, req.user.id]
+                    );
+                }
 
                 console.log(`📅 Annual Pro verified for user ${req.user.id} until ${periodEnd}`);
                 return res.json({ status: 'activated', plan: 'pro', type: 'annual' });
@@ -391,21 +399,23 @@ router.post('/webhook', async (req, res) => {
                 const userResult = await pool.query('SELECT email FROM users WHERE id = $1', [userId]);
                 const userEmail = userResult.rows[0]?.email || `user#${userId}`;
                 notifyPayment(userEmail, payment.amount.value, 'Триал Pro 7 дней');
-            } else if (paymentType === 'annual') {
-                // Annual: Pro for 365 days, no auto-renew
+            } else if (paymentType === 'annual' || paymentType === 'annual_recurring') {
+                // Annual: Pro for 365 days, with auto-renew
                 const periodEnd = new Date();
                 periodEnd.setDate(periodEnd.getDate() + 365);
 
                 await pool.query(
-                    `INSERT INTO subscriptions (user_id, plan, status, current_period_end, auto_renew, is_trial)
-                     VALUES ($1, 'pro', 'active', $2, FALSE, FALSE)
+                    `INSERT INTO subscriptions (user_id, plan, status, current_period_end, auto_renew, is_trial, is_annual)
+                     VALUES ($1, 'pro', 'active', $2, TRUE, FALSE, TRUE)
                      ON CONFLICT (user_id) 
                      DO UPDATE SET 
                         plan = 'pro', 
                         status = 'active', 
                         current_period_end = $2,
-                        auto_renew = FALSE,
+                        auto_renew = TRUE,
                         is_trial = FALSE,
+                        is_annual = TRUE,
+                        renewal_retries = 0,
                         updated_at = NOW()`,
                     [userId, periodEnd]
                 );
@@ -415,11 +425,19 @@ router.post('/webhook', async (req, res) => {
                     [userId]
                 );
 
-                console.log(`📅 Annual Pro activated for user ${userId} until ${periodEnd}`);
+                if (payment.payment_method?.saved) {
+                    await pool.query(
+                        `UPDATE subscriptions SET yookassa_subscription_id = $1, payment_method_title = $2 WHERE user_id = $3`,
+                        [payment.payment_method.id, payment.payment_method.title || null, userId]
+                    );
+                }
+
+                const label = paymentType === 'annual_recurring' ? 'Автопродление годовой' : 'Годовая подписка Pro';
+                console.log(`📅 ${label} activated for user ${userId} until ${periodEnd}`);
 
                 const userResult = await pool.query('SELECT email FROM users WHERE id = $1', [userId]);
                 const userEmail = userResult.rows[0]?.email || `user#${userId}`;
-                notifyPayment(userEmail, payment.amount.value, 'Годовая подписка Pro');
+                notifyPayment(userEmail, payment.amount.value, label);
             } else {
                 // Regular/recurring payment: Pro for 30 days
                 const periodEnd = new Date();

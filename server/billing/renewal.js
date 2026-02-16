@@ -2,7 +2,7 @@
 // Runs daily at 3:00 AM (MSK) to auto-renew expired subscriptions
 
 import pool from '../config/db.js';
-import { createRecurringPayment } from './yookassa.js';
+import { createRecurringPayment, createAnnualRecurringPayment } from './yookassa.js';
 
 const MAX_RETRIES = 3;
 
@@ -16,7 +16,7 @@ export async function processRenewals() {
     try {
         // Find all expired active subscriptions with auto_renew and saved payment method
         const result = await pool.query(`
-            SELECT s.user_id, s.yookassa_subscription_id, s.renewal_retries, s.is_trial, u.email
+            SELECT s.user_id, s.yookassa_subscription_id, s.renewal_retries, s.is_trial, s.is_annual, u.email
             FROM subscriptions s
             JOIN users u ON u.id = s.user_id
             WHERE s.auto_renew = TRUE
@@ -42,9 +42,9 @@ export async function processRenewals() {
 /**
  * Process a single subscription renewal
  */
-async function processOneRenewal({ user_id, yookassa_subscription_id, renewal_retries, is_trial, email }) {
+async function processOneRenewal({ user_id, yookassa_subscription_id, renewal_retries, is_trial, is_annual, email }) {
     try {
-        const label = is_trial ? 'trial→paid' : 'renewal';
+        const label = is_trial ? 'trial→paid' : is_annual ? 'annual renewal' : 'renewal';
         console.log(`🔄 Renewing subscription for user ${user_id} [${label}] (attempt ${renewal_retries + 1}/${MAX_RETRIES})`);
 
         // Update last attempt timestamp
@@ -53,21 +53,37 @@ async function processOneRenewal({ user_id, yookassa_subscription_id, renewal_re
             [user_id]
         );
 
-        // Create recurring payment via Yookassa (always 99 RUB)
-        const payment = await createRecurringPayment(yookassa_subscription_id, user_id, email);
+        let payment;
+        let amount;
+        let description;
+        let interval;
+
+        if (is_annual) {
+            // Annual renewal: 1188 RUB for 365 days
+            payment = await createAnnualRecurringPayment(yookassa_subscription_id, user_id, email);
+            amount = 1188;
+            description = 'Pro — автопродление годовой подписки';
+            interval = '365 days';
+        } else {
+            // Monthly renewal: 99 RUB for 30 days
+            payment = await createRecurringPayment(yookassa_subscription_id, user_id, email);
+            amount = 99;
+            description = is_trial ? 'Pro — первая оплата после триала' : 'Premium — автопродление';
+            interval = '30 days';
+        }
 
         // Log payment
         await pool.query(
             `INSERT INTO payments (user_id, yookassa_payment_id, amount, currency, status, description)
              VALUES ($1, $2, $3, $4, $5, $6)`,
-            [user_id, payment.id, 99, 'RUB', payment.status, is_trial ? 'Pro — первая оплата после триала' : 'Premium — автопродление']
+            [user_id, payment.id, amount, 'RUB', payment.status, description]
         );
 
         if (payment.status === 'succeeded') {
-            // Extend subscription by 30 days, clear trial flag
+            // Extend subscription, clear trial flag
             await pool.query(
                 `UPDATE subscriptions 
-                 SET current_period_end = NOW() + INTERVAL '30 days',
+                 SET current_period_end = NOW() + INTERVAL '${interval}',
                      renewal_retries = 0,
                      is_trial = FALSE,
                      last_renewal_attempt = NOW(),
