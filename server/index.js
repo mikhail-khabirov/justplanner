@@ -129,6 +129,10 @@ async function updateSchema() {
             ALTER TABLE subscriptions 
             ADD COLUMN IF NOT EXISTS is_annual BOOLEAN DEFAULT FALSE;
         `);
+        await pool.query(`
+            ALTER TABLE users 
+            ADD COLUMN IF NOT EXISTS annual_offer_reminder_sent BOOLEAN DEFAULT FALSE;
+        `);
 
         console.log('✅ Database schema updated');
     } catch (err) {
@@ -146,6 +150,30 @@ app.listen(PORT, async () => {
         await processRenewals();
     });
 
+    // Schedule annual offer reminder: every 30 min, find users registered 19h ago still on free
+    cron.schedule('*/30 * * * *', async () => {
+        try {
+            const { sendAnnualOfferReminder } = await import('./utils/email.js');
+            const result = await pool.query(`
+                SELECT u.id, u.email FROM users u
+                LEFT JOIN subscriptions s ON s.user_id = u.id
+                WHERE u.is_verified = true
+                  AND u.annual_offer_reminder_sent = false
+                  AND u.created_at <= NOW() - INTERVAL '19 hours'
+                  AND u.created_at > NOW() - INTERVAL '24 hours'
+                  AND (s.plan IS NULL OR s.plan = 'free')
+            `);
+            for (const user of result.rows) {
+                await sendAnnualOfferReminder(user.email).catch(console.error);
+                await pool.query('UPDATE users SET annual_offer_reminder_sent = true WHERE id = $1', [user.id]);
+                console.log(`📧 Annual offer reminder sent to ${user.email}`);
+            }
+        } catch (err) {
+            console.error('❌ Annual offer reminder cron error:', err.message);
+        }
+    });
+
     console.log(`🚀 Server running on http://localhost:${PORT}`);
     console.log('📅 Subscription renewal cron scheduled: daily at 3:00 AM');
+    console.log('📧 Annual offer reminder cron scheduled: every 30 min');
 });
