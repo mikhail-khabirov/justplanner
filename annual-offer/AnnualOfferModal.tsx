@@ -122,7 +122,7 @@ const AnnualOfferModal: React.FC<AnnualOfferModalProps> = ({ isOpen, onClose, on
                     </button>
 
                     <p className="text-center text-xs text-gray-400 mt-3">
-                        Разовый платёж · Без автопродления
+                        Подписка продлевается автоматически через 365 дней по полной стоимости 1 188 ₽/год. Отменить можно в любой момент в настройках.
                     </p>
                 </div>
             </div>
