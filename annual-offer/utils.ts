@@ -5,7 +5,8 @@ const OFFER_DISMISSED_KEY = 'annualOfferDismissed';
 
 /** Start the 24h offer timer (called once after registration) */
 export function startAnnualOffer(): void {
-    if (localStorage.getItem(OFFER_EXPIRY_KEY)) return; // already started
+    if (isOfferActive()) return; // only skip if timer is still running
+    localStorage.removeItem(OFFER_DISMISSED_KEY); // clear dismissed flag for new registration
     const expiry = Date.now() + 24 * 60 * 60 * 1000; // +24h
     localStorage.setItem(OFFER_EXPIRY_KEY, expiry.toString());
 }
