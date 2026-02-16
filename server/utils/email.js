@@ -59,7 +59,7 @@ export const sendWelcomeEmail = async (email) => {
                 </tr>
                 <tr>
                     <td style="padding: 32px 40px 0;">
-                        <p style="margin: 0; font-size: 16px; color: #334155; line-height: 1.6;">Привет! �</p>
+                        <p style="margin: 0; font-size: 16px; color: #334155; line-height: 1.6;">Привет!</p>
                         <p style="margin: 12px 0 0; font-size: 16px; color: #334155; line-height: 1.6;">Мы рады, что вы выбрали JustPlanner — простой и удобный планировщик задач на неделю. Никаких сложных настроек, только то, что действительно нужно.</p>
                     </td>
                 </tr>
