@@ -75,3 +75,106 @@ export function notifyPayment(email, amount, description = '') {
         `🕐 ${now}`
     );
 }
+
+async function getPaymentStats() {
+    try {
+        const result = await pool.query(`
+            SELECT 
+                -- 24 часа
+                COUNT(*) FILTER (WHERE p.created_at >= NOW() - INTERVAL '24 hours' AND p.status = 'succeeded' AND p.description = 'Premium subscription') AS reg_24h,
+                COUNT(*) FILTER (WHERE p.created_at >= NOW() - INTERVAL '24 hours' AND p.status = 'succeeded' AND p.description = 'Trial 7 days') AS trial_24h,
+                COUNT(*) FILTER (WHERE p.created_at >= NOW() - INTERVAL '24 hours' AND p.status = 'succeeded' AND p.description LIKE '%автопродление%') AS renewal_24h,
+                COUNT(*) FILTER (WHERE p.created_at >= NOW() - INTERVAL '24 hours' AND p.status = 'succeeded' AND p.description = 'Annual Pro 365 days') AS annual_24h,
+                COALESCE(SUM(p.amount) FILTER (WHERE p.created_at >= NOW() - INTERVAL '24 hours' AND p.status = 'succeeded' AND p.description = 'Premium subscription'), 0) AS reg_sum_24h,
+                COALESCE(SUM(p.amount) FILTER (WHERE p.created_at >= NOW() - INTERVAL '24 hours' AND p.status = 'succeeded' AND p.description = 'Trial 7 days'), 0) AS trial_sum_24h,
+                COALESCE(SUM(p.amount) FILTER (WHERE p.created_at >= NOW() - INTERVAL '24 hours' AND p.status = 'succeeded' AND p.description LIKE '%автопродление%'), 0) AS renewal_sum_24h,
+                COALESCE(SUM(p.amount) FILTER (WHERE p.created_at >= NOW() - INTERVAL '24 hours' AND p.status = 'succeeded' AND p.description = 'Annual Pro 365 days'), 0) AS annual_sum_24h,
+                
+                -- Всего
+                COUNT(*) FILTER (WHERE p.status = 'succeeded' AND p.description = 'Premium subscription') AS reg_total,
+                COUNT(*) FILTER (WHERE p.status = 'succeeded' AND p.description = 'Trial 7 days') AS trial_total,
+                COUNT(*) FILTER (WHERE p.status = 'succeeded' AND p.description LIKE '%автопродление%') AS renewal_total,
+                COUNT(*) FILTER (WHERE p.status = 'succeeded' AND p.description = 'Annual Pro 365 days') AS annual_total,
+                COALESCE(SUM(p.amount) FILTER (WHERE p.status = 'succeeded' AND p.description = 'Premium subscription'), 0) AS reg_sum_total,
+                COALESCE(SUM(p.amount) FILTER (WHERE p.status = 'succeeded' AND p.description = 'Trial 7 days'), 0) AS trial_sum_total,
+                COALESCE(SUM(p.amount) FILTER (WHERE p.status = 'succeeded' AND p.description LIKE '%автопродление%'), 0) AS renewal_sum_total,
+                COALESCE(SUM(p.amount) FILTER (WHERE p.status = 'succeeded' AND p.description = 'Annual Pro 365 days'), 0) AS annual_sum_total
+            FROM payments p
+        `);
+        return result.rows[0];
+    } catch (err) {
+        console.error('Failed to get payment stats:', err.message);
+        return null;
+    }
+}
+
+// ─── Telegram Bot Polling (commands) ─────────────────────
+
+let lastUpdateId = 0;
+
+async function pollTelegramUpdates() {
+    if (!TELEGRAM_BOT_TOKEN || !TELEGRAM_CHAT_ID) return;
+
+    try {
+        const res = await fetch(
+            `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/getUpdates?offset=${lastUpdateId + 1}&timeout=30`,
+            { signal: AbortSignal.timeout(35000) }
+        );
+        const data = await res.json();
+        if (!data.ok || !data.result) return;
+
+        for (const update of data.result) {
+            lastUpdateId = update.update_id;
+            const msg = update.message;
+            if (!msg || !msg.text) continue;
+            if (msg.chat.id.toString() !== TELEGRAM_CHAT_ID) continue;
+
+            const text = msg.text.trim();
+
+            if (text === '/pay') {
+                const stats = await getPaymentStats();
+                if (!stats) {
+                    await sendTelegramReply(msg.chat.id, '❌ Ошибка получения статистики');
+                    continue;
+                }
+                const reply =
+                    `💰 <b>Статистика платежей</b>\n\n` +
+                    `<b>24 часа</b>\n` +
+                    `Подписки — ${stats.reg_24h} шт (${stats.reg_sum_24h}₽)\n` +
+                    `Триал — ${stats.trial_24h} шт (${stats.trial_sum_24h}₽)\n` +
+                    `Продления — ${stats.renewal_24h} шт (${stats.renewal_sum_24h}₽)\n` +
+                    `Год 50% — ${stats.annual_24h} шт (${stats.annual_sum_24h}₽)\n\n` +
+                    `<b>Всего</b>\n` +
+                    `Подписки — ${stats.reg_total} шт (${stats.reg_sum_total}₽)\n` +
+                    `Триал — ${stats.trial_total} шт (${stats.trial_sum_total}₽)\n` +
+                    `Продления — ${stats.renewal_total} шт (${stats.renewal_sum_total}₽)\n` +
+                    `Год 50% — ${stats.annual_total} шт (${stats.annual_sum_total}₽)`;
+                await sendTelegramReply(msg.chat.id, reply);
+            }
+        }
+    } catch (err) {
+        if (err.name !== 'TimeoutError') {
+            console.error('Telegram polling error:', err.message);
+        }
+    }
+}
+
+async function sendTelegramReply(chatId, text) {
+    await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ chat_id: chatId, text, parse_mode: 'HTML' })
+    });
+}
+
+// Start polling loop
+(async function botLoop() {
+    // Delete any existing webhook so polling works
+    if (TELEGRAM_BOT_TOKEN) {
+        await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/deleteWebhook`).catch(() => {});
+        console.log('🤖 Telegram bot polling started');
+    }
+    while (true) {
+        await pollTelegramUpdates();
+    }
+})();
