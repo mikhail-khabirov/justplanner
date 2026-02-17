@@ -1,0 +1,170 @@
+# JustPlanner — Agent Rules
+
+## Stack
+
+**Frontend:**
+- React 19 + TypeScript
+- Vite (dev/build)
+- Lucide React (icons)
+- Sentry (error tracking)
+- mobile-drag-drop (touch support)
+
+**Backend:**
+- Node.js + Express (ES Modules)
+- PostgreSQL (pg driver)
+- JWT auth + Passport Google OAuth
+- YooKassa (payments)
+- node-cron (scheduled tasks)
+- nodemailer (emails)
+- bcrypt (password hashing)
+
+**DevOps:**
+- PM2 (process manager)
+- Nginx (reverse proxy)
+- GitHub Actions (CI/CD)
+- VPS: 5.35.94.142
+
+## Architecture
+
+```
+justplanner/
+├── index.tsx                    # React entry point
+├── App.tsx                      # Main app component (50KB, monolithic)
+├── types.ts                     # Global TypeScript types
+├── api.ts                       # API client (tasks, settings)
+├── utils.ts                     # Date utils, holidays
+├── vite.config.ts               # Proxy /api → :3001
+│
+├── components/                  # UI components
+│   ├── AuthModal.tsx
+│   ├── TaskModal.tsx
+│   ├── SettingsModal.tsx
+│   ├── Column.tsx
+│   ├── TaskItem.tsx
+│   ├── LandingPage.tsx
+│   ├── FeaturesPage.tsx
+│   ├── PricingPage.tsx
+│   └── Legal/
+│
+├── contexts/                    # React Contexts
+│   ├── AuthContext.tsx
+│   └── SettingsContext.tsx
+│
+├── billing/                     # Billing module (frontend)
+│   ├── BillingContext.tsx
+│   ├── api.ts
+│   ├── types.ts
+│   └── components/
+│
+├── annual-offer/                # Annual offer module
+│   ├── AnnualOfferModal.tsx
+│   ├── AnnualOfferWidget.tsx
+│   └── useCountdown.ts
+│
+└── server/                      # Backend
+    ├── index.js                 # Express app
+    ├── config/db.js             # PostgreSQL pool
+    ├── middleware/auth.js       # JWT middleware
+    ├── models/                  # User, Task models
+    ├── routes/                  # auth, tasks, settings, admin
+    ├── billing/                 # YooKassa, renewals, routes
+    ├── utils/                   # email, telegram
+    └── tests/                   # smoke-test, daily-report, health-cron
+```
+
+**Patterns:**
+- Monolithic App.tsx with inline state management
+- React Context for auth, settings, billing
+- ES Modules throughout (type: module)
+- PostgreSQL with raw SQL queries (no ORM)
+- Cron jobs for renewals, reminders, tests
+
+## Conventions
+
+**Naming:**
+- Components: PascalCase (.tsx)
+- Utils/API: camelCase (.ts, .js)
+- React hooks: `use` prefix
+- DB columns: snake_case
+- API routes: kebab-case URLs
+
+**Code style:**
+- React functional components
+- Named exports preferred (some default exports in models)
+- Inline type definitions in .tsx files
+- Async/await (no .then chains)
+- Error handling with try/catch
+
+**DB conventions:**
+- Table names: plural (users, tasks, payments, subscriptions)
+- Primary key: `id SERIAL`
+- Foreign keys: `user_id INTEGER`
+- Timestamps: `created_at`, `updated_at`, `last_login`
+- Booleans: `is_verified`, `is_annual`, `auto_renew`
+
+**API conventions:**
+- Auth: JWT in cookies + Authorization header
+- Response format: JSON `{ data }` or `{ error }`
+- Protected routes use `authenticateToken` middleware
+- Errors: appropriate HTTP status codes
+
+## Key Files
+
+**Entry points:**
+- `index.tsx` — React app bootstrap
+- `App.tsx` — Main UI logic (tasks, calendar, drag-drop)
+- `server/index.js` — Express server, routes, cron jobs
+
+**Critical modules:**
+- `contexts/AuthContext.tsx` — Login, register, Google OAuth
+- `billing/BillingContext.tsx` — Subscription state
+- `server/billing/renewal.js` — Auto-renewal cron (3:00 MSK daily)
+- `server/utils/telegram.js` — Notifications + bot polling
+- `server/utils/email.js` — Welcome + reminder emails
+
+**Config:**
+- `vite.config.ts` — Proxy setup
+- `ecosystem.config.js` — PM2 config
+- `server/.env` — All secrets (not in repo)
+- `.github/workflows/deploy.yml` — CI/CD pipeline
+
+**DB Schema:**
+- `server/schema.sql` — users, tasks
+- `server/billing/schema.sql` — subscriptions, payments
+
+**Tests:**
+- `server/tests/smoke-test.js` — 11 checks, runs every 5 min
+- `server/tests/daily-report.js` — Telegram report at 09:00 MSK
+
+## Environment
+
+**Required (.env):**
+```
+DATABASE_URL
+JWT_SECRET
+GOOGLE_CLIENT_ID
+GOOGLE_CLIENT_SECRET
+FRONTEND_URL
+YOOKASSA_SHOP_ID
+YOOKASSA_SECRET_KEY
+YOOKASSA_RETURN_URL
+TELEGRAM_BOT_TOKEN
+TELEGRAM_CHAT_ID
+SMTP_HOST
+SMTP_PORT
+SMTP_USER
+SMTP_PASS
+SMTP_FROM
+ADMIN_USERNAME
+ADMIN_PASSWORD
+PORT
+```
+
+**Optional:**
+```
+TEST_BASE_URL
+```
+
+## Current Status
+
+<!-- Fill manually with current sprint/features/blockers -->
