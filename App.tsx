@@ -103,7 +103,7 @@ const StatsDisplay = ({ stats }: { stats: any }) => (
 
 const App: React.FC = () => {
   const { user, isAuthenticated, isLoading: authLoading, logout, token, isNewRegistration, clearNewRegistration } = useAuth();
-  const { isPremium, startPayment, canAddTask } = useBilling();
+  const { isPremium, startPayment, canAddTask, subscription } = useBilling();
   const { settings } = useSettings();
 
   // Start date: Jan 26, 2026
@@ -200,10 +200,11 @@ const App: React.FC = () => {
   // Handle ?annualOffer=1 from welcome email link
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    if (params.get('annualOffer') === '1' && isAuthenticated && !isPremium) {
-      if (isOfferActive()) {
+    if (params.get('annualOffer') === '1' && isAuthenticated) {
+      const alreadyAnnual = subscription?.isAnnual && subscription?.plan === 'pro';
+      if (isOfferActive() && !alreadyAnnual) {
         setShowAnnualModal(true);
-        setShowAnnualWidget(true);
+        if (!isPremium) setShowAnnualWidget(true);
       }
       params.delete('annualOffer');
       const newUrl = params.toString()
@@ -211,7 +212,7 @@ const App: React.FC = () => {
         : window.location.pathname;
       window.history.replaceState({}, '', newUrl);
     }
-  }, [isAuthenticated, isPremium]);
+  }, [isAuthenticated, isPremium, subscription]);
 
   // Quick Add State
   const [quickAddState, setQuickAddState] = useState<QuickAddState | null>(null);
@@ -1270,18 +1271,20 @@ const App: React.FC = () => {
         reason={upgradeReason}
       />
 
-      {/* Annual Offer — modal + minimized widget */}
-      {isAuthenticated && !isPremium && (
+      {/* Annual Offer — modal (also for Pro via email link) + widget (free only) */}
+      {isAuthenticated && (
         <>
           <AnnualOfferModal
             isOpen={showAnnualModal}
             onClose={() => setShowAnnualModal(false)}
             onPurchased={() => { setShowAnnualModal(false); setShowAnnualWidget(false); }}
           />
-          <AnnualOfferWidget
-            visible={!showAnnualModal && showAnnualWidget}
-            onClick={() => setShowAnnualModal(true)}
-          />
+          {!isPremium && (
+            <AnnualOfferWidget
+              visible={!showAnnualModal && showAnnualWidget}
+              onClick={() => setShowAnnualModal(true)}
+            />
+          )}
         </>
       )}
     </div>

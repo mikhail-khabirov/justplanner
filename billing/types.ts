@@ -14,6 +14,7 @@ export interface Subscription {
     autoRenew: boolean;
     paymentMethodTitle?: string; // e.g., "Bank card *4444"
     isTrial?: boolean;
+    isAnnual?: boolean;
     createdAt: string;
 }
 

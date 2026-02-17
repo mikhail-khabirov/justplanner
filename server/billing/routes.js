@@ -13,7 +13,7 @@ router.get('/subscription', authenticateToken, async (req, res) => {
             `SELECT 
                 s.id, s.plan, s.status, s.yookassa_subscription_id,
                 s.current_period_end, s.auto_renew, s.created_at,
-                s.payment_method_title, s.is_trial,
+                s.payment_method_title, s.is_trial, s.is_annual,
                 u.plan as user_plan, u.email
             FROM users u
             LEFT JOIN subscriptions s ON s.user_id = u.id
@@ -49,6 +49,7 @@ router.get('/subscription', authenticateToken, async (req, res) => {
             autoRenew: row.auto_renew,
             paymentMethodTitle: row.payment_method_title || null,
             isTrial: row.is_trial || false,
+            isAnnual: row.is_annual || false,
             createdAt: row.created_at
         });
     } catch (error) {
