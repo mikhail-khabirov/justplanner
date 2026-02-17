@@ -204,7 +204,7 @@ const App: React.FC = () => {
       const alreadyAnnual = subscription?.isAnnual && subscription?.plan === 'pro';
       if (isOfferActive() && !alreadyAnnual) {
         setShowAnnualModal(true);
-        if (!isPremium) setShowAnnualWidget(true);
+        if (!isPremium || subscription?.isTrial) setShowAnnualWidget(true);
       }
       params.delete('annualOffer');
       const newUrl = params.toString()
@@ -1271,7 +1271,7 @@ const App: React.FC = () => {
         reason={upgradeReason}
       />
 
-      {/* Annual Offer — modal (also for Pro via email link) + widget (free only) */}
+      {/* Annual Offer — modal (also for Pro via email link) + widget (free & trial) */}
       {isAuthenticated && (
         <>
           <AnnualOfferModal
@@ -1279,7 +1279,7 @@ const App: React.FC = () => {
             onClose={() => setShowAnnualModal(false)}
             onPurchased={() => { setShowAnnualModal(false); setShowAnnualWidget(false); }}
           />
-          {!isPremium && (
+          {(!isPremium || subscription?.isTrial) && (
             <AnnualOfferWidget
               visible={!showAnnualModal && showAnnualWidget}
               onClick={() => setShowAnnualModal(true)}
