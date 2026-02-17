@@ -77,9 +77,17 @@ app.use('/api/billing', billingRoutes);
 import cron from 'node-cron';
 import { processRenewals } from './billing/renewal.js';
 
-// Health check
-app.get('/api/health', (req, res) => {
-    res.json({ status: 'ok', timestamp: new Date().toISOString() });
+// Health check (deep — verifies DB, email config)
+app.get('/api/health', async (req, res) => {
+    const checks = { server: 'ok', database: 'fail', email: 'fail' };
+    try {
+        const { default: p } = await import('./config/db.js');
+        await p.query('SELECT 1');
+        checks.database = 'ok';
+    } catch (e) { checks.database = e.message; }
+    checks.email = process.env.SMTP_HOST ? 'ok' : 'not configured';
+    const allOk = checks.server === 'ok' && checks.database === 'ok' && checks.email === 'ok';
+    res.status(allOk ? 200 : 503).json({ status: allOk ? 'ok' : 'degraded', checks, timestamp: new Date().toISOString() });
 });
 
 // Admin: force renewal (for testing)

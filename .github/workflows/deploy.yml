@@ -70,3 +70,44 @@ jobs:
             npm install &&
             pm2 restart justplanner-api
           "
+
+      - name: Wait for server to start
+        run: sleep 5
+
+      - name: Run Smoke Tests
+        id: smoke_tests
+        env:
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+          SSH_USER: ${{ secrets.SSH_USERNAME }}
+        run: |
+          HOST=$(echo "$SSH_HOST" | xargs)
+          USER=$(echo "$SSH_USER" | xargs)
+          
+          ssh -o StrictHostKeyChecking=no ${USER}@${HOST} "
+            cd /var/www/justplanner/server &&
+            node tests/smoke-test.js
+          "
+
+      - name: Telegram — деплой успешен
+        if: success()
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: |
+          MSG="✅ <b>Деплой успешен</b>%0A%0A📝 ${{ github.event.head_commit.message }}%0A👤 ${{ github.actor }}%0A🕐 $(date '+%d.%m.%Y %H:%M' -d '+3 hours')"
+          curl -s -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
+            -d chat_id="${TELEGRAM_CHAT_ID}" \
+            -d text="${MSG}" \
+            -d parse_mode=HTML || true
+
+      - name: Telegram — деплой упал
+        if: failure()
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: |
+          MSG="🔴 <b>Деплой ПРОВАЛЕН</b>%0A%0A📝 ${{ github.event.head_commit.message }}%0A👤 ${{ github.actor }}%0A🔗 https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          curl -s -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
+            -d chat_id="${TELEGRAM_CHAT_ID}" \
+            -d text="${MSG}" \
+            -d parse_mode=HTML || true
