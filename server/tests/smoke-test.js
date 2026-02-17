@@ -1,23 +1,19 @@
 /**
- * Smoke tests — проверка критичных функций JustPlanner
- * Запуск: node server/tests/smoke-test.js
+ * Smoke tests — автоматическая проверка JustPlanner
  * 
- * Проверяет:
- * 1. Health-check эндпоинт (сервер + БД + email)
- * 2. API регистрации отвечает
- * 3. API подписки (без токена → 401)
- * 4. Крон напоминаний — SQL запрос работает
- * 5. isAnnual поле в subscriptions
- * 6. Telegram бот отвечает
- * 
- * При ошибках отправляет отчёт в Telegram
+ * Запуск кроном каждые 5 мин.
+ * При ошибках — мгновенный алерт в Telegram (не чаще раз в 30 мин).
+ * Результаты сохраняются в лог-файл для ежедневного отчёта.
  */
 
 import 'dotenv/config';
+import { appendFileSync, readFileSync, writeFileSync } from 'fs';
 
 const BASE_URL = process.env.TEST_BASE_URL || 'https://justplanner.ru';
 const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 const TELEGRAM_CHAT_ID = process.env.TELEGRAM_CHAT_ID;
+const LOG_FILE = '/var/log/justplanner-tests.json';
+const ALERT_COOLDOWN_FILE = '/tmp/justplanner-test-alert';
 
 const results = [];
 let passed = 0;
@@ -26,10 +22,10 @@ let failed = 0;
 async function test(name, fn) {
     try {
         await fn();
-        results.push({ name, status: '✅' });
+        results.push({ name, status: 'ok' });
         passed++;
     } catch (err) {
-        results.push({ name, status: '❌', error: err.message });
+        results.push({ name, status: 'fail', error: err.message });
         failed++;
     }
 }
@@ -45,23 +41,23 @@ async function fetchJSON(url, options = {}) {
 
 // ─── Tests ───────────────────────────────────────────────
 
-await test('Health-check: сервер отвечает', async () => {
+await test('Сервер отвечает', async () => {
     const { status, body } = await fetchJSON(`${BASE_URL}/api/health`);
     assert(status === 200, `HTTP ${status}`);
-    assert(body.status === 'ok', `status: ${body.status}, checks: ${JSON.stringify(body.checks)}`);
+    assert(body.status === 'ok', `status: ${body.status}`);
 });
 
-await test('Health-check: БД подключена', async () => {
+await test('БД подключена', async () => {
     const { body } = await fetchJSON(`${BASE_URL}/api/health`);
     assert(body.checks.database === 'ok', `database: ${body.checks.database}`);
 });
 
-await test('Health-check: email настроен', async () => {
+await test('Email настроен', async () => {
     const { body } = await fetchJSON(`${BASE_URL}/api/health`);
     assert(body.checks.email === 'ok', `email: ${body.checks.email}`);
 });
 
-await test('API: /auth/register отвечает (без данных → ошибка валидации)', async () => {
+await test('API регистрации', async () => {
     const { status } = await fetchJSON(`${BASE_URL}/api/auth/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -70,51 +66,47 @@ await test('API: /auth/register отвечает (без данных → оши
     assert(status === 400, `Expected 400, got ${status}`);
 });
 
-await test('API: /billing/subscription без токена → 401', async () => {
+await test('API подписки (auth)', async () => {
     const { status } = await fetchJSON(`${BASE_URL}/api/billing/subscription`);
     assert(status === 401, `Expected 401, got ${status}`);
 });
 
-await test('API: /tasks без токена → 401', async () => {
+await test('API задач (auth)', async () => {
     const { status } = await fetchJSON(`${BASE_URL}/api/tasks`);
     assert(status === 401, `Expected 401, got ${status}`);
 });
 
-await test('Фронтенд: главная страница загружается', async () => {
+await test('Фронтенд загружается', async () => {
     const res = await fetch(BASE_URL, { signal: AbortSignal.timeout(10000) });
     assert(res.status === 200, `HTTP ${res.status}`);
     const html = await res.text();
     assert(html.includes('JustPlanner'), 'HTML не содержит JustPlanner');
 });
 
-// DB-level tests (only if running on server with DB access)
+// DB tests
 let pool = null;
 try {
     const db = await import('../config/db.js');
     pool = db.default;
-} catch (e) {
-    // Not on server — skip DB tests
-}
+} catch (e) {}
 
 if (pool) {
-    await test('БД: таблица users существует', async () => {
+    await test('БД: таблица users', async () => {
         const r = await pool.query("SELECT COUNT(*) FROM users");
         assert(parseInt(r.rows[0].count) >= 0, 'Query failed');
     });
 
-    await test('БД: колонка annual_offer_reminder_sent существует', async () => {
-        const r = await pool.query("SELECT annual_offer_reminder_sent FROM users LIMIT 1");
-        assert(r.rows !== undefined, 'Column missing');
+    await test('БД: annual_offer_reminder_sent', async () => {
+        await pool.query("SELECT annual_offer_reminder_sent FROM users LIMIT 1");
     });
 
-    await test('БД: колонка is_annual в subscriptions существует', async () => {
-        const r = await pool.query("SELECT is_annual FROM subscriptions LIMIT 1");
-        assert(r.rows !== undefined, 'Column missing');
+    await test('БД: is_annual', async () => {
+        await pool.query("SELECT is_annual FROM subscriptions LIMIT 1");
     });
 
-    await test('БД: SQL крона напоминаний выполняется без ошибок', async () => {
+    await test('БД: SQL крона напоминаний', async () => {
         const r = await pool.query(`
-            SELECT u.id, u.email FROM users u
+            SELECT u.id FROM users u
             LEFT JOIN subscriptions s ON s.user_id = u.id
             WHERE u.is_verified = true
               AND u.annual_offer_reminder_sent = false
@@ -126,32 +118,48 @@ if (pool) {
     });
 }
 
-// ─── Report ──────────────────────────────────────────────
+// ─── Save results to log ─────────────────────────────────
+
+const now = new Date().toISOString();
+const entry = { time: now, total: passed + failed, passed, failed };
+
+try {
+    appendFileSync(LOG_FILE, JSON.stringify(entry) + '\n');
+} catch (e) {}
+
+// ─── Console output ──────────────────────────────────────
 
 const time = new Date().toLocaleString('ru-RU', { timeZone: 'Europe/Moscow' });
-const summary = `${passed}/${passed + failed} passed`;
+console.log(`[${time}] Тесты: ${passed + failed} | ✅ ${passed} | ❌ ${failed}`);
+if (failed > 0) {
+    results.filter(r => r.status === 'fail').forEach(r => {
+        console.log(`  ❌ ${r.name} — ${r.error}`);
+    });
+}
 
-console.log(`\n${'═'.repeat(50)}`);
-console.log(`  SMOKE TESTS — ${summary} — ${time}`);
-console.log(`${'═'.repeat(50)}`);
-results.forEach(r => {
-    console.log(`  ${r.status} ${r.name}${r.error ? ` — ${r.error}` : ''}`);
-});
-console.log(`${'═'.repeat(50)}\n`);
+// ─── Alert to Telegram on failures (cooldown 30 min) ─────
 
-// Send to Telegram only on failures
 if (failed > 0 && TELEGRAM_BOT_TOKEN && TELEGRAM_CHAT_ID) {
-    const failedTests = results.filter(r => r.status === '❌');
-    const message = 
-        `🚨 <b>Тесты: ${failed} ошибок!</b>\n\n` +
-        failedTests.map(r => `❌ ${r.name}\n   <i>${r.error}</i>`).join('\n\n') +
-        `\n\n📊 Итого: ${summary}\n🕐 ${time}`;
+    let shouldAlert = true;
+    try {
+        const ts = parseInt(readFileSync(ALERT_COOLDOWN_FILE, 'utf8'));
+        if (Date.now() - ts < 30 * 60 * 1000) shouldAlert = false;
+    } catch {}
 
-    await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ chat_id: TELEGRAM_CHAT_ID, text: message, parse_mode: 'HTML' })
-    }).catch(err => console.error('Telegram send failed:', err.message));
+    if (shouldAlert) {
+        const failedTests = results.filter(r => r.status === 'fail');
+        const message =
+            `🚨 <b>Тесты: ${failed} ошибок!</b>\n\n` +
+            failedTests.map(r => `❌ ${r.name}\n   <i>${r.error}</i>`).join('\n\n') +
+            `\n\n📊 Проведено: ${passed + failed} | Успешных: ${passed} | Ошибок: ${failed}\n🕐 ${time}`;
+
+        await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ chat_id: TELEGRAM_CHAT_ID, text: message, parse_mode: 'HTML' })
+        }).catch(() => {});
+        try { writeFileSync(ALERT_COOLDOWN_FILE, Date.now().toString()); } catch {}
+    }
 }
 
 if (pool) await pool.end();
