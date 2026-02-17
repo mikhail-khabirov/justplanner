@@ -153,6 +153,7 @@ app.listen(PORT, async () => {
     // Schedule annual offer reminder: every 30 min, find users registered 19h ago still on free
     cron.schedule('*/30 * * * *', async () => {
         try {
+            const { default: pool } = await import('./config/db.js');
             const { sendAnnualOfferReminder } = await import('./utils/email.js');
             const result = await pool.query(`
                 SELECT u.id, u.email FROM users u
