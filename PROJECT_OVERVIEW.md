@@ -79,6 +79,7 @@
 
 ```
 justplanner/
+├── .windsurfrules                # Правила для AI агента (stack, architecture, conventions)
 ├── index.html                    # HTML точка входа + Yandex Metrika
 ├── index.tsx                     # React точка входа
 ├── App.tsx                       # Главный компонент (~1200 строк)
@@ -92,6 +93,7 @@ justplanner/
 ├── ecosystem.config.js           # PM2 конфигурация
 ├── nginx.conf.example            # Пример конфига Nginx
 ├── setup-vps.sh                  # Скрипт первичной настройки VPS
+├── PROJECT_OVERVIEW.md           # Полная документация проекта
 │
 ├── components/                   # UI Компоненты
 │   ├── AuthModal.tsx             # Окно входа/регистрации (Email + Google)
@@ -127,6 +129,12 @@ justplanner/
 │   ├── AuthContext.tsx           # Авторизация (JWT, Google OAuth)
 │   └── SettingsContext.tsx       # Настройки пользователя (начало дня, секции)
 │
+├── annual-offer/                 # Модуль годовой скидки 50%
+│   ├── AnnualOfferModal.tsx      # Модалка предложения
+│   ├── AnnualOfferWidget.tsx     # Виджет с таймером 24ч
+│   ├── useCountdown.ts           # Хук отсчёта времени
+│   └── utils.ts                  # Утилиты для проверки срока
+│
 ├── public/                       # Статика
 │   ├── favicon.svg               # Фавикон
 │   ├── logo.png                  # Логотип
@@ -158,8 +166,13 @@ justplanner/
     │   ├── yookassa.js           # YooKassa SDK (createPayment, createRecurringPayment, refundPayment, createCardBindingPayment)
     │   ├── routes.js             # Billing API (subscribe, verify, cancel, webhook, bind-card, unbind-card)
     │   └── renewal.js            # Cron автопродления (processRenewals)
+    ├── tests/
+    │   ├── smoke-test.js         # 11 smoke-тестов (запуск каждые 5 мин)
+    │   ├── daily-report.js       # Дневной отчёт в Telegram (09:00 MSK)
+    │   └── health-cron.js        # Легковесный health-check
     └── utils/
-        └── email.js              # Утилиты email (если есть)
+        ├── email.js              # Welcome email, reminder email (nodemailer)
+        └── telegram.js           # Уведомления + bot polling (команда /pay)
 ```
 
 ---
@@ -342,6 +355,10 @@ npm run dev
   - 📊 **Дневной отчёт**: Всегда в 09:00 МСК — проведено тестов / успешных / ошибок
 - **Логирование**: Результаты каждого запуска сохраняются в JSON для агрегации
 - **GitHub Actions**: Убрано из CI/CD — тесты запускаются независимо на сервере кроном
+- **Telegram бот** (long polling):
+  - Команда `/pay` — статистика платежей (Рег / 1₽ / 99₽ / 594₽) за 24ч и всего
+  - Автоматическая агрегация из таблиц `users` и `payments`
+  - Polling запускается при старте сервера в `telegram.js`
 
 ---
 
