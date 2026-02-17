@@ -86,15 +86,21 @@ async function getPaymentStats() {
 
                 -- 1₽ триалы
                 COUNT(*) FILTER (WHERE p.created_at >= NOW() - INTERVAL '24 hours' AND p.status = 'succeeded' AND p.description = 'Trial 7 days') AS trial_24h,
+                COALESCE(SUM(p.amount) FILTER (WHERE p.created_at >= NOW() - INTERVAL '24 hours' AND p.status = 'succeeded' AND p.description = 'Trial 7 days'), 0) AS trial_sum_24h,
                 COUNT(*) FILTER (WHERE p.status = 'succeeded' AND p.description = 'Trial 7 days') AS trial_total,
+                COALESCE(SUM(p.amount) FILTER (WHERE p.status = 'succeeded' AND p.description = 'Trial 7 days'), 0) AS trial_sum_total,
 
                 -- 99₽ подписки + продления
                 COUNT(*) FILTER (WHERE p.created_at >= NOW() - INTERVAL '24 hours' AND p.status = 'succeeded' AND (p.description = 'Premium subscription' OR p.description LIKE '%автопродление%')) AS sub_24h,
+                COALESCE(SUM(p.amount) FILTER (WHERE p.created_at >= NOW() - INTERVAL '24 hours' AND p.status = 'succeeded' AND (p.description = 'Premium subscription' OR p.description LIKE '%автопродление%')), 0) AS sub_sum_24h,
                 COUNT(*) FILTER (WHERE p.status = 'succeeded' AND (p.description = 'Premium subscription' OR p.description LIKE '%автопродление%')) AS sub_total,
+                COALESCE(SUM(p.amount) FILTER (WHERE p.status = 'succeeded' AND (p.description = 'Premium subscription' OR p.description LIKE '%автопродление%')), 0) AS sub_sum_total,
 
                 -- 594₽ годовая 50%
                 COUNT(*) FILTER (WHERE p.created_at >= NOW() - INTERVAL '24 hours' AND p.status = 'succeeded' AND p.description = 'Annual Pro 365 days') AS annual_24h,
-                COUNT(*) FILTER (WHERE p.status = 'succeeded' AND p.description = 'Annual Pro 365 days') AS annual_total
+                COALESCE(SUM(p.amount) FILTER (WHERE p.created_at >= NOW() - INTERVAL '24 hours' AND p.status = 'succeeded' AND p.description = 'Annual Pro 365 days'), 0) AS annual_sum_24h,
+                COUNT(*) FILTER (WHERE p.status = 'succeeded' AND p.description = 'Annual Pro 365 days') AS annual_total,
+                COALESCE(SUM(p.amount) FILTER (WHERE p.status = 'succeeded' AND p.description = 'Annual Pro 365 days'), 0) AS annual_sum_total
             FROM payments p
         `);
         return result.rows[0];
@@ -137,14 +143,14 @@ async function pollTelegramUpdates() {
                     `💰 <b>Статистика платежей</b>\n\n` +
                     `<b>24 часа</b>\n` +
                     `Рег — ${stats.reg_24h}\n` +
-                    `1₽ — ${stats.trial_24h}\n` +
-                    `99₽ — ${stats.sub_24h}\n` +
-                    `594₽ — ${stats.annual_24h}\n\n` +
+                    `1₽ — ${stats.trial_24h} (${stats.trial_sum_24h}₽)\n` +
+                    `99₽ — ${stats.sub_24h} (${stats.sub_sum_24h}₽)\n` +
+                    `594₽ — ${stats.annual_24h} (${stats.annual_sum_24h}₽)\n\n` +
                     `<b>Всего</b>\n` +
                     `Рег — ${stats.reg_total}\n` +
-                    `1₽ — ${stats.trial_total}\n` +
-                    `99₽ — ${stats.sub_total}\n` +
-                    `594₽ — ${stats.annual_total}`;
+                    `1₽ — ${stats.trial_total} (${stats.trial_sum_total}₽)\n` +
+                    `99₽ — ${stats.sub_total} (${stats.sub_sum_total}₽)\n` +
+                    `594₽ — ${stats.annual_total} (${stats.annual_sum_total}₽)`;
                 await sendTelegramReply(msg.chat.id, reply);
             }
         }
