@@ -152,6 +152,9 @@
                                             <th onclick="sort('lastSession')" class="px-3 py-2 text-left text-white/50 text-xs font-medium cursor-pointer hover:text-white transition select-none">
                                                 <div class="flex items-center gap-1">Активность <span class="text-xs opacity-50">↕</span></div>
                                             </th>
+                                            <th onclick="sort('totalPayments')" class="px-3 py-2 text-left text-white/50 text-xs font-medium cursor-pointer hover:text-white transition select-none">
+                                                <div class="flex items-center gap-1">Оплаты <span class="text-xs opacity-50">↕</span></div>
+                                            </th>
                                             <th onclick="sort('totalTasks')" class="px-3 py-2 text-left text-white/50 text-xs font-medium cursor-pointer hover:text-white transition select-none">
                                                 <div class="flex items-center gap-1">Задачи <span class="text-xs opacity-50">↕</span></div>
                                             </th>
@@ -159,7 +162,7 @@
                                         </tr>
                                     </thead>
                                     <tbody id="usersTable">
-                                        <tr><td colspan="9" class="p-4 text-white/50 text-center">Загрузка...</td></tr>
+                                        <tr><td colspan="10" class="p-4 text-white/50 text-center">Загрузка...</td></tr>
                                     </tbody>
                                 </table>
                             </div>
@@ -292,7 +295,7 @@
             // Find active header and update arrow
             const headers = document.querySelectorAll('th');
             // Make sure this matches the order of columns in the HTML
-            const keyMap = ['id', 'email', 'plan', 'registrationType', 'source', 'campaign', 'created_at', 'lastSession', 'totalTasks', ''];
+            const keyMap = ['id', 'email', 'plan', 'registrationType', 'source', 'campaign', 'created_at', 'lastSession', 'totalPayments', 'totalTasks', ''];
 
             const activeIndex = keyMap.indexOf(sortConfig.key);
             if (activeIndex !== -1 && headers[activeIndex]) {
@@ -307,7 +310,7 @@
         function renderTable() {
             const tbody = document.getElementById('usersTable');
             if (usersData.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="9" class="p-4 text-white/50 text-center">Нет пользователей</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="10" class="p-4 text-white/50 text-center">Нет пользователей</td></tr>';
                 return;
             }
 
@@ -340,6 +343,12 @@
                     <td class="px-3 py-2 text-white/70 text-xs max-w-[120px] truncate" title="${campaign}">${campaign}</td>
                     <td class="px-3 py-2 text-white/80 text-xs whitespace-nowrap">${new Date(user.created_at).toLocaleString('ru-RU')}</td>
                     <td class="px-3 py-2 text-white/80 text-xs whitespace-nowrap">${lastLogin}</td>
+                    <td class="px-3 py-2 text-white/90 font-mono text-sm whitespace-nowrap">
+                        ${user.totalPayments > 0
+                        ? `<span class="text-green-300 font-bold">${user.totalPayments.toLocaleString('ru-RU')}₽</span>`
+                        : '<span class="text-white/30">0</span>'
+                    }
+                    </td>
                     <td class="px-3 py-2 text-white/90 font-mono text-sm">
                         <div class="flex items-center gap-1">
                             <span class="font-bold">${user.totalTasks}</span>

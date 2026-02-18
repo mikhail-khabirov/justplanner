@@ -59,10 +59,12 @@ router.get('/users', adminAuth, async (req, res) => {
                 u.registration_source, 
                 u.registration_campaign,
                 u.is_verified,
-                COUNT(t.id) as total_tasks,
-                COUNT(CASE WHEN t.created_at > NOW() - INTERVAL '24 hours' THEN 1 END) as tasks_24h
+                COUNT(DISTINCT t.id) as total_tasks,
+                COUNT(DISTINCT CASE WHEN t.created_at > NOW() - INTERVAL '24 hours' THEN t.id END) as tasks_24h,
+                COALESCE(SUM(DISTINCT p.amount) FILTER (WHERE p.status = 'succeeded'), 0) as total_payments
             FROM users u
             LEFT JOIN tasks t ON u.id = t.user_id
+            LEFT JOIN payments p ON u.id = p.user_id
             GROUP BY u.id
             ORDER BY u.created_at DESC
         `);
@@ -78,7 +80,8 @@ router.get('/users', adminAuth, async (req, res) => {
             campaign: user.registration_campaign || '-',
             isVerified: user.is_verified,
             totalTasks: parseInt(user.total_tasks || 0),
-            tasks24h: parseInt(user.tasks_24h || 0)
+            tasks24h: parseInt(user.tasks_24h || 0),
+            totalPayments: parseFloat(user.total_payments || 0)
         }));
 
         res.json({ users });
