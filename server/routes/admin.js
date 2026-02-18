@@ -59,13 +59,18 @@ router.get('/users', adminAuth, async (req, res) => {
                 u.registration_source, 
                 u.registration_campaign,
                 u.is_verified,
-                COUNT(DISTINCT t.id) as total_tasks,
-                COUNT(DISTINCT CASE WHEN t.created_at > NOW() - INTERVAL '24 hours' THEN t.id END) as tasks_24h,
-                COALESCE(SUM(DISTINCT p.amount) FILTER (WHERE p.status = 'succeeded'), 0) as total_payments
+                COUNT(t.id) as total_tasks,
+                COUNT(CASE WHEN t.created_at > NOW() - INTERVAL '24 hours' THEN 1 END) as tasks_24h,
+                COALESCE(ps.total_payments, 0) as total_payments
             FROM users u
             LEFT JOIN tasks t ON u.id = t.user_id
-            LEFT JOIN payments p ON u.id = p.user_id
-            GROUP BY u.id
+            LEFT JOIN (
+                SELECT user_id, SUM(amount) as total_payments
+                FROM payments
+                WHERE status = 'succeeded'
+                GROUP BY user_id
+            ) ps ON u.id = ps.user_id
+            GROUP BY u.id, ps.total_payments
             ORDER BY u.created_at DESC
         `);
 
