@@ -3,6 +3,7 @@
 
 import pool from '../config/db.js';
 import { createRecurringPayment, createAnnualRecurringPayment } from './yookassa.js';
+import { notifyPayment } from '../utils/telegram.js';
 
 const MAX_RETRIES = 3;
 
@@ -92,6 +93,7 @@ async function processOneRenewal({ user_id, yookassa_subscription_id, renewal_re
                 [user_id]
             );
             console.log(`✅ Subscription renewed for user ${user_id} [${label}]`);
+            notifyPayment(email, amount, description);
         } else if (payment.status === 'pending') {
             // Payment is pending — webhook will handle success/failure
             console.log(`⏳ Recurring payment pending for user ${user_id}: ${payment.id}`);
@@ -126,6 +128,10 @@ async function handleFailedRenewal(userId, currentRetries) {
             `UPDATE users SET plan = 'free' WHERE id = $1`,
             [userId]
         );
+
+        const userResult = await pool.query('SELECT email FROM users WHERE id = $1', [userId]);
+        const email = userResult.rows[0]?.email || `user#${userId}`;
+        notifyPayment(email, 0, '❌ Даунгрейд на Free — 3 попытки продления не удались');
     } else {
         // Increment retry counter — will try again next day
         console.log(`⚠️ Renewal attempt ${newRetries}/${MAX_RETRIES} failed for user ${userId}, will retry`);
@@ -134,5 +140,9 @@ async function handleFailedRenewal(userId, currentRetries) {
             `UPDATE subscriptions SET renewal_retries = $2, updated_at = NOW() WHERE user_id = $1`,
             [userId, newRetries]
         );
+
+        const userResult = await pool.query('SELECT email FROM users WHERE id = $1', [userId]);
+        const email = userResult.rows[0]?.email || `user#${userId}`;
+        notifyPayment(email, 0, `⚠️ Попытка ${newRetries}/${MAX_RETRIES} продления не удалась`);
     }
 }
