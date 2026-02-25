@@ -2,6 +2,13 @@ import { safeLocalStorage } from './utils';
 
 const API_URL = '/api';
 
+export class AuthError extends Error {
+    constructor() {
+        super('Unauthorized');
+        this.name = 'AuthError';
+    }
+}
+
 const getAuthHeaders = () => {
     const token = safeLocalStorage.getItem('token');
     return {
@@ -18,8 +25,8 @@ export const tasksApi = {
         });
 
         if (!response.ok) {
-            if (response.status === 401) {
-                throw new Error('Unauthorized');
+            if (response.status === 401 || response.status === 403) {
+                throw new AuthError();
             }
             throw new Error('Failed to fetch tasks');
         }
@@ -36,6 +43,9 @@ export const tasksApi = {
         });
 
         if (!response.ok) {
+            if (response.status === 401 || response.status === 403) {
+                throw new AuthError();
+            }
             throw new Error('Failed to create task');
         }
 
@@ -51,6 +61,9 @@ export const tasksApi = {
         });
 
         if (!response.ok) {
+            if (response.status === 401 || response.status === 403) {
+                throw new AuthError();
+            }
             throw new Error('Failed to update task');
         }
 
@@ -65,6 +78,9 @@ export const tasksApi = {
         });
 
         if (!response.ok) {
+            if (response.status === 401 || response.status === 403) {
+                throw new AuthError();
+            }
             throw new Error('Failed to delete task');
         }
 
@@ -80,6 +96,9 @@ export const tasksApi = {
         });
 
         if (!response.ok) {
+            if (response.status === 401 || response.status === 403) {
+                throw new AuthError();
+            }
             throw new Error('Failed to sync tasks');
         }
 

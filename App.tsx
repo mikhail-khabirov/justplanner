@@ -15,7 +15,7 @@ import PricingPage from './components/PricingPage';
 import { useAuth } from './contexts/AuthContext';
 import { useSettings } from './contexts/SettingsContext';
 import { useBilling, ProBadge, UpgradePrompt, UpgradeReason } from './billing';
-import { tasksApi } from './api';
+import { tasksApi, AuthError } from './api';
 import { AnnualOfferModal, AnnualOfferWidget, startAnnualOffer, isOfferActive, isOfferDismissed } from './annual-offer';
 import { User, MoreHorizontal, ChevronLeft, ChevronRight, TrendingUp, LogOut, Settings, LifeBuoy, X, Crown, FileDown, Printer, Zap } from 'lucide-react';
 
@@ -269,6 +269,7 @@ const App: React.FC = () => {
   // Track if tasks have been loaded from server to avoid overwriting
   const hasLoadedFromServer = useRef(false);
   const syncTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const pendingSyncRef = useRef<any[] | null>(null);
 
   // Load tasks 
   const loadServerTasks = useCallback(() => {
@@ -285,7 +286,13 @@ const App: React.FC = () => {
           setShowOnboarding(true);
         }
       })
-      .catch(err => console.error('Failed to load tasks:', err));
+      .catch(err => {
+        if (err instanceof AuthError) {
+          logout();
+        } else {
+          console.error('Failed to load tasks:', err);
+        }
+      });
   }, [isAuthenticated, user?.id]);
 
   useEffect(() => {
@@ -355,8 +362,16 @@ const App: React.FC = () => {
     }
 
     // Debounce sync by 1 second
+    pendingSyncRef.current = tasks;
     syncTimeoutRef.current = setTimeout(() => {
-      tasksApi.syncAll(tasks).catch(err => console.error('Failed to sync tasks:', err));
+      pendingSyncRef.current = null;
+      tasksApi.syncAll(tasks).catch(err => {
+        if (err instanceof AuthError) {
+          logout();
+        } else {
+          console.error('Failed to sync tasks:', err);
+        }
+      });
     }, 1000);
 
     return () => {
@@ -365,6 +380,24 @@ const App: React.FC = () => {
       }
     };
   }, [tasks, isAuthenticated]);
+
+  // Flush pending sync on page close/refresh
+  useEffect(() => {
+    const handleBeforeUnload = () => {
+      if (pendingSyncRef.current && isAuthenticated) {
+        const token = safeLocalStorage.getItem('token');
+        fetch('/api/tasks/sync', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', ...(token ? { 'Authorization': `Bearer ${token}` } : {}) },
+          body: JSON.stringify({ tasks: pendingSyncRef.current }),
+          keepalive: true
+        }).catch(() => {});
+        pendingSyncRef.current = null;
+      }
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [isAuthenticated]);
 
   // Generate columns based on current startDate
   const columns = useMemo(() => generateColumns(startDate), [startDate]);
