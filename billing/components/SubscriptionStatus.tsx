@@ -99,7 +99,7 @@ const SubscriptionStatus: React.FC<SubscriptionStatusProps> = ({ onUpgrade }) =>
 
                     <div className="flex items-center justify-between pt-2 border-t border-amber-200">
                         <span className="text-sm text-gray-600">Автопродление</span>
-                        {subscription.paymentMethodTitle ? (
+                        {subscription.yookassaSubscriptionId ? (
                             <button
                                 onClick={handleToggleAutoRenew}
                                 disabled={isProcessing}
@@ -120,16 +120,16 @@ const SubscriptionStatus: React.FC<SubscriptionStatusProps> = ({ onUpgrade }) =>
                                 )}
                             </button>
                         ) : (
-                            <span className="text-sm text-gray-400">Нет карты</span>
+                            <span className="text-sm text-gray-400">Нет способа оплаты</span>
                         )}
                     </div>
 
-                    {subscription.paymentMethodTitle ? (
+                    {subscription.yookassaSubscriptionId ? (
                         <div className="flex items-center justify-between pt-2 border-t border-amber-200">
-                            <span className="text-sm text-gray-600">Карта</span>
+                            <span className="text-sm text-gray-600">Способ оплаты</span>
                             <div className="flex items-center gap-2">
                                 <span className="text-sm text-gray-700 font-medium">
-                                    {subscription.paymentMethodTitle}
+                                    {subscription.paymentMethodTitle || 'Привязан'}
                                 </span>
                                 <button
                                     onClick={async () => {
@@ -139,7 +139,7 @@ const SubscriptionStatus: React.FC<SubscriptionStatusProps> = ({ onUpgrade }) =>
                                     }}
                                     disabled={isProcessing}
                                     className="text-xs text-red-400 hover:text-red-600 transition-colors disabled:opacity-50"
-                                    title="Отвязать карту"
+                                    title="Отвязать способ оплаты"
                                 >
                                     Отвязать
                                 </button>
@@ -157,7 +157,7 @@ const SubscriptionStatus: React.FC<SubscriptionStatusProps> = ({ onUpgrade }) =>
                                 ) : (
                                     <>
                                         <CreditCard size={16} />
-                                        Привязать карту (1₽ с возвратом)
+                                        Привязать способ оплаты (1₽ с возвратом)
                                     </>
                                 )}
                             </button>
