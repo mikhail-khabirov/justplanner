@@ -366,11 +366,7 @@ const App: React.FC = () => {
     syncTimeoutRef.current = setTimeout(() => {
       pendingSyncRef.current = null;
       tasksApi.syncAll(tasks).catch(err => {
-        if (err instanceof AuthError) {
-          logout();
-        } else {
-          console.error('Failed to sync tasks:', err);
-        }
+        console.error('Failed to sync tasks:', err);
       });
     }, 1000);
 
@@ -384,7 +380,7 @@ const App: React.FC = () => {
   // Flush pending sync on page close/refresh
   useEffect(() => {
     const handleBeforeUnload = () => {
-      if (pendingSyncRef.current && isAuthenticated) {
+      if (pendingSyncRef.current) {
         const token = safeLocalStorage.getItem('token');
         fetch('/api/tasks/sync', {
           method: 'POST',
