@@ -411,14 +411,16 @@ const App: React.FC = () => {
     syncRetryCount.current = 0;
 
     const doSync = (tasksToSync: Task[]) => {
-      pendingSyncRef.current = null;
       tasksApi.syncAll(tasksToSync)
         .then(() => {
           syncRetryCount.current = 0;
+          pendingSyncRef.current = null;
           safeLocalStorage.setItem(getSyncedKey(), 'true');
         })
         .catch(err => {
           console.error('Failed to sync tasks:', err);
+          // Keep pendingSyncRef set so beforeUnload can still send
+          pendingSyncRef.current = tasksToSync;
           // Retry with backoff
           if (syncRetryCount.current < MAX_SYNC_RETRIES) {
             syncRetryCount.current++;
@@ -441,20 +443,31 @@ const App: React.FC = () => {
   // Flush pending sync on page close/refresh
   useEffect(() => {
     const handleBeforeUnload = () => {
-      if (pendingSyncRef.current) {
+      // Always try to sync from localStorage backup (most reliable source)
+      const backupRaw = safeLocalStorage.getItem(getBackupKey());
+      const isSynced = safeLocalStorage.getItem(getSyncedKey());
+      if (backupRaw && isSynced === 'false') {
         const token = safeLocalStorage.getItem('token');
-        fetch('/api/tasks/sync', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', ...(token ? { 'Authorization': `Bearer ${token}` } : {}) },
-          body: JSON.stringify({ tasks: pendingSyncRef.current }),
-          keepalive: true
-        }).catch(() => {});
-        pendingSyncRef.current = null;
+        const payload = backupRaw; // Already JSON string of tasks array
+        const body = JSON.stringify({ tasks: JSON.parse(payload) });
+        // Use sendBeacon (most reliable for page close), fallback to fetch+keepalive
+        if (navigator.sendBeacon) {
+          const blob = new Blob([body], { type: 'application/json' });
+          // sendBeacon doesn't support custom headers, so encode token in URL
+          navigator.sendBeacon(`/api/tasks/sync?token=${encodeURIComponent(token || '')}`, blob);
+        } else {
+          fetch('/api/tasks/sync', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', ...(token ? { 'Authorization': `Bearer ${token}` } : {}) },
+            body,
+            keepalive: true
+          }).catch(() => {});
+        }
       }
     };
     window.addEventListener('beforeunload', handleBeforeUnload);
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
-  }, [isAuthenticated]);
+  }, [getBackupKey, getSyncedKey]);
 
   // Generate columns based on current startDate
   const columns = useMemo(() => generateColumns(startDate), [startDate]);

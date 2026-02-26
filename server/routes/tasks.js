@@ -76,7 +76,23 @@ router.post('/batch-delete', async (req, res) => {
 // Sync all tasks (full replace)
 router.post('/sync', async (req, res) => {
     try {
-        await Task.syncAll(req.user.id, req.body.tasks || []);
+        const tasks = req.body.tasks;
+        if (!Array.isArray(tasks)) {
+            console.warn(`⚠️ Sync: user ${req.user.id} sent non-array tasks:`, typeof tasks);
+            return res.status(400).json({ error: 'tasks must be an array' });
+        }
+
+        // Protect against accidental wipe: if client sends 0 tasks but user has existing tasks
+        if (tasks.length === 0) {
+            const existing = await Task.findByUserId(req.user.id);
+            if (existing.length > 0) {
+                console.warn(`⚠️ Sync blocked: user ${req.user.id} tried to sync 0 tasks (had ${existing.length})`);
+                return res.json({ success: true, warning: 'empty sync ignored' });
+            }
+        }
+
+        console.log(`📋 Sync: user ${req.user.id}, ${tasks.length} tasks`);
+        await Task.syncAll(req.user.id, tasks);
         res.json({ success: true });
     } catch (error) {
         console.error('Sync tasks error:', error);
