@@ -87,10 +87,10 @@ const AnnualOfferModal: React.FC<AnnualOfferModalProps> = ({ isOpen, onClose, on
                     {/* Price */}
                     <div className="text-center mb-5">
                         <div className="flex items-baseline justify-center gap-2">
-                            <span className="text-lg text-gray-400 line-through">1 188 ₽</span>
-                            <span className="text-4xl font-extrabold text-gray-900">594 ₽</span>
+                            <span className="text-lg text-gray-400 line-through">2 388 ₽</span>
+                            <span className="text-4xl font-extrabold text-gray-900">1 199 ₽</span>
                         </div>
-                        <p className="text-sm text-gray-500 mt-1">за 12 месяцев · 49,5 ₽/мес</p>
+                        <p className="text-sm text-gray-500 mt-1">за 12 месяцев · 99,9 ₽/мес</p>
                     </div>
 
                     {/* Features */}
@@ -116,13 +116,13 @@ const AnnualOfferModal: React.FC<AnnualOfferModalProps> = ({ isOpen, onClose, on
                         ) : (
                             <>
                                 <Crown size={18} />
-                                Оформить за 594 ₽
+                                Оформить за 1 199 ₽
                             </>
                         )}
                     </button>
 
                     <p className="text-center text-xs text-gray-400 mt-3">
-                        Подписка продлевается автоматически через 365 дней по полной стоимости 1 188 ₽/год. Отменить можно в любой момент в настройках.
+                        Подписка продлевается автоматически через 365 дней по полной стоимости 2 388 ₽/год. Отменить можно в любой момент в настройках.
                     </p>
                 </div>
             </div>

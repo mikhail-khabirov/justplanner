@@ -76,14 +76,14 @@ export const sendWelcomeEmail = async (email) => {
                                     </div>
                                     <table role="presentation" cellpadding="0" cellspacing="0" style="margin: 0 auto 16px;">
                                         <tr>
-                                            <td style="font-size: 16px; color: rgba(255,255,255,0.7); text-decoration: line-through; padding-right: 12px;">1 188 ₽/год</td>
-                                            <td style="font-size: 24px; font-weight: 800; color: #ffffff;">594 ₽/год</td>
+                                            <td style="font-size: 16px; color: rgba(255,255,255,0.7); text-decoration: line-through; padding-right: 12px;">2 388 ₽/год</td>
+                                            <td style="font-size: 24px; font-weight: 800; color: #ffffff;">1 199 ₽/год</td>
                                         </tr>
                                     </table>
                                     <div style="margin-bottom: 6px;">
                                         <a href="https://justplanner.ru?annualOffer=1" style="display: inline-block; background-color: #ffffff; color: #ea580c; font-size: 16px; font-weight: 700; padding: 14px 36px; border-radius: 10px; text-decoration: none;">Получить скидку →</a>
                                     </div>
-                                    <div style="font-size: 12px; color: rgba(255,255,255,0.7); margin-top: 12px;">Это всего 49,5 ₽/мес вместо 99 ₽/мес</div>
+                                    <div style="font-size: 12px; color: rgba(255,255,255,0.7); margin-top: 12px;">Это всего 99,9 ₽/мес вместо 199 ₽/мес</div>
                                 </td>
                             </tr>
                         </table>
@@ -168,7 +168,7 @@ export const sendWelcomeEmail = async (email) => {
     </tr>
 </table>
     `;
-    const text = `Добро пожаловать в JustPlanner!\n\nМы рады, что вы с нами! JustPlanner — простой и удобный планировщик задач на неделю.\n\n🎁 Скидка 50% на годовую подписку — только 24 часа! 594 ₽/год вместо 1188 ₽/год.\nПолучить: https://justplanner.ru?annualOffer=1\n\nКак начать:\n1. Создайте первую задачу\n2. Распределите по дням\n3. Отмечайте выполненное\n\nС наилучшими, Команда JustPlanner`;
+    const text = `Добро пожаловать в JustPlanner!\n\nМы рады, что вы с нами! JustPlanner — простой и удобный планировщик задач на неделю.\n\n🎁 Скидка 50% на годовую подписку — только 24 часа! 1199 ₽/год вместо 2388 ₽/год.\nПолучить: https://justplanner.ru?annualOffer=1\n\nКак начать:\n1. Создайте первую задачу\n2. Распределите по дням\n3. Отмечайте выполненное\n\nС наилучшими, Команда JustPlanner`;
     return sendEmail(email, 'Добро пожаловать в JustPlanner! 🎁 Скидка 50% внутри', html, text);
 };
 
@@ -201,8 +201,8 @@ export const sendAnnualOfferReminder = async (email) => {
                                     </div>
                                     <table role="presentation" cellpadding="0" cellspacing="0" style="margin: 0 auto 16px;">
                                         <tr>
-                                            <td style="font-size: 16px; color: rgba(255,255,255,0.7); text-decoration: line-through; padding-right: 12px;">1 188 ₽/год</td>
-                                            <td style="font-size: 24px; font-weight: 800; color: #ffffff;">594 ₽/год</td>
+                                            <td style="font-size: 16px; color: rgba(255,255,255,0.7); text-decoration: line-through; padding-right: 12px;">2 388 ₽/год</td>
+                                            <td style="font-size: 24px; font-weight: 800; color: #ffffff;">1 199 ₽/год</td>
                                         </tr>
                                     </table>
                                     <div>
@@ -215,7 +215,7 @@ export const sendAnnualOfferReminder = async (email) => {
                 </tr>
                 <tr>
                     <td style="padding: 24px 40px 0;">
-                        <p style="margin: 0; font-size: 15px; color: #64748b; line-height: 1.6;">После истечения срока цена вернётся к стандартной — 99 ₽/мес (1 188 ₽/год).</p>
+                        <p style="margin: 0; font-size: 15px; color: #64748b; line-height: 1.6;">После истечения срока цена вернётся к стандартной — 199 ₽/мес (2 388 ₽/год).</p>
                     </td>
                 </tr>
                 <tr>
@@ -236,7 +236,7 @@ export const sendAnnualOfferReminder = async (email) => {
     </tr>
 </table>
     `;
-    const text = `⏰ Осталось менее 5 часов!\n\nВаша скидка 50% на годовую подписку JustPlanner Pro скоро сгорит.\n594 ₽/год вместо 1188 ₽/год.\n\nПолучить: https://justplanner.ru?annualOffer=1\n\nПосле истечения срока цена вернётся к стандартной — 99 ₽/мес.\n\nКоманда JustPlanner`;
+    const text = `⏰ Осталось менее 5 часов!\n\nВаша скидка 50% на годовую подписку JustPlanner Pro скоро сгорит.\n1199 ₽/год вместо 2388 ₽/год.\n\nПолучить: https://justplanner.ru?annualOffer=1\n\nПосле истечения срока цена вернётся к стандартной — 199 ₽/мес.\n\nКоманда JustPlanner`;
     return sendEmail(email, '⏰ Осталось 5 часов — скидка 50% сгорает!', html, text);
 };
 

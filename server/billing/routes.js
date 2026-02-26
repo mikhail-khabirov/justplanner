@@ -93,7 +93,7 @@ router.post('/create-payment', authenticateToken, async (req, res) => {
     }
 });
 
-// Create annual payment (594 RUB for 365 days Pro)
+// Create annual payment (1199 RUB for 365 days Pro)
 router.post('/create-annual-payment', authenticateToken, async (req, res) => {
     try {
         const userResult = await pool.query(
@@ -115,7 +115,7 @@ router.post('/create-annual-payment', authenticateToken, async (req, res) => {
         await pool.query(
             `INSERT INTO payments (user_id, yookassa_payment_id, amount, currency, status, description)
              VALUES ($1, $2, $3, $4, $5, $6)`,
-            [req.user.id, paymentId, 594, 'RUB', 'pending', 'Annual Pro 365 days']
+            [req.user.id, paymentId, 1199, 'RUB', 'pending', 'Annual Pro 365 days']
         );
 
         res.json({ confirmationUrl, paymentId });

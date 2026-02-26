@@ -36,7 +36,7 @@ export const billingApi = {
             method: 'POST',
             headers: getAuthHeaders(),
             body: JSON.stringify({
-                amount: 99,
+                amount: 199,
                 description: 'JustPlanner Premium - ежемесячная подписка'
             })
         });
@@ -92,7 +92,7 @@ export const billingApi = {
         }
     },
 
-    // Create annual payment (594 RUB for 365 days)
+    // Create annual payment (1199 RUB for 365 days)
     async createAnnualPayment(): Promise<CreatePaymentResponse> {
         const response = await fetch(`${API_URL}/api/billing/create-annual-payment`, {
             method: 'POST',

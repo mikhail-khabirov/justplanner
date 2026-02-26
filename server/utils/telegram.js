@@ -90,7 +90,7 @@ async function getPaymentStats() {
                 COUNT(*) FILTER (WHERE p.status = 'succeeded' AND p.description = 'Trial 7 days') AS trial_total,
                 COALESCE(SUM(p.amount) FILTER (WHERE p.status = 'succeeded' AND p.description = 'Trial 7 days'), 0) AS trial_sum_total,
 
-                -- 99₽ первые подписки
+                -- первые подписки
                 COUNT(*) FILTER (WHERE p.created_at >= NOW() - INTERVAL '24 hours' AND p.status = 'succeeded' AND p.description = 'Premium subscription') AS sub_24h,
                 COALESCE(SUM(p.amount) FILTER (WHERE p.created_at >= NOW() - INTERVAL '24 hours' AND p.status = 'succeeded' AND p.description = 'Premium subscription'), 0) AS sub_sum_24h,
                 COUNT(*) FILTER (WHERE p.status = 'succeeded' AND p.description = 'Premium subscription') AS sub_total,
@@ -102,7 +102,7 @@ async function getPaymentStats() {
                 COUNT(*) FILTER (WHERE p.status = 'succeeded' AND (p.description LIKE '%автопродление%' OR p.description LIKE '%после триала%')) AS renewal_total,
                 COALESCE(SUM(p.amount) FILTER (WHERE p.status = 'succeeded' AND (p.description LIKE '%автопродление%' OR p.description LIKE '%после триала%')), 0) AS renewal_sum_total,
 
-                -- 594₽ годовая 50%
+                -- годовая 50%
                 COUNT(*) FILTER (WHERE p.created_at >= NOW() - INTERVAL '24 hours' AND p.status = 'succeeded' AND p.description = 'Annual Pro 365 days') AS annual_24h,
                 COALESCE(SUM(p.amount) FILTER (WHERE p.created_at >= NOW() - INTERVAL '24 hours' AND p.status = 'succeeded' AND p.description = 'Annual Pro 365 days'), 0) AS annual_sum_24h,
                 COUNT(*) FILTER (WHERE p.status = 'succeeded' AND p.description = 'Annual Pro 365 days') AS annual_total,
@@ -150,15 +150,15 @@ async function pollTelegramUpdates() {
                     `<b>24 часа</b>\n` +
                     `Рег — ${stats.reg_24h}\n` +
                     `1₽ — ${stats.trial_24h} (${stats.trial_sum_24h}₽)\n` +
-                    `99₽ — ${stats.sub_24h} (${stats.sub_sum_24h}₽)\n` +
+                    `199₽ — ${stats.sub_24h} (${stats.sub_sum_24h}₽)\n` +
                     `🔄 — ${stats.renewal_24h} (${stats.renewal_sum_24h}₽)\n` +
-                    `594₽ — ${stats.annual_24h} (${stats.annual_sum_24h}₽)\n\n` +
+                    `1199₽ — ${stats.annual_24h} (${stats.annual_sum_24h}₽)\n\n` +
                     `<b>Всего</b>\n` +
                     `Рег — ${stats.reg_total}\n` +
                     `1₽ — ${stats.trial_total} (${stats.trial_sum_total}₽)\n` +
-                    `99₽ — ${stats.sub_total} (${stats.sub_sum_total}₽)\n` +
+                    `199₽ — ${stats.sub_total} (${stats.sub_sum_total}₽)\n` +
                     `🔄 — ${stats.renewal_total} (${stats.renewal_sum_total}₽)\n` +
-                    `594₽ — ${stats.annual_total} (${stats.annual_sum_total}₽)`;
+                    `1199₽ — ${stats.annual_total} (${stats.annual_sum_total}₽)`;
                 await sendTelegramReply(msg.chat.id, reply);
             }
         }

@@ -26,7 +26,7 @@ const PricingPage: React.FC<PricingPageProps> = ({ onBack, onSelectPlan }) => {
             name: 'Премиум',
             price: '1',
             period: '7 дней',
-            trialNote: 'далее 99 ₽/мес',
+            trialNote: 'далее 199 ₽/мес',
             description: 'Полный доступ ко всем функциям',
             features: [
                 'Безлимитные задачи',

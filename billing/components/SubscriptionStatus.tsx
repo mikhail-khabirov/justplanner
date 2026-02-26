@@ -205,7 +205,7 @@ const SubscriptionStatus: React.FC<SubscriptionStatusProps> = ({ onUpgrade }) =>
                         </>
                     )}
                 </button>
-                <p className="text-center text-xs text-gray-400 mt-1">далее 99 ₽/мес</p>
+                <p className="text-center text-xs text-gray-400 mt-1">далее 199 ₽/мес</p>
             </div>
         </div>
     );
