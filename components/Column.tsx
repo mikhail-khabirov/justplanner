@@ -124,8 +124,8 @@ const Column: React.FC<ColumnProps> = ({
         }}
       >
         {/* Time Label */}
-        <div className="w-9 shrink-0 text-right pr-2 pt-[1px]">
-          <span className="text-[10px] font-sans text-gray-400 select-none">
+        <div className="w-9 shrink-0 text-right pr-2 -translate-y-1/2">
+          <span className="text-[10px] leading-none font-sans text-gray-400 select-none">
             {displayTime}
           </span>
         </div>
