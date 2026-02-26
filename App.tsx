@@ -270,6 +270,13 @@ const App: React.FC = () => {
   const hasLoadedFromServer = useRef(false);
   const syncTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const pendingSyncRef = useRef<any[] | null>(null);
+  const syncRetryCount = useRef(0);
+  const MAX_SYNC_RETRIES = 3;
+
+  // localStorage backup helpers
+  const getBackupKey = useCallback(() => `tasks_backup_${user?.id || 'unknown'}`, [user?.id]);
+  const getBackupTimestampKey = useCallback(() => `tasks_backup_ts_${user?.id || 'unknown'}`, [user?.id]);
+  const getSyncedKey = useCallback(() => `tasks_synced_${user?.id || 'unknown'}`, [user?.id]);
 
   // Load tasks 
   const loadServerTasks = useCallback(() => {
@@ -278,7 +285,27 @@ const App: React.FC = () => {
     tasksApi.getAll()
       .then(serverTasks => {
         hasLoadedFromServer.current = true;
+
+        // Check if we have an unsynced localStorage backup (e.g. from a failed sync)
+        const backupRaw = safeLocalStorage.getItem(getBackupKey());
+        const isSynced = safeLocalStorage.getItem(getSyncedKey());
+        if (backupRaw && isSynced === 'false') {
+          try {
+            const backupTasks = JSON.parse(backupRaw);
+            if (Array.isArray(backupTasks) && backupTasks.length > 0) {
+              console.log('Restoring unsynced tasks from localStorage backup');
+              setTasks(backupTasks);
+              // Mark as synced=true so next sync cycle will push them to server
+              safeLocalStorage.setItem(getSyncedKey(), 'true');
+              return;
+            }
+          } catch (e) {
+            console.warn('Failed to parse backup tasks:', e);
+          }
+        }
+
         setTasks(serverTasks);
+        safeLocalStorage.setItem(getSyncedKey(), 'true');
 
         // Show onboarding for first-time users after login
         const onboardingKey = `onboarding_complete_${user?.id || 'default'}`;
@@ -288,12 +315,25 @@ const App: React.FC = () => {
       })
       .catch(err => {
         if (err instanceof AuthError) {
+          // Backup is already in localStorage from the sync effect
           logout();
         } else {
           console.error('Failed to load tasks:', err);
+          // Try to load from localStorage backup as fallback
+          const backupRaw = safeLocalStorage.getItem(getBackupKey());
+          if (backupRaw) {
+            try {
+              const backupTasks = JSON.parse(backupRaw);
+              if (Array.isArray(backupTasks) && backupTasks.length > 0) {
+                console.log('Loading tasks from localStorage backup (server unavailable)');
+                hasLoadedFromServer.current = true;
+                setTasks(backupTasks);
+              }
+            } catch (e) { /* ignore */ }
+          }
         }
       });
-  }, [isAuthenticated, user?.id]);
+  }, [isAuthenticated, user?.id, getBackupKey, getSyncedKey]);
 
   useEffect(() => {
     // Check for resetToken
@@ -356,6 +396,11 @@ const App: React.FC = () => {
   useEffect(() => {
     if (!isAuthenticated || !hasLoadedFromServer.current) return;
 
+    // Always backup to localStorage immediately
+    safeLocalStorage.setItem(getBackupKey(), JSON.stringify(tasks));
+    safeLocalStorage.setItem(getBackupTimestampKey(), new Date().toISOString());
+    safeLocalStorage.setItem(getSyncedKey(), 'false');
+
     // Clear previous timeout
     if (syncTimeoutRef.current) {
       clearTimeout(syncTimeoutRef.current);
@@ -363,19 +408,35 @@ const App: React.FC = () => {
 
     // Debounce sync by 1 second
     pendingSyncRef.current = tasks;
-    syncTimeoutRef.current = setTimeout(() => {
+    syncRetryCount.current = 0;
+
+    const doSync = (tasksToSync: Task[]) => {
       pendingSyncRef.current = null;
-      tasksApi.syncAll(tasks).catch(err => {
-        console.error('Failed to sync tasks:', err);
-      });
-    }, 1000);
+      tasksApi.syncAll(tasksToSync)
+        .then(() => {
+          syncRetryCount.current = 0;
+          safeLocalStorage.setItem(getSyncedKey(), 'true');
+        })
+        .catch(err => {
+          console.error('Failed to sync tasks:', err);
+          // Retry with backoff
+          if (syncRetryCount.current < MAX_SYNC_RETRIES) {
+            syncRetryCount.current++;
+            const delay = Math.min(2000 * Math.pow(2, syncRetryCount.current - 1), 10000);
+            console.log(`Retrying sync (${syncRetryCount.current}/${MAX_SYNC_RETRIES}) in ${delay}ms...`);
+            syncTimeoutRef.current = setTimeout(() => doSync(tasksToSync), delay);
+          }
+        });
+    };
+
+    syncTimeoutRef.current = setTimeout(() => doSync(tasks), 1000);
 
     return () => {
       if (syncTimeoutRef.current) {
         clearTimeout(syncTimeoutRef.current);
       }
     };
-  }, [tasks, isAuthenticated]);
+  }, [tasks, isAuthenticated, getBackupKey, getBackupTimestampKey, getSyncedKey]);
 
   // Flush pending sync on page close/refresh
   useEffect(() => {
