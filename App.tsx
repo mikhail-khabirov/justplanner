@@ -1250,14 +1250,14 @@ const App: React.FC = () => {
       </main>
 
       {/* Backlog Toggle Button */}
-      <div className="flex-shrink-0 relative z-20">
+      <div className="flex-shrink-0 flex justify-center py-1 z-20">
         <button
           onClick={() => {
             const next = !isBacklogCollapsed;
             setIsBacklogCollapsed(next);
             localStorage.setItem('backlogCollapsed', next ? '1' : '0');
           }}
-          className={`absolute left-1/2 -translate-x-1/2 -top-5 flex items-center gap-1 px-4 py-1.5 sm:px-3 sm:py-0.5 rounded-full text-xs transition-colors shadow-sm z-30 ${
+          className={`flex items-center gap-1 px-4 py-1.5 sm:px-3 sm:py-0.5 rounded-full text-xs transition-colors shadow-sm ${
             isBacklogCollapsed
               ? 'bg-gray-100 border-2 border-gray-300 text-gray-600 hover:bg-gray-200'
               : 'bg-white border border-gray-200 text-gray-400 hover:text-gray-600 hover:border-gray-300'
