@@ -231,20 +231,27 @@ const TaskItem: React.FC<TaskItemProps> = ({
 
         const ghost = target.cloneNode(true) as HTMLElement;
         ghost.classList.add('task-ghost');
-        ghost.style.width = `${rect.width}px`;
-        ghost.style.height = `${rect.height}px`;
-        ghost.style.position = 'absolute';
-        ghost.style.top = '-1000px';
-        ghost.style.left = '-1000px';
-        ghost.style.zIndex = '1000';
-        ghost.style.transform = 'scale(1.02)';
+        ghost.style.cssText = `
+          position: fixed;
+          top: 0;
+          left: -9999px;
+          width: ${rect.width}px;
+          height: ${rect.height}px;
+          z-index: 1000;
+          transform: scale(1.02);
+          opacity: 0.99;
+          pointer-events: none;
+        `;
 
         document.body.appendChild(ghost);
         // Use cursor offset so ghost stays under the finger/cursor
         e.dataTransfer.setDragImage(ghost, offsetX, offsetY);
-        setTimeout(() => {
-          if (document.body.contains(ghost)) document.body.removeChild(ghost);
-        }, 0);
+        // Delay cleanup — Safari/Firefox need the element to persist briefly
+        requestAnimationFrame(() => {
+          setTimeout(() => {
+            if (document.body.contains(ghost)) document.body.removeChild(ghost);
+          }, 100);
+        });
       }}
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
