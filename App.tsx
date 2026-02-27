@@ -1264,7 +1264,7 @@ const App: React.FC = () => {
           }`}
         >
           {isBacklogCollapsed ? <ChevronUp size={18} className="sm:w-3.5 sm:h-3.5" /> : <ChevronDown size={18} className="sm:w-3.5 sm:h-3.5" />}
-          <span className="hidden sm:inline">{isBacklogCollapsed ? 'Показать панель' : 'Скрыть панель'}</span>
+          <span>{isBacklogCollapsed ? 'Показать' : 'Скрыть'}</span>
         </button>
       </div>
 
