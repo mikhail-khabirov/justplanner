@@ -39,9 +39,14 @@
     }
   </script>
   <style>
-    body {
+    html, body {
       background-color: #ffffff;
       -webkit-font-smoothing: antialiased;
+      touch-action: manipulation;
+      overscroll-behavior: none;
+      overflow: hidden;
+      height: 100vh;
+      height: 100dvh;
     }
 
     .scrollbar-hide::-webkit-scrollbar {
@@ -173,6 +178,16 @@
     <div><img src="https://mc.yandex.ru/watch/106590123" style="position:absolute; left:-9999px;" alt="" /></div>
   </noscript>
   <div id="root"></div>
+  <script>
+    // Prevent pinch-zoom on iOS Safari (ignores user-scalable=no)
+    document.addEventListener('gesturestart', function(e) { e.preventDefault(); }, { passive: false });
+    document.addEventListener('gesturechange', function(e) { e.preventDefault(); }, { passive: false });
+    document.addEventListener('gestureend', function(e) { e.preventDefault(); }, { passive: false });
+    // Prevent multi-touch zoom on all browsers
+    document.addEventListener('touchstart', function(e) {
+      if (e.touches.length > 1) e.preventDefault();
+    }, { passive: false });
+  </script>
   <script type="module" src="/index.tsx"></script>
 </body>
 

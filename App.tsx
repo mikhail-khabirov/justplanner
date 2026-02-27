@@ -909,7 +909,7 @@ const App: React.FC = () => {
   };
 
   if (authLoading) {
-    return <div className="flex h-screen items-center justify-center">Загрузка...</div>;
+    return <div className="flex items-center justify-center" style={{ height: '100dvh' }}>Загрузка...</div>;
   }
 
   if (legalView === 'terms') {
@@ -1006,7 +1006,7 @@ const App: React.FC = () => {
   // --- Layout ---
 
   return (
-    <div className="flex flex-col h-screen bg-white text-gray-900 font-sans overflow-hidden selection:bg-blue-100">
+    <div className="flex flex-col bg-white text-gray-900 font-sans overflow-hidden selection:bg-blue-100" style={{ height: '100dvh' }}>
       {/* Unregistered User Alert */}
       {!isAuthenticated && (
         <div className="bg-red-50 border-b border-red-100 px-4 py-2 flex items-center justify-center text-center">
@@ -1017,7 +1017,7 @@ const App: React.FC = () => {
       )}
 
       {/* Header */}
-      <header className="flex-shrink-0 px-4 py-4 md:px-8 md:py-6 border-b border-transparent">
+      <header className="flex-shrink-0 px-3 py-2 md:px-8 md:py-6 border-b border-transparent">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3 md:gap-4">
             <h1
