@@ -27,16 +27,28 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart, onLogin, onShowTerms
                             <span className="text-[0.65rem] leading-none px-1.5 py-0.5 rounded bg-gray-100 text-gray-500 font-bold uppercase tracking-wide border border-gray-200">Beta</span>
                         </span>
                     </div>
-                    <div className="flex items-center gap-6 shrink-0">
+                    <div className="flex items-center gap-3 sm:gap-6 shrink-0">
                         <button
                             onClick={onShowFeatures}
-                            className="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors"
+                            className="hidden sm:block text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors"
                         >
                             Функции
                         </button>
                         <button
                             onClick={onShowPricing}
-                            className="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors"
+                            className="hidden sm:block text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors"
+                        >
+                            Тарифы
+                        </button>
+                        <button
+                            onClick={onShowFeatures}
+                            className="sm:hidden text-xs font-medium text-gray-600"
+                        >
+                            Функции
+                        </button>
+                        <button
+                            onClick={onShowPricing}
+                            className="sm:hidden text-xs font-medium text-gray-600"
                         >
                             Тарифы
                         </button>
@@ -45,7 +57,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart, onLogin, onShowTerms
                                 (window as any).ym?.(106590123, 'reachGoal', 'btn_login_click');
                                 onLogin();
                             }}
-                            className="text-sm font-medium text-white bg-gray-900 hover:bg-gray-800 px-4 py-2 rounded-lg transition-colors"
+                            className="text-xs sm:text-sm font-medium text-white bg-gray-900 hover:bg-gray-800 px-3 py-1.5 sm:px-4 sm:py-2 rounded-lg transition-colors"
                         >
                             Войти
                         </button>
