@@ -59,6 +59,11 @@
       /* 3rem */
     }
 
+    /* Fix drag-and-drop in Yandex Browser and other Chromium variants */
+    .task-item[draggable="true"] {
+      -webkit-user-drag: element;
+    }
+
     .task-ghost {
       opacity: 0.95;
       background: #ffffff;
