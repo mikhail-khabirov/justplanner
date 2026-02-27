@@ -17,7 +17,7 @@ import { useSettings } from './contexts/SettingsContext';
 import { useBilling, ProBadge, UpgradePrompt, UpgradeReason } from './billing';
 import { tasksApi, AuthError } from './api';
 import { AnnualOfferModal, AnnualOfferWidget, startAnnualOffer, isOfferActive, isOfferDismissed } from './annual-offer';
-import { User, MoreHorizontal, ChevronLeft, ChevronRight, TrendingUp, LogOut, Settings, LifeBuoy, X, Crown, FileDown, Printer, Zap } from 'lucide-react';
+import { User, MoreHorizontal, ChevronLeft, ChevronRight, ChevronDown, ChevronUp, TrendingUp, LogOut, Settings, LifeBuoy, X, Crown, FileDown, Printer, Zap } from 'lucide-react';
 
 // Configuration for the 4 bottom columns
 const BOTTOM_COLUMNS = [
@@ -146,6 +146,7 @@ const App: React.FC = () => {
   const [authMode, setAuthMode] = useState<'login' | 'register'>('login');
 
   // Annual offer state
+  const [isBacklogCollapsed, setIsBacklogCollapsed] = useState(() => localStorage.getItem('backlogCollapsed') === '1');
   const [showAnnualModal, setShowAnnualModal] = useState(false);
   const [showAnnualWidget, setShowAnnualWidget] = useState(() => isOfferActive() && !isOfferDismissed());
 
@@ -1248,40 +1249,57 @@ const App: React.FC = () => {
         </div>
       </main>
 
+      {/* Backlog Toggle Button */}
+      <div className="flex-shrink-0 relative z-20">
+        <button
+          onClick={() => {
+            const next = !isBacklogCollapsed;
+            setIsBacklogCollapsed(next);
+            localStorage.setItem('backlogCollapsed', next ? '1' : '0');
+          }}
+          className="absolute left-1/2 -translate-x-1/2 -top-3 flex items-center gap-1 px-3 py-0.5 bg-white border border-gray-200 rounded-full text-xs text-gray-400 hover:text-gray-600 hover:border-gray-300 transition-colors shadow-sm z-30"
+        >
+          {isBacklogCollapsed ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+          <span className="hidden sm:inline">{isBacklogCollapsed ? 'Показать панель' : 'Скрыть панель'}</span>
+        </button>
+      </div>
+
       {/* Footer / Backlog Area */}
-      <section className="flex-shrink-0 h-1/4 px-4 md:px-8 pb-4 border-t-2 border-gray-200 bg-gray-50 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] z-10">
-        <div className="flex overflow-x-auto snap-x snap-mandatory gap-4 md:grid md:grid-cols-4 md:gap-8 h-full scrollbar-hide pb-2 md:pb-0">
-          {BOTTOM_COLUMNS.map(colDef => (
-            <div key={colDef.id} className="min-w-[85vw] md:min-w-0 h-full snap-center last:pr-4 md:last:pr-0">
-              <Column
-                column={{
-                  id: colDef.id,
-                  dateLabel: settings.sectionNames?.[colDef.id as keyof typeof settings.sectionNames] || colDef.label,
-                  dayLabel: '',
-                }}
-                quickAddState={quickAddState}
-                headerColor={colDef.headerColor}
-                tasks={tasks.filter(t => t.columnId === colDef.id)}
-                onDrop={handleDropOnColumn}
-                onDropTask={handleDropOnTask}
-                onDragOver={handleDragOver}
-                onInitiateQuickAdd={handleInitiateQuickAdd}
-                onCommitQuickAdd={handleCommitQuickAdd}
-                onCancelQuickAdd={handleCancelQuickAdd}
-                onUpdateTask={handleUpdateTask}
-                onColorChange={handleColorChange}
-                onDeleteTask={handleDeleteTask}
-                onDragStart={handleDragStart}
-                onToggleComplete={handleToggleComplete}
-                onOpenModal={setActiveTaskId}
-                onTouchDragEnd={handleTouchDragEnd}
-                isPremium={isPremium}
-                onShowUpgradePrompt={() => showUpgradePromptWithReason('colors')}
-              />
-            </div>
-          ))}
-        </div>
-      </section>
+      {!isBacklogCollapsed && (
+        <section className="flex-shrink-0 h-1/4 px-4 md:px-8 pb-4 border-t-2 border-gray-200 bg-gray-50 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] z-10">
+          <div className="flex overflow-x-auto snap-x snap-mandatory gap-4 md:grid md:grid-cols-4 md:gap-8 h-full scrollbar-hide pb-2 md:pb-0">
+            {BOTTOM_COLUMNS.map(colDef => (
+              <div key={colDef.id} className="min-w-[85vw] md:min-w-0 h-full snap-center last:pr-4 md:last:pr-0">
+                <Column
+                  column={{
+                    id: colDef.id,
+                    dateLabel: settings.sectionNames?.[colDef.id as keyof typeof settings.sectionNames] || colDef.label,
+                    dayLabel: '',
+                  }}
+                  quickAddState={quickAddState}
+                  headerColor={colDef.headerColor}
+                  tasks={tasks.filter(t => t.columnId === colDef.id)}
+                  onDrop={handleDropOnColumn}
+                  onDropTask={handleDropOnTask}
+                  onDragOver={handleDragOver}
+                  onInitiateQuickAdd={handleInitiateQuickAdd}
+                  onCommitQuickAdd={handleCommitQuickAdd}
+                  onCancelQuickAdd={handleCancelQuickAdd}
+                  onUpdateTask={handleUpdateTask}
+                  onColorChange={handleColorChange}
+                  onDeleteTask={handleDeleteTask}
+                  onDragStart={handleDragStart}
+                  onToggleComplete={handleToggleComplete}
+                  onOpenModal={setActiveTaskId}
+                  onTouchDragEnd={handleTouchDragEnd}
+                  isPremium={isPremium}
+                  onShowUpgradePrompt={() => showUpgradePromptWithReason('colors')}
+                />
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* Task Modal */}
       {activeTask && (
