@@ -1257,7 +1257,11 @@ const App: React.FC = () => {
             setIsBacklogCollapsed(next);
             localStorage.setItem('backlogCollapsed', next ? '1' : '0');
           }}
-          className="absolute left-1/2 -translate-x-1/2 -top-5 flex items-center gap-1 px-4 py-1.5 sm:px-3 sm:py-0.5 bg-white border border-gray-200 rounded-full text-xs text-gray-400 hover:text-gray-600 hover:border-gray-300 transition-colors shadow-sm z-30"
+          className={`absolute left-1/2 -translate-x-1/2 -top-5 flex items-center gap-1 px-4 py-1.5 sm:px-3 sm:py-0.5 rounded-full text-xs transition-colors shadow-sm z-30 ${
+            isBacklogCollapsed
+              ? 'bg-gray-100 border-2 border-gray-300 text-gray-600 hover:bg-gray-200'
+              : 'bg-white border border-gray-200 text-gray-400 hover:text-gray-600 hover:border-gray-300'
+          }`}
         >
           {isBacklogCollapsed ? <ChevronUp size={18} className="sm:w-3.5 sm:h-3.5" /> : <ChevronDown size={18} className="sm:w-3.5 sm:h-3.5" />}
           <span className="hidden sm:inline">{isBacklogCollapsed ? 'Показать панель' : 'Скрыть панель'}</span>
