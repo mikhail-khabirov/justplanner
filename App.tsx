@@ -207,7 +207,7 @@ const App: React.FC = () => {
     if (!isAuthenticated || !user) return;
     const key = `nsv2_${user.id}`;
     if (safeLocalStorage.getItem(key) === '1') return;
-    if (isOfferActive()) return; // don't compete with annual offer for new users
+    if (showAnnualModal) return; // don't compete if annual modal is open right now
     const timer = setTimeout(() => {
       setShowSurvey(true);
       safeLocalStorage.setItem(key, '1');
