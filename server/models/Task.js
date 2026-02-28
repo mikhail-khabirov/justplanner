@@ -25,6 +25,7 @@ export const Task = {
 
     // Create task
     async create(userId, task) {
+        await pool.query('UPDATE users SET no_task_reminder_sent = FALSE WHERE id = $1', [userId]);
         const result = await pool.query(
             `INSERT INTO tasks (user_id, content, column_id, hour, color, completed, subtasks, recurrence_type, recurrence_interval, recurrence_end_date) 
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) 

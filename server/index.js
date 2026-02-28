@@ -142,6 +142,14 @@ async function updateSchema() {
             ALTER TABLE users 
             ADD COLUMN IF NOT EXISTS annual_offer_reminder_sent BOOLEAN DEFAULT FALSE;
         `);
+        await pool.query(`
+            ALTER TABLE users 
+            ADD COLUMN IF NOT EXISTS no_task_reminder_sent BOOLEAN DEFAULT FALSE;
+        `);
+        await pool.query(`
+            ALTER TABLE users 
+            ADD COLUMN IF NOT EXISTS inactivity_reminder_sent BOOLEAN DEFAULT FALSE;
+        `);
 
         console.log('✅ Database schema updated');
     } catch (err) {
@@ -184,6 +192,71 @@ app.listen(PORT, async () => {
         }
     }
 
-    console.log(`🚀 Server running on http://localhost:${PORT}`);
+    // Cron: No task in 48h → Unisender list 7 (every hour)
+    cron.schedule('0 * * * *', async () => {
+        try {
+            const { default: pool } = await import('./config/db.js');
+            const result = await pool.query(`
+                SELECT u.id, u.email FROM users u
+                LEFT JOIN subscriptions s ON s.user_id = u.id
+                WHERE u.is_verified = true
+                  AND u.no_task_reminder_sent = false
+                  AND u.created_at <= NOW() - INTERVAL '48 hours'
+                  AND (s.plan IS NULL OR s.plan = 'free')
+                  AND NOT EXISTS (SELECT 1 FROM tasks t WHERE t.user_id = u.id)
+            `);
+            for (const user of result.rows) {
+                await addContactToUnisender(user.email, '7').catch(console.error);
+                await pool.query('UPDATE users SET no_task_reminder_sent = true WHERE id = $1', [user.id]);
+                console.log(`� No-task reminder: added ${user.email} to Unisender list 7`);
+            }
+        } catch (err) {
+            console.error('❌ No-task reminder cron error:', err.message);
+        }
+    });
+
+    // Cron: Inactive 5+ days → Unisender list 8 (every hour)
+    cron.schedule('30 * * * *', async () => {
+        try {
+            const { default: pool } = await import('./config/db.js');
+            const result = await pool.query(`
+                SELECT u.id, u.email FROM users u
+                LEFT JOIN subscriptions s ON s.user_id = u.id
+                WHERE u.is_verified = true
+                  AND u.inactivity_reminder_sent = false
+                  AND u.last_login <= NOW() - INTERVAL '5 days'
+                  AND (s.plan IS NULL OR s.plan = 'free')
+            `);
+            for (const user of result.rows) {
+                await addContactToUnisender(user.email, '8').catch(console.error);
+                await pool.query('UPDATE users SET inactivity_reminder_sent = true WHERE id = $1', [user.id]);
+                console.log(`📧 Inactivity reminder: added ${user.email} to Unisender list 8`);
+            }
+        } catch (err) {
+            console.error('❌ Inactivity reminder cron error:', err.message);
+        }
+    });
+
+    // Cron: Weekly Sunday email → Unisender list 9 (every Sunday at 10:00 MSK = 07:00 UTC)
+    cron.schedule('0 7 * * 0', async () => {
+        try {
+            const { default: pool } = await import('./config/db.js');
+            const result = await pool.query(`
+                SELECT u.email FROM users u
+                LEFT JOIN subscriptions s ON s.user_id = u.id
+                WHERE u.is_verified = true
+                  AND (s.plan IS NULL OR s.plan = 'free')
+            `);
+            for (const user of result.rows) {
+                await addContactToUnisender(user.email, '9').catch(console.error);
+            }
+            console.log(`📧 Sunday email: added ${result.rows.length} users to Unisender list 9`);
+        } catch (err) {
+            console.error('❌ Sunday email cron error:', err.message);
+        }
+    });
+
+    console.log(`�🚀 Server running on http://localhost:${PORT}`);
     console.log('📅 Subscription renewal cron scheduled: daily at 3:00 AM');
+    console.log('📧 Unisender trigger crons scheduled: no-task 48h, inactive 5d, Sunday 10:00 MSK');
 });
