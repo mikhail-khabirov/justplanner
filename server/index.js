@@ -159,8 +159,9 @@ app.listen(PORT, async () => {
         await processRenewals();
     });
 
-    // Schedule annual offer reminder: every 30 min, find users registered 19h ago still on free
-    cron.schedule('*/30 * * * *', async () => {
+    // Annual offer reminder disabled - email marketing handled by Unisender
+    // cron.schedule('*/30 * * * *', async () => {
+    if (false) { // disabled
         try {
             const { default: pool } = await import('./config/db.js');
             const { sendAnnualOfferReminder } = await import('./utils/email.js');
@@ -181,9 +182,8 @@ app.listen(PORT, async () => {
         } catch (err) {
             console.error('❌ Annual offer reminder cron error:', err.message);
         }
-    });
+    }
 
     console.log(`🚀 Server running on http://localhost:${PORT}`);
     console.log('📅 Subscription renewal cron scheduled: daily at 3:00 AM');
-    console.log('📧 Annual offer reminder cron scheduled: every 30 min');
 });
