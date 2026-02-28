@@ -122,7 +122,7 @@ const App: React.FC = () => {
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
   const [showSupportModal, setShowSupportModal] = useState(false);
-  const [feedbackHidden, setFeedbackHidden] = useState(() => localStorage.getItem('feedbackHidden') === '1');
+  const [feedbackHidden, setFeedbackHidden] = useState(() => safeLocalStorage.getItem('feedbackHidden') === '1');
   const [showMenuDropdown, setShowMenuDropdown] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
   // URL-based routing: initialize state from current pathname
@@ -146,7 +146,7 @@ const App: React.FC = () => {
   const [authMode, setAuthMode] = useState<'login' | 'register'>('login');
 
   // Annual offer state
-  const [isBacklogCollapsed, setIsBacklogCollapsed] = useState(() => localStorage.getItem('backlogCollapsed') === '1');
+  const [isBacklogCollapsed, setIsBacklogCollapsed] = useState(() => safeLocalStorage.getItem('backlogCollapsed') === '1');
   const [showAnnualModal, setShowAnnualModal] = useState(false);
   const [showAnnualWidget, setShowAnnualWidget] = useState(() => isOfferActive() && !isOfferDismissed());
 
@@ -1060,7 +1060,7 @@ const App: React.FC = () => {
                 <a href="mailto:support@justplanner.ru" className="text-xs font-medium text-[#26A69A] hover:underline">support@justplanner.ru</a>
                 {isPremium && (
                   <button
-                    onClick={() => { setFeedbackHidden(true); localStorage.setItem('feedbackHidden', '1'); }}
+                    onClick={() => { setFeedbackHidden(true); safeLocalStorage.setItem('feedbackHidden', '1'); }}
                     className="ml-1 p-0.5 text-gray-300 hover:text-gray-500 transition-colors rounded-full"
                     title="Скрыть"
                   >
@@ -1255,7 +1255,7 @@ const App: React.FC = () => {
           onClick={() => {
             const next = !isBacklogCollapsed;
             setIsBacklogCollapsed(next);
-            localStorage.setItem('backlogCollapsed', next ? '1' : '0');
+            safeLocalStorage.setItem('backlogCollapsed', next ? '1' : '0');
           }}
           className={`flex items-center gap-1 px-4 py-1.5 sm:px-3 sm:py-0.5 rounded-full text-xs transition-colors shadow-sm ${
             isBacklogCollapsed
