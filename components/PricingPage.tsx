@@ -175,9 +175,6 @@ const PricingPage: React.FC<PricingPageProps> = ({ onBack, onSelectPlan, token, 
                             >
                                 {annualLoading ? <Loader2 size={20} className="animate-spin" /> : 'Купить за 1 910 ₽'}
                             </button>
-                            <p className="text-center text-xs text-gray-400 mt-3">
-                                Продлевается автоматически через 365 дней по 2 388 ₽/год
-                            </p>
                         </div>
                     </div>
                 </div>
