@@ -72,9 +72,7 @@ router.post('/verify', async (req, res) => {
         // Verify User
         await User.verifyEmail(email);
 
-        // Send Welcome Email
-        const { sendWelcomeEmail } = await import('../utils/email.js');
-        sendWelcomeEmail(email).catch(console.error); // Async send
+        // Welcome email disabled - handled by Unisender
 
         // Telegram notification
         notifyNewUser(email, 'email');

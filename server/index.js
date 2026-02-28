@@ -43,8 +43,7 @@ if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
             const { user, isNew } = await User.findOrCreateByGoogle(profile.id, email, utmSource, utmCampaign);
 
             if (isNew) {
-                const { sendWelcomeEmail } = await import('./utils/email.js');
-                sendWelcomeEmail(email).catch(console.error);
+                // Welcome email disabled - handled by Unisender
                 notifyNewUser(email, 'google');
                 addContactToUnisender(email).catch(console.error);
             }
