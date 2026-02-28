@@ -287,13 +287,14 @@ def write_to_sheets(direct: dict, pg: dict) -> None:
     """Найти строку с датой в колонке A и записать метрики.
 
     Колонки, заполняемые скриптом:
-        B–G:  Выручка, Триал, Месячных, Годовых, Продлений, Клики
-        I–J:  Расход, Рег
-        P–V:  DAU, Подписки, Задачи, Ret D1%, Ret D7%, Trial→Pro, Churn
+        C–H:  Выручка, Триал, Месячных, Годовых, Продлений, Клики
+        J–K:  Расход, Рег
+        Q–W:  DAU, Подписки, Задачи, Ret D1%, Ret D7%, Trial→Pro, Churn
 
     Колонки с формулами (НЕ трогаем):
-        H:    CPC  (формула)
-        K–O:  CAC, Клик→Рег%, reg->trial, trial->full, reg->50 (формулы)
+        B:    Прибыль (формула)
+        I:    CPC  (формула)
+        L–P:  CAC, Клик→Рег%, reg->trial, trial->full, reg->50 (формулы)
     """
     log.info("Записываю данные в Google Sheets (sheet_id=%s)...", GOOGLE_SHEET_ID)
 
@@ -331,13 +332,13 @@ def write_to_sheets(direct: dict, pg: dict) -> None:
             pg["churn"],
         ]
 
-        # Проверяем/обновляем заголовки P1:V1 (новые метрики)
+        # Проверяем/обновляем заголовки Q1:W1 (новые метрики)
         headers_row = sheet.row_values(1)
         new_headers = ['DAU', 'Подписки', 'Задачи', 'Ret D1%', 'Ret D7%', 'Trial→Pro', 'Churn']
-        # P = колонка 16, V = колонка 22 → P1:V1
-        if len(headers_row) < 22 or headers_row[15:22] != new_headers:
-            sheet.update([new_headers], 'P1:V1')
-            log.info('Заголовки P1:V1 обновлены')
+        # Q = колонка 17, W = колонка 23 → Q1:W1
+        if len(headers_row) < 23 or headers_row[16:23] != new_headers:
+            sheet.update([new_headers], 'Q1:W1')
+            log.info('Заголовки Q1:W1 обновлены')
 
         col_a = sheet.col_values(1)
         try:
@@ -348,15 +349,15 @@ def write_to_sheets(direct: dict, pg: dict) -> None:
             sheet.update_cell(row_index, 1, TODAY_STR)
             log.info("Дата %s не найдена, добавляю новую строку %d", TODAY_STR, row_index)
 
-        # B–G: Выручка, Триал, Месячных, Годовых, Продлений, Клики
-        sheet.update([values_bg], f"B{row_index}:G{row_index}")
-        # I–J: Расход, Рег (H=CPC — формула, не трогаем)
-        sheet.update([values_ij], f"I{row_index}:J{row_index}")
-        # P–V: DAU, Подписки, Задачи, Ret D1%, Ret D7%, Trial→Pro, Churn (K–O — формулы, не трогаем)
-        sheet.update([values_pv], f"P{row_index}:V{row_index}")
+        # C–H: Выручка, Триал, Месячных, Годовых, Продлений, Клики (B=Прибыль — формула, не трогаем)
+        sheet.update([values_bg], f"C{row_index}:H{row_index}")
+        # J–K: Расход, Рег (I=CPC — формула, не трогаем)
+        sheet.update([values_ij], f"J{row_index}:K{row_index}")
+        # Q–W: DAU, Подписки, Задачи, Ret D1%, Ret D7%, Trial→Pro, Churn (L–P — формулы, не трогаем)
+        sheet.update([values_pv], f"Q{row_index}:W{row_index}")
 
         log.info(
-            "Записано строка %d: выр=%.2f₽, триал=%d, мес=%d, год=%d, продл=%d, "
+            "Записано строка %d (C:H, J:K, Q:W): выр=%.2f₽, триал=%d, мес=%d, год=%d, продл=%d, "
             "клики=%d, расход=%.2f, рег=%d | "
             "DAU=%d, подписки=%d, задачи=%d, retD1=%.1f%%, retD7=%.1f%%, t→p=%d, churn=%d",
             row_index, *values_bg, *values_ij, *values_pv

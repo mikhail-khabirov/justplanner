@@ -43,27 +43,28 @@
 | Колонка | Метрика | Источник |
 |---|---|---|
 | A | Дата | скрипт |
-| B | Выручка | скрипт (PostgreSQL) |
-| C | Триал | скрипт (PostgreSQL) |
-| D | Месячных | скрипт (PostgreSQL) |
-| E | Годовых | скрипт (PostgreSQL) |
-| F | Продлений | скрипт (PostgreSQL) |
-| G | Клики | скрипт (Яндекс.Директ) |
-| H | CPC | формула `=I/G` |
-| I | Расход | скрипт (Яндекс.Директ) |
-| J | Рег | скрипт (PostgreSQL) |
-| K | CAC | формула `=I/J` |
-| L | Клик→Рег% | формула `=J/G` |
-| M | reg→trial | формула `=C/J` |
-| N | trial→full | формула `=F/C` |
-| O | reg→50 | формула `=E/J` |
-| P | DAU | скрипт (PostgreSQL) |
-| Q | Подписки | скрипт (PostgreSQL) |
-| R | Задачи | скрипт (PostgreSQL) |
-| S | Ret D1% | скрипт (PostgreSQL) |
-| T | Ret D7% | скрипт (PostgreSQL) |
-| U | Trial→Pro | скрипт (PostgreSQL) |
-| V | Churn | скрипт (PostgreSQL) |
+| B | Прибыль | формула `=C-J` |
+| C | Выручка | скрипт (PostgreSQL) |
+| D | Триал | скрипт (PostgreSQL) |
+| E | Месячных | скрипт (PostgreSQL) |
+| F | Годовых | скрипт (PostgreSQL) |
+| G | Продлений | скрипт (PostgreSQL) |
+| H | Клики | скрипт (Яндекс.Директ) |
+| I | CPC | формула `=J/H` |
+| J | Расход | скрипт (Яндекс.Директ) |
+| K | Рег | скрипт (PostgreSQL) |
+| L | CAC | формула `=J/K` |
+| M | Клик→Рег% | формула `=K/H` |
+| N | reg→trial | формула `=D/K` |
+| O | trial→full | формула `=G/D` |
+| P | reg→50 | формула `=F/K` |
+| Q | DAU | скрипт (PostgreSQL) |
+| R | Подписки | скрипт (PostgreSQL) |
+| S | Задачи | скрипт (PostgreSQL) |
+| T | Ret D1% | скрипт (PostgreSQL) |
+| U | Ret D7% | скрипт (PostgreSQL) |
+| V | Trial→Pro | скрипт (PostgreSQL) |
+| W | Churn | скрипт (PostgreSQL) |
 
 Если строки с датой нет — добавляет новую в конец.
 
