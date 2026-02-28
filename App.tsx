@@ -1185,17 +1185,13 @@ const App: React.FC = () => {
                       Функции
                     </button>
 
-                    {/* Upgrade to Pro - only for free users */}
-                    {isAuthenticated && !isPremium && (
+                    {/* Upgrade to Pro - for free and unauthenticated users */}
+                    {!isPremium && (
                       <button
-                        onClick={async () => {
+                        onClick={() => {
                           setShowMenuDropdown(false);
-                          try {
-                            const url = await startPayment();
-                            window.location.href = url;
-                          } catch (e) {
-                            console.error('Payment failed:', e);
-                          }
+                          setLegalView('pricing');
+                          navigateTo('/pricing');
                         }}
                         className="w-full text-left px-4 py-2 text-sm text-amber-600 hover:bg-amber-50 flex items-center gap-2 font-medium"
                       >
