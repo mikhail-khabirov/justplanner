@@ -41,7 +41,7 @@ export const sendVerificationCode = async (email, code) => {
         </div>
     `;
     const text = `Ваш код подтверждения JustPlanner: ${code}\nЕсли вы не регистрировались, просто игнорируйте это письмо.`;
-    return sendEmail(email, 'Код подтверждения JustPlanner', html, text);
+    return sendEmail(email, `${code} — код подтверждения JustPlanner`, html, text);
 };
 
 export const sendWelcomeEmail = async (email) => {
