@@ -237,8 +237,8 @@ app.listen(PORT, async () => {
         }
     });
 
-    // Cron: Weekly Sunday email → Unisender list 9 (every Sunday at 10:00 MSK = 07:00 UTC)
-    cron.schedule('0 7 * * 0', async () => {
+    // Cron: Weekly Sunday email → Unisender list 9 (every Sunday at 18:00 MSK = 15:00 UTC)
+    cron.schedule('0 15 * * 0', async () => {
         try {
             const { default: pool } = await import('./config/db.js');
             const result = await pool.query(`
