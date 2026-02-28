@@ -202,15 +202,16 @@ const App: React.FC = () => {
     }
   }, [isNewRegistration, isAuthenticated, isPremium, clearNewRegistration]);
 
-  // Show notification survey once per authenticated user
+  // Show notification survey once per authenticated user (not while annual offer is active)
   useEffect(() => {
     if (!isAuthenticated || !user) return;
-    const key = `survey_shown_${user.id}`;
+    const key = `nsv2_${user.id}`;
     if (safeLocalStorage.getItem(key) === '1') return;
+    if (isOfferActive()) return; // don't compete with annual offer for new users
     const timer = setTimeout(() => {
       setShowSurvey(true);
       safeLocalStorage.setItem(key, '1');
-    }, 30000);
+    }, 10000);
     return () => clearTimeout(timer);
   }, [isAuthenticated, user]);
 
