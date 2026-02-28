@@ -203,7 +203,7 @@ const App: React.FC = () => {
     const params = new URLSearchParams(window.location.search);
     if (params.get('annualOffer') === '1' && isAuthenticated) {
       const alreadyAnnual = subscription?.isAnnual && subscription?.plan === 'pro';
-      if (isOfferActive() && !alreadyAnnual) {
+      if (!alreadyAnnual) {
         setShowAnnualModal(true);
         if (!isPremium || subscription?.isTrial) setShowAnnualWidget(true);
       }

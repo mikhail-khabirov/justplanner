@@ -25,7 +25,8 @@ const AnnualOfferModal: React.FC<AnnualOfferModalProps> = ({ isOpen, onClose, on
     const [isProcessing, setIsProcessing] = useState(false);
     const remaining = useCountdown();
 
-    if (!isOpen || remaining <= 0) return null;
+    if (!isOpen) return null;
+    const isExpired = remaining <= 0;
 
     const handlePurchase = async () => {
         setIsProcessing(true);
@@ -72,25 +73,46 @@ const AnnualOfferModal: React.FC<AnnualOfferModalProps> = ({ isOpen, onClose, on
                 </div>
 
                 {/* Timer */}
-                <div className="flex items-center justify-center gap-2 py-3 bg-red-50 border-b border-red-100">
-                    <Clock size={16} className="text-red-500" />
-                    <span className="text-sm font-medium text-red-600">
-                        Предложение истекает через
-                    </span>
-                    <span className="font-mono font-bold text-red-700 text-base">
-                        {formatCountdown(remaining)}
-                    </span>
-                </div>
+                {isExpired ? (
+                    <div className="flex items-center justify-center gap-2 py-3 bg-gray-50 border-b border-gray-200">
+                        <Clock size={16} className="text-gray-400" />
+                        <span className="text-sm font-medium text-gray-500">
+                            Срок скидки истёк
+                        </span>
+                    </div>
+                ) : (
+                    <div className="flex items-center justify-center gap-2 py-3 bg-red-50 border-b border-red-100">
+                        <Clock size={16} className="text-red-500" />
+                        <span className="text-sm font-medium text-red-600">
+                            Предложение истекает через
+                        </span>
+                        <span className="font-mono font-bold text-red-700 text-base">
+                            {formatCountdown(remaining)}
+                        </span>
+                    </div>
+                )}
 
                 {/* Content */}
                 <div className="px-6 py-5">
                     {/* Price */}
                     <div className="text-center mb-5">
-                        <div className="flex items-baseline justify-center gap-2">
-                            <span className="text-lg text-gray-400 line-through">2 388 ₽</span>
-                            <span className="text-4xl font-extrabold text-gray-900">1 199 ₽</span>
-                        </div>
-                        <p className="text-sm text-gray-500 mt-1">за 12 месяцев · 99,9 ₽/мес</p>
+                        {isExpired ? (
+                            <>
+                                <div className="flex items-baseline justify-center gap-2">
+                                    <span className="text-4xl font-extrabold text-gray-900">2 388 ₽</span>
+                                </div>
+                                <p className="text-sm text-gray-500 mt-1">за 12 месяцев · 199 ₽/мес</p>
+                                <p className="text-xs text-gray-400 mt-2">Скидка действовала 24 часа с момента регистрации</p>
+                            </>
+                        ) : (
+                            <>
+                                <div className="flex items-baseline justify-center gap-2">
+                                    <span className="text-lg text-gray-400 line-through">2 388 ₽</span>
+                                    <span className="text-4xl font-extrabold text-gray-900">1 199 ₽</span>
+                                </div>
+                                <p className="text-sm text-gray-500 mt-1">за 12 месяцев · 99,9 ₽/мес</p>
+                            </>
+                        )}
                     </div>
 
                     {/* Features */}
@@ -116,13 +138,13 @@ const AnnualOfferModal: React.FC<AnnualOfferModalProps> = ({ isOpen, onClose, on
                         ) : (
                             <>
                                 <Crown size={18} />
-                                Оформить за 1 199 ₽
+                                {isExpired ? 'Оформить за 2 388 ₽' : 'Оформить за 1 199 ₽'}
                             </>
                         )}
                     </button>
 
                     <p className="text-center text-xs text-gray-400 mt-3">
-                        Подписка продлевается автоматически через 365 дней по полной стоимости 2 388 ₽/год. Отменить можно в любой момент в настройках.
+                        Подписка продлевается автоматически через 365 дней по стоимости 2 388 ₽/год. Отменить можно в любой момент в настройках.
                     </p>
                 </div>
             </div>
