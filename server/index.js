@@ -5,6 +5,7 @@ import passport from 'passport';
 import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
 import { User } from './models/User.js';
 import { notifyNewUser } from './utils/telegram.js';
+import { addContactToUnisender } from './utils/unisender.js';
 import authRoutes from './routes/auth.js';
 import tasksRoutes from './routes/tasks.js';
 
@@ -45,6 +46,7 @@ if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
                 const { sendWelcomeEmail } = await import('./utils/email.js');
                 sendWelcomeEmail(email).catch(console.error);
                 notifyNewUser(email, 'google');
+                addContactToUnisender(email).catch(console.error);
             }
 
             await User.updateLastLogin(user.id);
