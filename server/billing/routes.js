@@ -1,7 +1,7 @@
 import express from 'express';
 import pool from '../config/db.js';
 import { authenticateToken } from '../middleware/auth.js';
-import { createTrialPayment, getPaymentStatus, createCardBindingPayment, createAnnualPayment, refundPayment } from './yookassa.js';
+import { createTrialPayment, getPaymentStatus, createCardBindingPayment, createAnnualPayment, createAnnualFullPayment, refundPayment } from './yookassa.js';
 import { notifyPayment } from '../utils/telegram.js';
 import { addContactToUnisender } from '../utils/unisender.js';
 
@@ -124,6 +124,28 @@ router.post('/create-annual-payment', authenticateToken, async (req, res) => {
         res.json({ confirmationUrl, paymentId });
     } catch (error) {
         console.error('Error creating annual payment:', error);
+        res.status(500).json({ error: 'Failed to create payment', message: error.message });
+    }
+});
+
+// Create annual full-price payment with 20% discount (1910 RUB for 365 days Pro)
+router.post('/create-annual-full-payment', authenticateToken, async (req, res) => {
+    try {
+        const userResult = await pool.query('SELECT email FROM users WHERE id = $1', [req.user.id]);
+        if (userResult.rows.length === 0) return res.status(404).json({ error: 'User not found' });
+
+        const userEmail = userResult.rows[0].email;
+        const { confirmationUrl, paymentId } = await createAnnualFullPayment(req.user.id, userEmail);
+
+        await pool.query(
+            `INSERT INTO payments (user_id, yookassa_payment_id, amount, currency, status, description)
+             VALUES ($1, $2, $3, $4, $5, $6)`,
+            [req.user.id, paymentId, 1910, 'RUB', 'pending', 'Annual Pro 365 days (20% off)']
+        );
+
+        res.json({ confirmationUrl, paymentId });
+    } catch (error) {
+        console.error('Error creating annual full payment:', error);
         res.status(500).json({ error: 'Failed to create payment', message: error.message });
     }
 });

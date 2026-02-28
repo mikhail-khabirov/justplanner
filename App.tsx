@@ -940,6 +940,9 @@ const App: React.FC = () => {
     return (
       <PricingPage
         onBack={() => { setLegalView(null); window.history.back(); }}
+        token={token}
+        isAuthenticated={isAuthenticated}
+        onAuthRequired={() => { setLegalView(null); setAuthMode('register'); setShowAuthModal(true); }}
         onSelectPlan={(plan) => {
           setLegalView(null);
           navigateTo('/app');
@@ -978,6 +981,9 @@ const App: React.FC = () => {
         {legalView === 'pricing' && (
           <PricingPage
             onBack={() => setLegalView(null)}
+            token={token}
+            isAuthenticated={isAuthenticated}
+            onAuthRequired={() => { setLegalView(null); setAuthMode('register'); setShowAuthModal(true); }}
             onSelectPlan={() => {
               setLegalView(null);
               setShowFeaturesPage(false);
