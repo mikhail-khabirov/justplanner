@@ -3,6 +3,9 @@ import pool from '../config/db.js';
 import { authenticateToken } from '../middleware/auth.js';
 import { createTrialPayment, getPaymentStatus, createCardBindingPayment, createAnnualPayment, refundPayment } from './yookassa.js';
 import { notifyPayment } from '../utils/telegram.js';
+import { addContactToUnisender } from '../utils/unisender.js';
+
+const UNISENDER_BUYERS_LIST_ID = '6';
 
 const router = express.Router();
 
@@ -274,6 +277,10 @@ router.post('/verify-payment', authenticateToken, async (req, res) => {
                 }
 
                 console.log(`📅 Annual Pro verified for user ${req.user.id} until ${periodEnd}`);
+                const verifyUserResult = await pool.query('SELECT email FROM users WHERE id = $1', [req.user.id]);
+                if (verifyUserResult.rows[0]?.email) {
+                    addContactToUnisender(verifyUserResult.rows[0].email, UNISENDER_BUYERS_LIST_ID).catch(console.error);
+                }
                 return res.json({ status: 'activated', plan: 'pro', type: 'annual' });
             } else {
                 // Regular/recurring payment: Pro for 30 days
@@ -439,6 +446,9 @@ router.post('/webhook', async (req, res) => {
                 const userResult = await pool.query('SELECT email FROM users WHERE id = $1', [userId]);
                 const userEmail = userResult.rows[0]?.email || `user#${userId}`;
                 notifyPayment(userEmail, payment.amount.value, label);
+                if (userResult.rows[0]?.email) {
+                    addContactToUnisender(userResult.rows[0].email, UNISENDER_BUYERS_LIST_ID).catch(console.error);
+                }
             } else {
                 // Regular/recurring payment: Pro for 30 days
                 const periodEnd = new Date();

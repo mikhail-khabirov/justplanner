@@ -4,9 +4,9 @@ const API_KEY = process.env.UNISENDER_API_KEY;
 const LIST_ID = process.env.UNISENDER_LIST_ID;
 const BASE_URL = 'https://api.unisender.com/ru/api';
 
-export async function addContactToUnisender(email) {
-    if (!API_KEY || !LIST_ID) {
-        console.warn('Unisender: UNISENDER_API_KEY or UNISENDER_LIST_ID not set, skipping');
+export async function addContactToUnisender(email, listId = LIST_ID) {
+    if (!API_KEY || !listId) {
+        console.warn('Unisender: UNISENDER_API_KEY or listId not set, skipping');
         return;
     }
 
@@ -16,7 +16,7 @@ export async function addContactToUnisender(email) {
         'field_names[0]': 'email',
         'field_names[1]': 'email_list_ids',
         'data[0][0]': email,
-        'data[0][1]': LIST_ID,
+        'data[0][1]': listId,
     });
 
     let attempt = 0;
