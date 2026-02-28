@@ -1,5 +1,13 @@
 import React, { useState } from 'react';
-import { Check, ArrowLeft, Crown, Loader2 } from 'lucide-react';
+import { Check, ArrowLeft, Crown, Loader2, Info } from 'lucide-react';
+
+interface Subscription {
+    plan?: string;
+    status?: string;
+    currentPeriodEnd?: string;
+    isAnnual?: boolean;
+    isTrial?: boolean;
+}
 
 interface PricingPageProps {
     onBack: () => void;
@@ -7,10 +15,22 @@ interface PricingPageProps {
     token?: string | null;
     isAuthenticated?: boolean;
     onAuthRequired?: () => void;
+    subscription?: Subscription | null;
 }
 
-const PricingPage: React.FC<PricingPageProps> = ({ onBack, onSelectPlan, token, isAuthenticated, onAuthRequired }) => {
+function getRemainingDays(subscription?: Subscription | null): number {
+    if (!subscription?.currentPeriodEnd) return 0;
+    if (subscription.plan !== 'pro' || subscription.status !== 'active') return 0;
+    if (subscription.isAnnual) return 0;
+    const end = new Date(subscription.currentPeriodEnd);
+    const now = new Date();
+    const diff = Math.ceil((end.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+    return Math.max(0, diff);
+}
+
+const PricingPage: React.FC<PricingPageProps> = ({ onBack, onSelectPlan, token, isAuthenticated, onAuthRequired, subscription }) => {
     const [annualLoading, setAnnualLoading] = useState(false);
+    const remainingDays = getRemainingDays(subscription);
 
     const handleBuyAnnual = async () => {
         if (!isAuthenticated) {
@@ -72,6 +92,16 @@ const PricingPage: React.FC<PricingPageProps> = ({ onBack, onSelectPlan, token, 
                         Без скрытых платежей.
                     </p>
                 </div>
+
+                {remainingDays > 0 && (
+                    <div className="max-w-6xl mx-auto mb-8 flex items-start gap-3 bg-blue-50 border border-blue-200 rounded-2xl px-5 py-4">
+                        <Info size={20} className="text-blue-500 shrink-0 mt-0.5" />
+                        <p className="text-sm text-blue-700">
+                            У вас активна месячная подписка — осталось <strong>{remainingDays} {remainingDays === 1 ? 'день' : remainingDays < 5 ? 'дня' : 'дней'}</strong>.
+                            При переходе на годовой план эти дни будут автоматически добавлены к 365 дням.
+                        </p>
+                    </div>
+                )}
 
                 <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
                     {/* Free */}

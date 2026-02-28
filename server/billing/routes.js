@@ -268,9 +268,18 @@ router.post('/verify-payment', authenticateToken, async (req, res) => {
                 console.log(`🆓 Trial verified and Pro activated for user ${req.user.id}`);
                 return res.json({ status: 'activated', plan: 'pro', type: 'trial' });
             } else if (paymentType === 'annual') {
-                // Annual: Pro for 365 days, with auto-renew
+                // Annual: Pro for 365 days + remaining days from current monthly sub
+                const existingSub = await pool.query(
+                    `SELECT current_period_end, is_annual, is_trial FROM subscriptions WHERE user_id = $1 AND status = 'active'`,
+                    [req.user.id]
+                );
+                let bonusDays = 0;
+                if (existingSub.rows[0] && !existingSub.rows[0].is_annual && !existingSub.rows[0].is_trial) {
+                    const remaining = Math.ceil((new Date(existingSub.rows[0].current_period_end) - new Date()) / (1000 * 60 * 60 * 24));
+                    bonusDays = Math.max(0, remaining);
+                }
                 const periodEnd = new Date();
-                periodEnd.setDate(periodEnd.getDate() + 365);
+                periodEnd.setDate(periodEnd.getDate() + 365 + bonusDays);
 
                 await pool.query(
                     `INSERT INTO subscriptions (user_id, plan, status, current_period_end, auto_renew, is_trial, is_annual)
@@ -298,12 +307,12 @@ router.post('/verify-payment', authenticateToken, async (req, res) => {
                     );
                 }
 
-                console.log(`📅 Annual Pro verified for user ${req.user.id} until ${periodEnd}`);
+                console.log(`📅 Annual Pro verified for user ${req.user.id} until ${periodEnd}${bonusDays > 0 ? ` (+${bonusDays} bonus days)` : ''}`);
                 const verifyUserResult = await pool.query('SELECT email FROM users WHERE id = $1', [req.user.id]);
                 if (verifyUserResult.rows[0]?.email) {
                     addContactToUnisender(verifyUserResult.rows[0].email, UNISENDER_BUYERS_LIST_ID).catch(console.error);
                 }
-                return res.json({ status: 'activated', plan: 'pro', type: 'annual' });
+                return res.json({ status: 'activated', plan: 'pro', type: 'annual', bonusDays });
             } else {
                 // Regular/recurring payment: Pro for 30 days
                 const periodEnd = new Date();
@@ -430,9 +439,20 @@ router.post('/webhook', async (req, res) => {
                 const userEmail = userResult.rows[0]?.email || `user#${userId}`;
                 notifyPayment(userEmail, payment.amount.value, 'Триал Pro 7 дней');
             } else if (paymentType === 'annual' || paymentType === 'annual_recurring') {
-                // Annual: Pro for 365 days, with auto-renew
+                // Annual: Pro for 365 days + remaining days from current monthly sub
+                let bonusDays = 0;
+                if (paymentType === 'annual') {
+                    const existingSub = await pool.query(
+                        `SELECT current_period_end, is_annual, is_trial FROM subscriptions WHERE user_id = $1 AND status = 'active'`,
+                        [userId]
+                    );
+                    if (existingSub.rows[0] && !existingSub.rows[0].is_annual && !existingSub.rows[0].is_trial) {
+                        const remaining = Math.ceil((new Date(existingSub.rows[0].current_period_end) - new Date()) / (1000 * 60 * 60 * 24));
+                        bonusDays = Math.max(0, remaining);
+                    }
+                }
                 const periodEnd = new Date();
-                periodEnd.setDate(periodEnd.getDate() + 365);
+                periodEnd.setDate(periodEnd.getDate() + 365 + bonusDays);
 
                 await pool.query(
                     `INSERT INTO subscriptions (user_id, plan, status, current_period_end, auto_renew, is_trial, is_annual)

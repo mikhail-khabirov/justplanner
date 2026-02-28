@@ -942,6 +942,7 @@ const App: React.FC = () => {
         onBack={() => { setLegalView(null); window.history.back(); }}
         token={token}
         isAuthenticated={isAuthenticated}
+        subscription={subscription}
         onAuthRequired={() => { setLegalView(null); setAuthMode('register'); setShowAuthModal(true); }}
         onSelectPlan={(plan) => {
           setLegalView(null);
@@ -983,6 +984,7 @@ const App: React.FC = () => {
             onBack={() => setLegalView(null)}
             token={token}
             isAuthenticated={isAuthenticated}
+            subscription={subscription}
             onAuthRequired={() => { setLegalView(null); setAuthMode('register'); setShowAuthModal(true); }}
             onSelectPlan={() => {
               setLegalView(null);
