@@ -150,6 +150,19 @@ async function updateSchema() {
             ALTER TABLE users 
             ADD COLUMN IF NOT EXISTS inactivity_reminder_sent BOOLEAN DEFAULT FALSE;
         `);
+        await pool.query(`
+            ALTER TABLE users 
+            ADD COLUMN IF NOT EXISTS notification_survey_shown BOOLEAN DEFAULT FALSE;
+        `);
+        await pool.query(`
+            CREATE TABLE IF NOT EXISTS survey_responses (
+                id SERIAL PRIMARY KEY,
+                user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+                answer VARCHAR(50) NOT NULL,
+                custom_text TEXT,
+                created_at TIMESTAMP DEFAULT NOW()
+            )
+        `);
 
         console.log('✅ Database schema updated');
     } catch (err) {

@@ -60,4 +60,26 @@ router.put('/', auth, async (req, res) => {
     }
 });
 
+// Submit notification survey answer
+router.post('/survey', auth, async (req, res) => {
+    try {
+        const { answer, customText } = req.body;
+        if (!answer) return res.status(400).json({ error: 'answer required' });
+
+        await pool.query(
+            'INSERT INTO survey_responses (user_id, answer, custom_text) VALUES ($1, $2, $3)',
+            [req.userId, answer, customText || null]
+        );
+        await pool.query(
+            'UPDATE users SET notification_survey_shown = TRUE WHERE id = $1',
+            [req.userId]
+        );
+
+        res.json({ success: true });
+    } catch (error) {
+        console.error('Survey submit error:', error);
+        res.status(500).json({ error: 'Failed to submit survey' });
+    }
+});
+
 export default router;

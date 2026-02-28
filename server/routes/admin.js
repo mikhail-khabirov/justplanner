@@ -120,6 +120,23 @@ router.get('/stats', adminAuth, async (req, res) => {
     }
 });
 
+// Get survey results
+router.get('/survey', adminAuth, async (req, res) => {
+    try {
+        const totals = await pool.query(`
+            SELECT answer, COUNT(*) as count, array_agg(custom_text) FILTER (WHERE custom_text IS NOT NULL AND custom_text != '') as custom_texts
+            FROM survey_responses
+            GROUP BY answer
+            ORDER BY count DESC
+        `);
+        const total = await pool.query('SELECT COUNT(*) as count FROM survey_responses');
+        res.json({ total: parseInt(total.rows[0].count), results: totals.rows });
+    } catch (error) {
+        console.error('Survey results error:', error);
+        res.status(500).json({ error: 'Ошибка получения результатов опроса' });
+    }
+});
+
 // Delete user
 router.delete('/users/:id', async (req, res) => {
     try {
