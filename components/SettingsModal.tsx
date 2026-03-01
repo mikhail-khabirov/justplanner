@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Clock, Trash2, AlertTriangle, Crown } from 'lucide-react';
+import { X, Clock, Trash2, AlertTriangle, Crown, RefreshCw } from 'lucide-react';
 import { useSettings } from '../contexts/SettingsContext';
 import { useAuth } from '../contexts/AuthContext';
 import { toISODate } from '../utils';
@@ -148,6 +148,40 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, currentDate, onT
                                 <Crown size={16} className="text-amber-600 shrink-0" />
                                 <p className="text-sm text-amber-700 font-medium">
                                     Оформите Pro подписку, чтобы выбрать начало дня
+                                </p>
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Auto Rollover Setting */}
+                    <div className="space-y-3 pt-4 border-t border-gray-100">
+                        <div className="flex items-center gap-2 text-gray-700">
+                            <RefreshCw size={18} />
+                            <span className="font-medium">Перенос незакрытых задач</span>
+                            {!isPremium && (
+                                <span className="ml-auto flex items-center gap-1 text-xs text-amber-600 bg-amber-50 px-2 py-1 rounded-full border border-amber-200">
+                                    <Crown size={12} />
+                                    Pro
+                                </span>
+                            )}
+                        </div>
+                        <p className="text-sm text-gray-500">
+                            После полуночи незакрытые задачи прошлых дней автоматически переносятся на сегодня
+                        </p>
+                        {isPremium ? (
+                            <button
+                                onClick={() => updateSettings({ autoRollover: !settings.autoRollover })}
+                                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${settings.autoRollover ? 'bg-blue-600' : 'bg-gray-200'}`}
+                                role="switch"
+                                aria-checked={!!settings.autoRollover}
+                            >
+                                <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${settings.autoRollover ? 'translate-x-6' : 'translate-x-1'}`} />
+                            </button>
+                        ) : (
+                            <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg flex items-center gap-2">
+                                <Crown size={16} className="text-amber-600 shrink-0" />
+                                <p className="text-sm text-amber-700 font-medium">
+                                    Оформите Pro подписку, чтобы включить перенос задач
                                 </p>
                             </div>
                         )}

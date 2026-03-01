@@ -52,6 +52,7 @@ export const ItemTypes = {
 
 export interface UserSettings {
   dayStartHour: number; // 5, 6, 7, 8, 9, 10
+  autoRollover?: boolean; // move incomplete past tasks to today after midnight
   sectionNames?: {
     inbox?: string;
     urgent?: string;

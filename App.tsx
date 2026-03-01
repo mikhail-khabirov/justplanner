@@ -529,6 +529,44 @@ const App: React.FC = () => {
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
   }, [getBackupKey, getSyncedKey]);
 
+  // Auto-rollover: move incomplete past tasks to today after midnight (PRO only)
+  useEffect(() => {
+    if (!isAuthenticated || !isPremium || !settings.autoRollover) return;
+    if (!hasLoadedFromServer.current) return;
+
+    const rolloverTasks = () => {
+      const todayISO = getTodayISO();
+      setTasks(prev => {
+        const hasPastIncomplete = prev.some(
+          t => isDateColumn(t.columnId) && t.columnId < todayISO && !t.completed
+        );
+        if (!hasPastIncomplete) return prev;
+        return prev.map(t => {
+          if (isDateColumn(t.columnId) && t.columnId < todayISO && !t.completed) {
+            return { ...t, columnId: todayISO };
+          }
+          return t;
+        });
+      });
+    };
+
+    // Run immediately on mount / settings change
+    rolloverTasks();
+
+    // Schedule to re-run at next midnight
+    const now = new Date();
+    const nextMidnight = new Date(now);
+    nextMidnight.setDate(now.getDate() + 1);
+    nextMidnight.setHours(0, 0, 0, 100);
+    const msUntilMidnight = nextMidnight.getTime() - now.getTime();
+
+    const timer = setTimeout(() => {
+      rolloverTasks();
+    }, msUntilMidnight);
+
+    return () => clearTimeout(timer);
+  }, [isAuthenticated, isPremium, settings.autoRollover, tasks.length]);
+
   // Generate columns based on current startDate
   const columns = useMemo(() => generateColumns(startDate), [startDate]);
 
