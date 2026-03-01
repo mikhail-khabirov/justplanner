@@ -75,24 +75,24 @@ interface QuickAddState {
 }
 
 // Reusable Stats Content Component
-const StatsDisplay = ({ stats }: { stats: any }) => (
+const StatsDisplay = ({ stats, vertical = false }: { stats: any; vertical?: boolean }) => (
   <>
     <div className="bg-white p-1.5 rounded-full shadow-sm shrink-0">
       <TrendingUp size={16} className="text-blue-500" />
     </div>
     <div className="flex flex-col min-w-0">
       <span className="text-[10px] uppercase font-bold text-gray-400 tracking-wider mb-0.5 leading-none truncate">Задач закрыто</span>
-      <div className="flex items-center gap-3 text-xs font-semibold text-gray-700 leading-none whitespace-nowrap">
+      <div className={`${vertical ? 'flex flex-col gap-1' : 'flex items-center gap-3'} text-xs font-semibold text-gray-700 leading-none`}>
         <div className="flex items-center gap-1">
           <span className="text-gray-500 font-normal">Сегодня</span>
           <span className={stats.todayTotal > 0 && stats.todayDone === stats.todayTotal ? "text-green-600" : ""}>{stats.todayDone}/{stats.todayTotal}</span>
         </div>
-        <div className="w-[1px] h-3 bg-gray-200"></div>
+        {!vertical && <div className="w-[1px] h-3 bg-gray-200"></div>}
         <div className="flex items-center gap-1">
           <span className="text-gray-500 font-normal">Неделя</span>
           <span className={stats.weekTotal > 0 && stats.weekDone === stats.weekTotal ? "text-green-600" : ""}>{stats.weekDone}/{stats.weekTotal}</span>
         </div>
-        <div className="w-[1px] h-3 bg-gray-200"></div>
+        {!vertical && <div className="w-[1px] h-3 bg-gray-200"></div>}
         <div className="flex items-center gap-1">
           <span className="text-gray-500 font-normal">Месяц</span>
           <span className={stats.monthTotal > 0 && stats.monthDone === stats.monthTotal ? "text-green-600" : ""}>{stats.monthDone}/{stats.monthTotal}</span>
@@ -1043,8 +1043,8 @@ const App: React.FC = () => {
       )}
 
       {/* Header */}
-      <header className="flex-shrink-0 px-3 py-2 md:px-8 md:py-6 border-b border-transparent">
-        <div className="flex items-center justify-between">
+      <header className="flex-shrink-0 px-3 py-2 md:px-6 md:py-4 lg:px-8 lg:py-6 border-b border-transparent">
+        <div className="flex items-center justify-between gap-2 min-w-0">
           <div className="flex items-center gap-3 md:gap-4">
             <h1
               onClick={handleBackToToday}
@@ -1233,17 +1233,17 @@ const App: React.FC = () => {
         </div>
 
         {/* Efficiency Stats Widget - Mobile (Below Header) */}
-        <div className="lg:hidden mt-3 flex items-center gap-3 bg-gray-50 px-4 py-2 rounded-xl border border-gray-100/80 shadow-sm overflow-x-auto scrollbar-hide">
-          <StatsDisplay stats={stats} />
+        <div className="lg:hidden mt-3 flex items-start gap-3 bg-gray-50 px-4 py-2 rounded-xl border border-gray-100/80 shadow-sm">
+          <StatsDisplay stats={stats} vertical={true} />
         </div>
       </header>
 
       {/* Main Content: Horizontal Scroll for Days */}
       <main
         ref={mainScrollRef}
-        className="flex-1 overflow-x-hidden overflow-y-auto md:overflow-y-hidden px-4 md:px-8 pb-4 scrollbar-hide"
+        className="flex-1 overflow-x-auto lg:overflow-x-hidden overflow-y-hidden px-4 md:px-8 pb-4 scrollbar-hide snap-x snap-mandatory lg:snap-none"
       >
-        <div className="flex flex-col md:flex-row md:h-full gap-2 md:gap-4 lg:gap-4 md:min-w-max lg:min-w-0 lg:w-full">
+        <div className="flex h-full gap-4 lg:gap-4 min-w-max lg:min-w-0 lg:w-full">
           {columns.map((col) => (
             <Column
               key={col.id}
