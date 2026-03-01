@@ -284,6 +284,48 @@ const App: React.FC = () => {
     return () => clearTimeout(timer);
   }, [startDate, showLanding]); // Re-run when switching weeks or entering app
 
+  // Drag-to-scroll: hold mouse button and drag left/right
+  useEffect(() => {
+    const el = mainScrollRef.current;
+    if (!el) return;
+    let isDown = false;
+    let startX = 0;
+    let scrollLeft = 0;
+
+    const onMouseDown = (e: MouseEvent) => {
+      // Only on left button, ignore clicks on interactive elements
+      if (e.button !== 0) return;
+      const target = e.target as HTMLElement;
+      if (target.closest('button, input, textarea, [data-task-id]')) return;
+      isDown = true;
+      startX = e.pageX - el.offsetLeft;
+      scrollLeft = el.scrollLeft;
+      el.style.cursor = 'grabbing';
+      el.style.userSelect = 'none';
+    };
+    const onMouseUp = () => {
+      isDown = false;
+      el.style.cursor = '';
+      el.style.userSelect = '';
+    };
+    const onMouseMove = (e: MouseEvent) => {
+      if (!isDown) return;
+      e.preventDefault();
+      const x = e.pageX - el.offsetLeft;
+      const walk = (x - startX) * 1.2;
+      el.scrollLeft = scrollLeft - walk;
+    };
+
+    el.addEventListener('mousedown', onMouseDown);
+    window.addEventListener('mouseup', onMouseUp);
+    el.addEventListener('mousemove', onMouseMove);
+    return () => {
+      el.removeEventListener('mousedown', onMouseDown);
+      window.removeEventListener('mouseup', onMouseUp);
+      el.removeEventListener('mousemove', onMouseMove);
+    };
+  }, []);
+
   // Track if tasks have been loaded from server to avoid overwriting
   const hasLoadedFromServer = useRef(false);
   const syncTimeoutRef = useRef<NodeJS.Timeout | null>(null);
