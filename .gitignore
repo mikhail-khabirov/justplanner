@@ -29,3 +29,6 @@ dist-ssr
 ! .env.example
 server/.env
 *.pem
+google-credentials.json
+dashboard/google-credentials.json
+*.json.key
