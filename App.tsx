@@ -541,9 +541,27 @@ const App: React.FC = () => {
           t => isDateColumn(t.columnId) && t.columnId < todayISO && !t.completed
         );
         if (!hasPastIncomplete) return prev;
+
+        // Count existing tasks per hour in today's column (before rollover)
+        const hourCounts: Record<number, number> = {};
+        prev.forEach(t => {
+          if (t.columnId === todayISO && t.hour !== undefined) {
+            hourCounts[t.hour] = (hourCounts[t.hour] || 0) + 1;
+          }
+        });
+
         return prev.map(t => {
           if (isDateColumn(t.columnId) && t.columnId < todayISO && !t.completed) {
-            return { ...t, columnId: todayISO };
+            let finalHour = t.hour;
+            if (finalHour !== undefined) {
+              const count = hourCounts[finalHour] || 0;
+              if (count >= 3) {
+                finalHour = undefined; // слот переполнен — без времени
+              } else {
+                hourCounts[finalHour] = count + 1; // резервируем слот
+              }
+            }
+            return { ...t, columnId: todayISO, hour: finalHour };
           }
           return t;
         });
