@@ -4,10 +4,10 @@
 
 **JustPlanner** — современный еженедельный планировщик задач с моделью подписки (freemium). Позволяет организовывать дела в формате недельного календаря, использовать бэклог для долгосрочных задач и отслеживать продуктивность.
 
-**Текущие показатели (февраль 2026):** ~400 пользователей, ~1100 задач, выручка 8 825₽.
+**Текущие показатели (март 2026):** ~400 пользователей, ~1100 задач, выручка ~8 825₽.
 
 **Сайт**: [justplanner.ru](https://justplanner.ru)  
-**Сервер**: VPS 5.35.94.142 (Ubuntu, PM2, Nginx)  
+**Сервер**: VPS 5.35.94.142 (Ubuntu, PM2, Nginx), путь `/var/www/justplanner/`  
 **Репозиторий**: [github.com/wfmvgo/justplanner](https://github.com/wfmvgo/justplanner)
 
 ---
@@ -77,14 +77,17 @@
 
 | Компонент | Технология |
 |-----------|-----------|
-| Frontend | React 19, TypeScript, Vite, Lucide React |
-| Backend | Node.js, Express, ES Modules |
-| База данных | PostgreSQL |
-| Авторизация | JWT + Google OAuth 2.0 |
+| Frontend | React 19, TypeScript, Vite 6, Lucide React |
+| Backend | Node.js, Express 4, ES Modules |
+| База данных | PostgreSQL (pg driver, raw SQL) |
+| Авторизация | JWT + Google OAuth 2.0 (Passport.js) |
 | Платежи | YooKassa SDK |
-| Процесс-менеджер | PM2 |
+| Email маркетинг | Unisender API |
+| Email транзакционный | Nodemailer (SMTP) |
+| Уведомления | Telegram Bot API (long polling) |
+| Процесс-менеджер | PM2 (justplanner-api) |
 | Веб-сервер | Nginx |
-| CI/CD | GitHub Actions |
+| CI/CD | GitHub Actions (push main → autodeploy) |
 | Аналитика | Yandex Metrika (106590123) |
 | Мониторинг | Sentry |
 
@@ -97,15 +100,14 @@ justplanner/
 ├── .windsurfrules                # Правила для AI агента (stack, architecture, conventions)
 ├── index.html                    # HTML точка входа + Yandex Metrika
 ├── index.tsx                     # React точка входа
-├── App.tsx                       # Главный компонент (~1200 строк)
+├── App.tsx                       # Главный компонент (~1500 строк)
 ├── api.ts                        # API клиент (задачи, настройки)
 ├── types.ts                      # TypeScript типы (Task, Column, Subtask, TaskColor)
 ├── utils.ts                      # Утилиты (даты, ID, праздники РФ)
-├── vite.config.ts                # Vite конфигурация (proxy /api → :3001)
+├── vite.config.ts                # Vite конфигурация (proxy /api → :3001, порт 3000)
 ├── tsconfig.json                 # TypeScript конфигурация
 ├── package.json                  # Frontend зависимости
-├── deploy.sh                     # Скрипт деплоя (rsync → build → pm2 restart)
-├── ecosystem.config.js           # PM2 конфигурация
+├── ecosystem.config.js           # PM2 конфигурация (app: justplanner-api)
 ├── nginx.conf.example            # Пример конфига Nginx
 ├── setup-vps.sh                  # Скрипт первичной настройки VPS
 ├── PROJECT_OVERVIEW.md           # Полная документация проекта
@@ -116,6 +118,7 @@ justplanner/
 │   ├── FeaturesPage.tsx          # Страница возможностей (/features)
 │   ├── LandingPage.tsx           # Лендинг (/)
 │   ├── LandingAnimation.tsx      # Анимация на лендинге
+│   ├── NotificationSurvey.tsx    # Опрос о предпочтениях уведомлений
 │   ├── OnboardingOverlay.tsx     # Обучение для новых пользователей
 │   ├── OnboardingTooltip.tsx     # Подсказки онбординга
 │   ├── PricingPage.tsx           # Страница тарифов (/pricing)
@@ -148,7 +151,8 @@ justplanner/
 │   ├── AnnualOfferModal.tsx      # Модалка предложения
 │   ├── AnnualOfferWidget.tsx     # Виджет с таймером 24ч
 │   ├── useCountdown.ts           # Хук отсчёта времени
-│   └── utils.ts                  # Утилиты для проверки срока
+│   ├── utils.ts                  # Утилиты для проверки срока
+│   └── index.ts                  # Реэкспорт
 │
 ├── public/                       # Статика
 │   ├── favicon.svg               # Фавикон
@@ -161,7 +165,7 @@ justplanner/
 │       └── index.html            # Админ-панель (standalone HTML)
 │
 └── server/                       # Backend
-    ├── index.js                  # Точка входа (Express, CORS, OAuth, маршруты)
+    ├── index.js                  # Точка входа (Express, CORS, OAuth, маршруты, cron)
     ├── package.json              # Backend зависимости
     ├── schema.sql                # SQL схема (users, tasks)
     ├── config/
@@ -174,8 +178,8 @@ justplanner/
     ├── routes/
     │   ├── auth.js               # Auth endpoints (register, login, google)
     │   ├── tasks.js              # CRUD задач
-    │   ├── settings.js           # Настройки пользователя
-    │   └── admin.js              # Админ-панель API
+    │   ├── settings.js           # Настройки + survey endpoint
+    │   └── admin.js              # Админ-панель API + результаты опроса
     ├── billing/
     │   ├── schema.sql            # SQL схема (subscriptions, payments)
     │   ├── yookassa.js           # YooKassa SDK (createPayment, createRecurringPayment, refundPayment, createCardBindingPayment)
@@ -187,15 +191,16 @@ justplanner/
     │   └── health-cron.js        # Легковесный health-check
     └── utils/
         ├── email.js              # Welcome email, reminder email (nodemailer)
-        └── telegram.js           # Уведомления + bot polling (команда /pay)
+        ├── telegram.js           # Уведомления + bot polling (команда /pay)
+        └── unisender.js          # Интеграция с Unisender (importContacts)
 ```
 
 ---
 
-## � Переменные окружения (server/.env)
+## 🔧 Переменные окружения (server/.env)
 
 ```env
-DATABASE_URL=postgresql://...
+DATABASE_URL=postgresql://user:pass@localhost:5432/justplanner
 JWT_SECRET=...
 GOOGLE_CLIENT_ID=...
 GOOGLE_CLIENT_SECRET=...
@@ -203,6 +208,15 @@ FRONTEND_URL=https://justplanner.ru
 YOOKASSA_SHOP_ID=...
 YOOKASSA_SECRET_KEY=...
 YOOKASSA_RETURN_URL=https://justplanner.ru
+TELEGRAM_BOT_TOKEN=...
+TELEGRAM_CHAT_ID=...
+SMTP_HOST=...
+SMTP_PORT=465
+SMTP_USER=...
+SMTP_PASS=...
+SMTP_FROM=...
+UNISENDER_API_KEY=...
+UNISENDER_LIST_ID=...
 ADMIN_USERNAME=admin
 ADMIN_PASSWORD=...
 PORT=3001
@@ -212,22 +226,16 @@ PORT=3001
 
 ## 🚀 Деплой
 
-### Скрипт `deploy.sh`
-```
-1. rsync файлов на сервер (исключая node_modules, .git)
-2. npm install на сервере
-3. npm run build (Vite production build)
-4. pm2 restart justplanner-api
-```
+### GitHub Actions (единственный способ)
 
-### Запуск вручную
-```bash
-bash deploy.sh
-```
+Деплой запускается **автоматически** при push в `main`:
+1. rsync всех файлов на VPS (`/var/www/justplanner/`), исключая `node_modules`, `.git`, `dist`, `.env`
+2. `npm install && npm run build` (Vite production build)
+3. `cd server && npm install && pm2 restart justplanner-api`
 
-### GitHub Actions
-- **deploy.yml** — деплой при push в `main`
-- **deploy-dev.yml** — деплой dev-ветки
+Ручной запуск: `Actions → Деплой на VPS → Run workflow`
+
+> ⚠️ **Никогда не деплоить напрямую через rsync/ssh без коммита.** Все изменения должны проходить через git commit + push → autodeploy.
 
 ---
 
@@ -237,16 +245,16 @@ bash deploy.sh
 ```bash
 npm install
 npm run dev
-# Доступ: http://localhost:3000
+# http://localhost:3000 (Vite проксирует /api → :3001)
 ```
 
 ### Backend
 ```bash
 cd server
 npm install
-cp .env.example .env    # Заполнить переменные
+cp .env.example .env    # заполнить переменные
 npm run dev
-# API: http://localhost:3001
+# http://localhost:3001
 ```
 
 ---
@@ -254,7 +262,7 @@ npm run dev
 ## 📊 Админ-панель
 
 **URL**: `https://justplanner.ru/back/`  
-**Доступ**: `admin` / `JustPlannerAdmin2026!`
+**Доступ**: Basic Auth (ADMIN_USERNAME / ADMIN_PASSWORD из .env)
 
 ### Возможности:
 - Список всех пользователей
@@ -262,6 +270,7 @@ npm run dev
 - Сортировка по любому столбцу
 - Удаление пользователей
 - Статистика: всего пользователей, всего задач, задач за 24ч
+- Результаты опроса: `GET /api/admin/survey`
 
 ---
 
@@ -375,6 +384,23 @@ npm run dev
   - Автоматическая агрегация из таблиц `users` и `payments`
   - Polling запускается при старте сервера в `telegram.js`
 
+### Фаза 10: Email-маркетинг через Unisender + опрос (февраль–март 2026)
+- **Unisender интеграция** (`server/utils/unisender.js`):
+  - При регистрации → добавление в основной список (UNISENDER_LIST_ID)
+  - Без задач 48ч → добавление в список 7
+  - Неактивен 5+ дней → добавление в список 8
+  - Каждое воскресенье 18:00 MSK → free-пользователи в список 9
+  - Welcome email и напоминание годового оффера — отключены (перенесены в Unisender)
+- **Cron-задачи** (в `server/index.js`):
+  - `0 * * * *` — no-task reminder (список 7)
+  - `30 * * * *` — inactivity reminder (список 8)
+  - `0 15 * * 0` — Sunday email (список 9)
+- **Опрос уведомлений** (`components/NotificationSurvey.tsx`):
+  - Показывается аутентифицированным пользователям через 10 сек после загрузки (один раз)
+  - Варианты: Telegram / Браузер / И там, и там / Свой вариант
+  - Результаты в таблице `survey_responses`, доступны через `GET /api/admin/survey`
+  - **Результаты (март 2026)**: 57 ответов — 54% пропустили, из ответивших: 69% Telegram, 23% оба, 8% браузер
+
 ---
 
 ## 🗄 Схема базы данных
@@ -391,6 +417,10 @@ npm run dev
 | registration_campaign | VARCHAR | Кампания (UTM) |
 | last_login | TIMESTAMP | Последний вход |
 | created_at | TIMESTAMP | Дата регистрации |
+| annual_offer_reminder_sent | BOOLEAN | Напоминание годового оффера отправлено |
+| no_task_reminder_sent | BOOLEAN | Напоминание «нет задач» отправлено |
+| inactivity_reminder_sent | BOOLEAN | Напоминание о неактивности отправлено |
+| notification_survey_shown | BOOLEAN | Опрос уведомлений показан |
 
 ### Таблица `tasks`
 | Столбец | Тип | Описание |
@@ -433,6 +463,28 @@ npm run dev
 | status | VARCHAR | Статус (pending/succeeded/refunded) |
 | description | VARCHAR | Описание платежа |
 | created_at | TIMESTAMP | Дата платежа |
+
+### Таблица `survey_responses`
+| Столбец | Тип | Описание |
+|---------|-----|----------|
+| id | SERIAL PK | ID ответа |
+| user_id | INTEGER FK | Пользователь |
+| answer | VARCHAR(50) | Ответ (telegram/browser/both/custom/skip) |
+| custom_text | TEXT | Свой вариант (если answer=custom) |
+| created_at | TIMESTAMP | Дата ответа |
+
+---
+
+## ⏰ Cron-задачи
+
+| Расписание | Что делает |
+|-----------|------------|
+| `0 3 * * *` | Автопродление подписок (processRenewals) |
+| `0 * * * *` | Нет задач 48ч → Unisender список 7 |
+| `30 * * * *` | Неактивен 5+ дней → Unisender список 8 |
+| `0 15 * * 0` | Воскресенье 18:00 MSK → free-пользователи в список 9 |
+| `*/5 * * * *` | Smoke-тесты (11 проверок) — запускается на VPS отдельно |
+| `0 6 * * *` | Daily report в Telegram (09:00 MSK) — запускается на VPS отдельно |
 
 ---
 
