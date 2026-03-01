@@ -1048,7 +1048,7 @@ const App: React.FC = () => {
           <div className="flex items-center gap-3 md:gap-4">
             <h1
               onClick={handleBackToToday}
-              className="text-3xl md:text-4xl font-serif font-bold tracking-tight min-w-[150px] md:min-w-[200px] leading-none cursor-pointer hover:opacity-70 transition-opacity"
+              className="text-2xl md:text-3xl lg:text-4xl font-serif font-bold tracking-tight min-w-0 leading-none cursor-pointer hover:opacity-70 transition-opacity whitespace-nowrap"
               title="Вернуться к текущей неделе"
             >
               {monthTitle}
@@ -1079,7 +1079,7 @@ const App: React.FC = () => {
 
           {/* Feedback prompt */}
           {!feedbackHidden && (
-            <div className="hidden lg:flex items-center gap-2 flex-1 justify-center mx-4">
+            <div className="hidden xl:flex items-center gap-2 flex-1 justify-center mx-4">
               <div className="inline-flex items-center gap-2 bg-gray-50 border border-gray-100 rounded-full px-4 py-1.5 shadow-sm">
                 <span className="text-xs text-gray-500">Есть идеи? Напишите нам</span>
                 <a href="mailto:support@justplanner.ru" className="text-xs font-medium text-[#26A69A] hover:underline">support@justplanner.ru</a>

@@ -184,7 +184,7 @@ const Column: React.FC<ColumnProps> = ({
       data-column-id={column.id}
       className={`
         flex flex-col h-full border-r border-gray-100 last:border-r-0
-        ${isListView ? 'w-full pt-4 flex-shrink-0' : 'w-[85vw] md:w-64 lg:w-auto lg:flex-1 lg:min-w-0 min-w-[16rem] lg:min-w-[100px] snap-center lg:snap-align-none flex-shrink-0 lg:flex-shrink'}
+        ${isListView ? 'w-full pt-4 flex-shrink-0' : 'w-[85vw] md:w-48 lg:w-auto lg:flex-1 lg:min-w-0 min-w-[13rem] md:min-w-[10rem] lg:min-w-[100px] snap-center lg:snap-align-none flex-shrink-0 lg:flex-shrink'}
         transition-colors duration-300
       `}
       onDragOver={onDragOver}
