@@ -1045,34 +1045,35 @@ const App: React.FC = () => {
       {/* Header */}
       <header className="flex-shrink-0 px-3 py-2 md:px-6 md:py-4 lg:px-8 lg:py-6 border-b border-transparent">
         <div className="flex items-center justify-between gap-2 min-w-0">
-          <div className="flex items-center gap-3 md:gap-4">
-            <h1
-              onClick={handleBackToToday}
-              className="text-2xl md:text-3xl lg:text-4xl font-serif font-bold tracking-tight min-w-0 leading-none cursor-pointer hover:opacity-70 transition-opacity whitespace-nowrap"
-              title="Вернуться к текущей неделе"
-            >
-              {monthTitle}
-            </h1>
-
-            {/* Arrows moved next to title */}
-            <div className="relative flex gap-2">
-              <button
-                onClick={handlePrevWeek}
-                className="p-2 rounded-full bg-[#26A69A] text-white hover:bg-[#1f8f84] transition-colors active:scale-95"
+          <div className="flex items-center gap-2 md:gap-3 lg:gap-4 min-w-0 overflow-hidden">
+            {/* Title + arrows */}
+            <div className="flex items-center gap-2 flex-shrink-0">
+              <h1
+                onClick={handleBackToToday}
+                className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-serif font-bold tracking-tight leading-none cursor-pointer hover:opacity-70 transition-opacity whitespace-nowrap"
+                title="Вернуться к текущей неделе"
               >
-                <ChevronLeft size={16} className="md:w-5 md:h-5" />
-              </button>
-              <button
-                onClick={handleNextWeek}
-                className="p-2 rounded-full bg-[#26A69A] text-white hover:bg-[#1f8f84] transition-colors active:scale-95"
-              >
-                <ChevronRight size={16} className="md:w-5 md:h-5" />
-              </button>
+                {monthTitle}
+              </h1>
+              <div className="flex gap-1.5">
+                <button
+                  onClick={handlePrevWeek}
+                  className="p-1.5 md:p-2 rounded-full bg-[#26A69A] text-white hover:bg-[#1f8f84] transition-colors active:scale-95"
+                >
+                  <ChevronLeft size={14} className="md:w-4 md:h-4 lg:w-5 lg:h-5" />
+                </button>
+                <button
+                  onClick={handleNextWeek}
+                  className="p-1.5 md:p-2 rounded-full bg-[#26A69A] text-white hover:bg-[#1f8f84] transition-colors active:scale-95"
+                >
+                  <ChevronRight size={14} className="md:w-4 md:h-4 lg:w-5 lg:h-5" />
+                </button>
+              </div>
             </div>
 
-            {/* Efficiency Stats Widget - Desktop */}
-            <div className="hidden lg:flex items-center gap-3 ml-8 bg-gray-50 px-4 py-2 rounded-xl border border-gray-100/80 shadow-sm">
-              <StatsDisplay stats={stats} />
+            {/* Efficiency Stats Widget - compact vertical on small, horizontal on lg+ */}
+            <div className="flex items-start gap-2 bg-gray-50 px-3 py-1.5 rounded-xl border border-gray-100/80 shadow-sm">
+              <StatsDisplay stats={stats} vertical={true} />
             </div>
 
           </div>
@@ -1096,7 +1097,7 @@ const App: React.FC = () => {
             </div>
           )}
 
-          <div className="flex items-center gap-1 md:gap-3 lg:gap-4">
+          <div className="flex items-center gap-1 md:gap-2 lg:gap-3 flex-shrink-0">
             {/* Print - Pro only, before divider */}
             {isAuthenticated && (
               <button
@@ -1232,10 +1233,6 @@ const App: React.FC = () => {
           </div>
         </div>
 
-        {/* Efficiency Stats Widget - Mobile (Below Header) */}
-        <div className="lg:hidden mt-3 flex items-start gap-3 bg-gray-50 px-4 py-2 rounded-xl border border-gray-100/80 shadow-sm">
-          <StatsDisplay stats={stats} vertical={true} />
-        </div>
       </header>
 
       {/* Main Content: Horizontal Scroll for Days */}
