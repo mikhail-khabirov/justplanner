@@ -1096,7 +1096,7 @@ const App: React.FC = () => {
             </div>
           )}
 
-          <div className="flex items-center gap-2 md:gap-4">
+          <div className="flex items-center gap-1 md:gap-3 lg:gap-4">
             {/* Print - Pro only, before divider */}
             {isAuthenticated && (
               <button
@@ -1124,11 +1124,11 @@ const App: React.FC = () => {
               </button>
             )}
 
-            {/* Divider only on desktop if needed, or just space */}
-            <div className="hidden md:block h-8 w-[1px] bg-gray-200 mx-2"></div>
+            {/* Divider only on desktop */}
+            <div className="hidden lg:block h-8 w-[1px] bg-gray-200 mx-1"></div>
 
             {isAuthenticated ? (
-              <span className="hidden md:block text-sm text-gray-600 truncate max-w-[150px]">
+              <span className="hidden lg:block text-sm text-gray-600 truncate max-w-[130px]">
                 {user?.email}
               </span>
             ) : (
@@ -1241,9 +1241,9 @@ const App: React.FC = () => {
       {/* Main Content: Horizontal Scroll for Days */}
       <main
         ref={mainScrollRef}
-        className="flex-1 overflow-x-auto lg:overflow-x-hidden overflow-y-hidden px-4 md:px-8 pb-4 scrollbar-hide snap-x snap-mandatory lg:snap-none"
+        className="flex-1 overflow-x-hidden overflow-y-auto md:overflow-y-hidden px-4 md:px-8 pb-4 scrollbar-hide"
       >
-        <div className="flex h-full gap-4 md:gap-6 lg:gap-4 min-w-max lg:min-w-0 lg:w-full">
+        <div className="flex flex-col md:flex-row md:h-full gap-2 md:gap-4 lg:gap-4 md:min-w-max lg:min-w-0 lg:w-full">
           {columns.map((col) => (
             <Column
               key={col.id}
