@@ -1280,7 +1280,7 @@ const App: React.FC = () => {
       {/* Main Content: Horizontal Scroll for Days */}
       <main
         ref={mainScrollRef}
-        className="flex-1 overflow-x-auto lg:overflow-x-hidden overflow-y-hidden px-4 md:px-8 pb-4 scrollbar-hide snap-x snap-mandatory lg:snap-none"
+        className="flex-1 overflow-x-auto lg:overflow-x-hidden overflow-y-hidden px-4 md:px-8 pb-2 snap-x snap-mandatory lg:snap-none scrollbar-thin"
       >
         <div className="flex h-full gap-4 lg:gap-4 min-w-max lg:min-w-0 lg:w-full">
           {columns.map((col) => (
