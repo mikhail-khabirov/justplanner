@@ -17,7 +17,7 @@ import { useSettings } from './contexts/SettingsContext';
 import { useBilling, ProBadge, UpgradePrompt, UpgradeReason } from './billing';
 import { tasksApi, AuthError } from './api';
 import { AnnualOfferModal, AnnualOfferWidget, startAnnualOffer, isOfferActive, isOfferDismissed } from './annual-offer';
-import NotificationSurvey from './components/NotificationSurvey';
+// import NotificationSurvey from './components/NotificationSurvey';
 import { User, MoreHorizontal, ChevronLeft, ChevronRight, ChevronDown, ChevronUp, TrendingUp, LogOut, Settings, LifeBuoy, X, Crown, FileDown, Printer, Zap } from 'lucide-react';
 
 // Configuration for the 4 bottom columns
@@ -147,7 +147,7 @@ const App: React.FC = () => {
   const [authMode, setAuthMode] = useState<'login' | 'register'>('login');
 
   // Survey state
-  const [showSurvey, setShowSurvey] = useState(false);
+  // const [showSurvey, setShowSurvey] = useState(false);
 
   // Annual offer state
   const [isBacklogCollapsed, setIsBacklogCollapsed] = useState(() => safeLocalStorage.getItem('backlogCollapsed') === '1');
@@ -203,17 +203,17 @@ const App: React.FC = () => {
   }, [isNewRegistration, isAuthenticated, isPremium, clearNewRegistration]);
 
   // Show notification survey once per authenticated user (not while annual offer is active)
-  useEffect(() => {
-    if (!isAuthenticated || !user) return;
-    const key = `nsv2_${user.id}`;
-    if (safeLocalStorage.getItem(key) === '1') return;
-    if (showAnnualModal) return; // don't compete if annual modal is open right now
-    const timer = setTimeout(() => {
-      setShowSurvey(true);
-      safeLocalStorage.setItem(key, '1');
-    }, 10000);
-    return () => clearTimeout(timer);
-  }, [isAuthenticated, user]);
+  // useEffect(() => {
+  //   if (!isAuthenticated || !user) return;
+  //   const key = `nsv2_${user.id}`;
+  //   if (safeLocalStorage.getItem(key) === '1') return;
+  //   if (showAnnualModal) return; // don't compete if annual modal is open right now
+  //   const timer = setTimeout(() => {
+  //     setShowSurvey(true);
+  //     safeLocalStorage.setItem(key, '1');
+  //   }, 10000);
+  //   return () => clearTimeout(timer);
+  // }, [isAuthenticated, user]);
 
   // Handle ?annualOffer=1 from welcome email link
   useEffect(() => {
@@ -1535,12 +1535,12 @@ const App: React.FC = () => {
       />
 
       {/* Annual Offer — modal (also for Pro via email link) + widget (free & trial) */}
-      {isAuthenticated && showSurvey && (
+      {/* isAuthenticated && showSurvey && (
         <NotificationSurvey
           token={token}
           onDone={() => setShowSurvey(false)}
         />
-      )}
+      ) */}
 
       {isAuthenticated && (
         <>
