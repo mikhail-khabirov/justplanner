@@ -1040,6 +1040,10 @@ const App: React.FC = () => {
     }));
   };
 
+  const handleReorderSubtasks = (taskId: string, subtasks: import('./types').Subtask[]) => {
+    setTasks(prev => prev.map(t => t.id === taskId ? { ...t, subtasks } : t));
+  };
+
   if (authLoading) {
     return <div className="flex items-center justify-center" style={{ height: '100dvh' }}>Загрузка...</div>;
   }
@@ -1451,6 +1455,7 @@ const App: React.FC = () => {
           onToggleSubtask={handleToggleSubtask}
           onDeleteSubtask={handleDeleteSubtask}
           onEditSubtask={handleEditSubtask}
+          onReorderSubtasks={handleReorderSubtasks}
           isPremium={isPremium}
           onShowUpgradePrompt={(reason) => showUpgradePromptWithReason(reason || 'colors')}
         />

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Task, TaskColor, RecurrenceType, Recurrence } from '../types';
-import { X, Plus, Check, Trash2, Calendar, Clock, ChevronLeft, ChevronRight, Repeat } from 'lucide-react';
+import { X, Plus, Check, Trash2, Calendar, Clock, ChevronLeft, ChevronRight, Repeat, GripVertical } from 'lucide-react';
 import { toISODate } from '../utils';
 
 interface TaskModalProps {
@@ -15,6 +15,7 @@ interface TaskModalProps {
     onToggleSubtask: (taskId: string, subtaskId: string) => void;
     onDeleteSubtask: (taskId: string, subtaskId: string) => void;
     onEditSubtask: (taskId: string, subtaskId: string, content: string) => void;
+    onReorderSubtasks: (taskId: string, subtasks: import('../types').Subtask[]) => void;
     isPremium?: boolean;
     onShowUpgradePrompt?: (reason?: 'colors' | 'recurrence') => void;
 }
@@ -42,6 +43,7 @@ const TaskModal: React.FC<TaskModalProps> = ({
     onToggleSubtask,
     onDeleteSubtask,
     onEditSubtask,
+    onReorderSubtasks,
     isPremium = false,
     onShowUpgradePrompt
 }) => {
@@ -49,6 +51,9 @@ const TaskModal: React.FC<TaskModalProps> = ({
     const [newSubtask, setNewSubtask] = useState('');
     const [editingSubtaskId, setEditingSubtaskId] = useState<string | null>(null);
     const [editingSubtaskContent, setEditingSubtaskContent] = useState('');
+    const dragSubtaskId = useRef<string | null>(null);
+    const dragOverSubtaskId = useRef<string | null>(null);
+    const [dragOverId, setDragOverId] = useState<string | null>(null);
 
     // Calendar State
     const [isCalendarOpen, setIsCalendarOpen] = useState(false);
@@ -423,8 +428,32 @@ const TaskModal: React.FC<TaskModalProps> = ({
                             {task.subtasks.map((sub) => (
                                 <div
                                     key={sub.id}
-                                    className="group flex items-center gap-3 p-2.5 rounded-lg bg-white border border-gray-100 shadow-sm hover:shadow-md transition-all duration-200 animate-in fade-in slide-in-from-bottom-1"
+                                    draggable
+                                    onDragStart={() => { dragSubtaskId.current = sub.id; }}
+                                    onDragOver={(e) => { e.preventDefault(); dragOverSubtaskId.current = sub.id; setDragOverId(sub.id); }}
+                                    onDragLeave={() => setDragOverId(null)}
+                                    onDrop={() => {
+                                        setDragOverId(null);
+                                        const fromId = dragSubtaskId.current;
+                                        const toId = dragOverSubtaskId.current;
+                                        if (!fromId || !toId || fromId === toId) return;
+                                        const subs = [...task.subtasks];
+                                        const fromIdx = subs.findIndex(s => s.id === fromId);
+                                        const toIdx = subs.findIndex(s => s.id === toId);
+                                        const [moved] = subs.splice(fromIdx, 1);
+                                        subs.splice(toIdx, 0, moved);
+                                        onReorderSubtasks(task.id, subs);
+                                        dragSubtaskId.current = null;
+                                        dragOverSubtaskId.current = null;
+                                    }}
+                                    onDragEnd={() => { setDragOverId(null); dragSubtaskId.current = null; }}
+                                    className={`group flex items-center gap-3 p-2.5 rounded-lg bg-white border shadow-sm hover:shadow-md transition-all duration-200 animate-in fade-in slide-in-from-bottom-1 ${
+                                        dragOverId === sub.id ? 'border-blue-400 border-t-2' : 'border-gray-100'
+                                    }`}
                                 >
+                                    <div className="opacity-0 group-hover:opacity-100 cursor-grab active:cursor-grabbing text-gray-300 hover:text-gray-500 flex-shrink-0 transition-opacity" onMouseDown={(e) => e.stopPropagation()}>
+                                        <GripVertical size={14} />
+                                    </div>
                                     <div
                                         onClick={() => onToggleSubtask(task.id, sub.id)}
                                         className={`
