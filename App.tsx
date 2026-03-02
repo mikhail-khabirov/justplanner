@@ -1028,6 +1028,18 @@ const App: React.FC = () => {
     }));
   };
 
+  const handleEditSubtask = (taskId: string, subtaskId: string, content: string) => {
+    setTasks(prev => prev.map(t => {
+      if (t.id === taskId) {
+        return {
+          ...t,
+          subtasks: t.subtasks.map(s => s.id === subtaskId ? { ...s, content } : s)
+        };
+      }
+      return t;
+    }));
+  };
+
   if (authLoading) {
     return <div className="flex items-center justify-center" style={{ height: '100dvh' }}>Загрузка...</div>;
   }
@@ -1438,6 +1450,7 @@ const App: React.FC = () => {
           onAddSubtask={handleAddSubtask}
           onToggleSubtask={handleToggleSubtask}
           onDeleteSubtask={handleDeleteSubtask}
+          onEditSubtask={handleEditSubtask}
           isPremium={isPremium}
           onShowUpgradePrompt={(reason) => showUpgradePromptWithReason(reason || 'colors')}
         />

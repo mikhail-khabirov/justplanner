@@ -14,6 +14,7 @@ interface TaskModalProps {
     onAddSubtask: (taskId: string, content: string) => void;
     onToggleSubtask: (taskId: string, subtaskId: string) => void;
     onDeleteSubtask: (taskId: string, subtaskId: string) => void;
+    onEditSubtask: (taskId: string, subtaskId: string, content: string) => void;
     isPremium?: boolean;
     onShowUpgradePrompt?: (reason?: 'colors' | 'recurrence') => void;
 }
@@ -40,11 +41,14 @@ const TaskModal: React.FC<TaskModalProps> = ({
     onAddSubtask,
     onToggleSubtask,
     onDeleteSubtask,
+    onEditSubtask,
     isPremium = false,
     onShowUpgradePrompt
 }) => {
     const [title, setTitle] = useState(task.content);
     const [newSubtask, setNewSubtask] = useState('');
+    const [editingSubtaskId, setEditingSubtaskId] = useState<string | null>(null);
+    const [editingSubtaskContent, setEditingSubtaskContent] = useState('');
 
     // Calendar State
     const [isCalendarOpen, setIsCalendarOpen] = useState(false);
@@ -432,12 +436,37 @@ const TaskModal: React.FC<TaskModalProps> = ({
                                     >
                                         {sub.completed && <Check size={10} className="text-white" strokeWidth={3} />}
                                     </div>
-                                    <span
-                                        className={`flex-1 min-w-0 text-sm leading-tight transition-colors break-all ${sub.completed ? 'text-gray-400 line-through' : 'text-gray-800 font-medium'}`}
-                                        style={{ overflowWrap: 'anywhere' }}
-                                    >
-                                        {sub.content}
-                                    </span>
+                                    {editingSubtaskId === sub.id ? (
+                                        <input
+                                            autoFocus
+                                            value={editingSubtaskContent}
+                                            onChange={(e) => setEditingSubtaskContent(e.target.value)}
+                                            onBlur={() => {
+                                                if (editingSubtaskContent.trim()) {
+                                                    onEditSubtask(task.id, sub.id, editingSubtaskContent.trim());
+                                                }
+                                                setEditingSubtaskId(null);
+                                            }}
+                                            onKeyDown={(e) => {
+                                                if (e.key === 'Enter') (e.target as HTMLInputElement).blur();
+                                                if (e.key === 'Escape') setEditingSubtaskId(null);
+                                            }}
+                                            className="flex-1 min-w-0 text-sm bg-transparent border-none outline-none text-gray-800 font-medium"
+                                        />
+                                    ) : (
+                                        <span
+                                            onClick={() => {
+                                                if (!sub.completed) {
+                                                    setEditingSubtaskId(sub.id);
+                                                    setEditingSubtaskContent(sub.content);
+                                                }
+                                            }}
+                                            className={`flex-1 min-w-0 text-sm leading-tight transition-colors break-all ${sub.completed ? 'text-gray-400 line-through cursor-default' : 'text-gray-800 font-medium cursor-text hover:text-black'}`}
+                                            style={{ overflowWrap: 'anywhere' }}
+                                        >
+                                            {sub.content}
+                                        </span>
+                                    )}
                                     <button
                                         onClick={() => onDeleteSubtask(task.id, sub.id)}
                                         className="opacity-0 group-hover:opacity-100 p-1 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded transition-all"
