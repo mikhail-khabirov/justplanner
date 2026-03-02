@@ -328,6 +328,7 @@ const App: React.FC = () => {
 
   // Track if tasks have been loaded from server to avoid overwriting
   const hasLoadedFromServer = useRef(false);
+  const [tasksLoaded, setTasksLoaded] = useState(false);
   const syncTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const pendingSyncRef = useRef<any[] | null>(null);
   const syncRetryCount = useRef(0);
@@ -355,6 +356,7 @@ const App: React.FC = () => {
             if (Array.isArray(backupTasks) && backupTasks.length > 0) {
               console.log('Restoring unsynced tasks from localStorage backup');
               setTasks(backupTasks);
+              setTasksLoaded(true);
               // Mark as synced=true so next sync cycle will push them to server
               safeLocalStorage.setItem(getSyncedKey(), 'true');
               return;
@@ -365,6 +367,7 @@ const App: React.FC = () => {
         }
 
         setTasks(serverTasks);
+        setTasksLoaded(true);
         safeLocalStorage.setItem(getSyncedKey(), 'true');
 
         // Show onboarding for first-time users after login
@@ -388,6 +391,7 @@ const App: React.FC = () => {
                 console.log('Loading tasks from localStorage backup (server unavailable)');
                 hasLoadedFromServer.current = true;
                 setTasks(backupTasks);
+                setTasksLoaded(true);
               }
             } catch (e) { /* ignore */ }
           }
@@ -532,7 +536,7 @@ const App: React.FC = () => {
   // Auto-rollover: move incomplete past tasks to today after midnight (PRO only)
   useEffect(() => {
     if (!isAuthenticated || !isPremium || !settings.autoRollover) return;
-    if (!hasLoadedFromServer.current) return;
+    if (!tasksLoaded) return;
 
     const rolloverTasks = () => {
       const todayISO = getTodayISO();
@@ -583,7 +587,7 @@ const App: React.FC = () => {
     }, msUntilMidnight);
 
     return () => clearTimeout(timer);
-  }, [isAuthenticated, isPremium, settings.autoRollover, tasks.length]);
+  }, [isAuthenticated, isPremium, settings.autoRollover, tasksLoaded]);
 
   // Generate columns based on current startDate
   const columns = useMemo(() => generateColumns(startDate), [startDate]);
