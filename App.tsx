@@ -1402,7 +1402,7 @@ const App: React.FC = () => {
                   }}
                   quickAddState={quickAddState}
                   headerColor={colDef.headerColor}
-                  tasks={tasks.filter(t => t.columnId === colDef.id)}
+                  tasks={sortedTasks.filter(t => t.columnId === colDef.id)}
                   onDrop={handleDropOnColumn}
                   onDropTask={handleDropOnTask}
                   onDragOver={handleDragOver}
