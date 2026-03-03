@@ -339,7 +339,7 @@ const App: React.FC = () => {
   const getBackupTimestampKey = useCallback(() => `tasks_backup_ts_${user?.id || 'unknown'}`, [user?.id]);
   const getSyncedKey = useCallback(() => `tasks_synced_${user?.id || 'unknown'}`, [user?.id]);
 
-  // Load tasks 
+  // Load tasks from server. Server data always wins — localStorage backup is only used as offline fallback.
   const loadServerTasks = useCallback(() => {
     if (!isAuthenticated) return;
 
@@ -347,27 +347,12 @@ const App: React.FC = () => {
       .then(serverTasks => {
         hasLoadedFromServer.current = true;
 
-        // Check if we have an unsynced localStorage backup (e.g. from a failed sync)
-        const backupRaw = safeLocalStorage.getItem(getBackupKey());
-        const isSynced = safeLocalStorage.getItem(getSyncedKey());
-        if (backupRaw && isSynced === 'false') {
-          try {
-            const backupTasks = JSON.parse(backupRaw);
-            if (Array.isArray(backupTasks) && backupTasks.length > 0) {
-              console.log('Restoring unsynced tasks from localStorage backup');
-              setTasks(backupTasks);
-              setTasksLoaded(true);
-              // Mark as synced=true so next sync cycle will push them to server
-              safeLocalStorage.setItem(getSyncedKey(), 'true');
-              return;
-            }
-          } catch (e) {
-            console.warn('Failed to parse backup tasks:', e);
-          }
-        }
-
+        // Server is the source of truth — always use server data
         setTasks(serverTasks);
         setTasksLoaded(true);
+        // Update backup with fresh server data and mark as synced
+        safeLocalStorage.setItem(getBackupKey(), JSON.stringify(serverTasks));
+        safeLocalStorage.setItem(getBackupTimestampKey(), new Date().toISOString());
         safeLocalStorage.setItem(getSyncedKey(), 'true');
 
         // Show onboarding for first-time users after login
@@ -382,7 +367,7 @@ const App: React.FC = () => {
           logout();
         } else {
           console.error('Failed to load tasks:', err);
-          // Try to load from localStorage backup as fallback
+          // Server unavailable — fall back to localStorage backup
           const backupRaw = safeLocalStorage.getItem(getBackupKey());
           if (backupRaw) {
             try {
@@ -397,7 +382,7 @@ const App: React.FC = () => {
           }
         }
       });
-  }, [isAuthenticated, user?.id, getBackupKey, getSyncedKey]);
+  }, [isAuthenticated, user?.id, getBackupKey, getBackupTimestampKey, getSyncedKey]);
 
   useEffect(() => {
     // Check for resetToken
@@ -504,6 +489,25 @@ const App: React.FC = () => {
     };
   }, [tasks, isAuthenticated, getBackupKey, getBackupTimestampKey, getSyncedKey]);
 
+  // Re-fetch from server when tab becomes visible (cross-device sync)
+  useEffect(() => {
+    if (!isAuthenticated) return;
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        // Only re-fetch if there are no pending local changes waiting to sync
+        const isSynced = safeLocalStorage.getItem(getSyncedKey());
+        if (isSynced !== 'false') {
+          console.log('Tab visible — refreshing tasks from server');
+          loadServerTasks();
+        }
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, [isAuthenticated, getSyncedKey, loadServerTasks]);
+
   // Flush pending sync on page close/refresh
   useEffect(() => {
     const handleBeforeUnload = () => {
@@ -525,7 +529,7 @@ const App: React.FC = () => {
             headers: { 'Content-Type': 'application/json', ...(token ? { 'Authorization': `Bearer ${token}` } : {}) },
             body,
             keepalive: true
-          }).catch(() => {});
+          }).catch(() => { });
         }
       }
     };
@@ -1393,11 +1397,10 @@ const App: React.FC = () => {
             setIsBacklogCollapsed(next);
             safeLocalStorage.setItem('backlogCollapsed', next ? '1' : '0');
           }}
-          className={`flex items-center gap-1 px-4 py-1.5 sm:px-3 sm:py-0.5 rounded-full text-xs transition-colors shadow-sm ${
-            isBacklogCollapsed
+          className={`flex items-center gap-1 px-4 py-1.5 sm:px-3 sm:py-0.5 rounded-full text-xs transition-colors shadow-sm ${isBacklogCollapsed
               ? 'bg-gray-100 border-2 border-gray-300 text-gray-600 hover:bg-gray-200'
               : 'bg-white border border-gray-200 text-gray-400 hover:text-gray-600 hover:border-gray-300'
-          }`}
+            }`}
         >
           {isBacklogCollapsed ? <ChevronUp size={18} className="sm:w-3.5 sm:h-3.5" /> : <ChevronDown size={18} className="sm:w-3.5 sm:h-3.5" />}
           <span>{isBacklogCollapsed ? 'Показать' : 'Скрыть'}</span>
