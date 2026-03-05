@@ -1012,9 +1012,16 @@ const App: React.FC = () => {
   }, [loadTelegramStatus]);
 
   const handleConnectTelegram = async () => {
+    // Open window synchronously (before await) to avoid popup blocker
+    const win = window.open('about:blank', '_blank');
     try {
       const { link } = await telegramApi.getLink();
-      window.open(link, '_blank');
+      if (win) {
+        win.location.href = link;
+      } else {
+        // Fallback: navigate in same tab if popup was still blocked
+        window.location.href = link;
+      }
       // Start polling for status
       let attempts = 0;
       const maxAttempts = 40; // ~2 minutes at 3s intervals
@@ -1033,6 +1040,7 @@ const App: React.FC = () => {
         }
       }, 3000);
     } catch (err) {
+      if (win) win.close();
       console.error('Failed to connect Telegram:', err);
     }
   };
