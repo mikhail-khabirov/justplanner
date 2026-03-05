@@ -177,8 +177,17 @@ export const Task = {
             // Delete all existing tasks
             await client.query('DELETE FROM tasks WHERE user_id = $1', [userId]);
 
-            // Insert all new tasks
-            for (const task of tasks) {
+            // Deduplicate tasks before inserting (prevent race-condition duplicates)
+            const seen = new Set();
+            const uniqueTasks = tasks.filter(task => {
+                const key = `${task.content}|${task.columnId}|${task.hour ?? ''}|${task.completed}`;
+                if (seen.has(key)) return false;
+                seen.add(key);
+                return true;
+            });
+
+            // Insert all unique tasks
+            for (const task of uniqueTasks) {
                 await client.query(
                     `INSERT INTO tasks (user_id, content, column_id, hour, color, completed, subtasks, recurrence_type, recurrence_interval, recurrence_end_date, reminder_offset, reminder_sent) 
            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`,
