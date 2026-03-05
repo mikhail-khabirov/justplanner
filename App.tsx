@@ -82,14 +82,17 @@ const StatsDisplay = ({ stats }: { stats: any }) => (
       <div className="flex items-center gap-0.5" title="Сегодня">
         <Sun size={11} className="text-amber-400" />
         <span className={stats.todayTotal > 0 && stats.todayDone === stats.todayTotal ? 'text-green-600' : ''}>{stats.todayDone}/{stats.todayTotal}</span>
+        <span className="hidden sm:inline text-gray-400 font-normal ml-0.5">Сегодня</span>
       </div>
       <div className="flex items-center gap-0.5" title="Неделя">
         <CalendarDays size={11} className="text-blue-400" />
         <span className={stats.weekTotal > 0 && stats.weekDone === stats.weekTotal ? 'text-green-600' : ''}>{stats.weekDone}/{stats.weekTotal}</span>
+        <span className="hidden sm:inline text-gray-400 font-normal ml-0.5">Неделя</span>
       </div>
       <div className="flex items-center gap-0.5" title="Месяц">
         <CalendarRange size={11} className="text-purple-400" />
         <span className={stats.monthTotal > 0 && stats.monthDone === stats.monthTotal ? 'text-green-600' : ''}>{stats.monthDone}/{stats.monthTotal}</span>
+        <span className="hidden sm:inline text-gray-400 font-normal ml-0.5">Месяц</span>
       </div>
     </div>
   </div>
