@@ -1627,8 +1627,8 @@ const App: React.FC = () => {
             />
           )}
 
-          {/* Telegram Connect Button - bottom left (only when not linked) */}
-          {!telegramLinked && (
+          {/* Telegram Connect Button - bottom left (Pro only, when not linked) */}
+          {isPremium && !telegramLinked && (
             <button
               onClick={handleConnectTelegram}
               className="fixed bottom-5 left-5 z-40 flex items-center gap-2 px-4 py-2.5 rounded-xl shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl text-sm font-semibold bg-blue-500 text-white hover:bg-blue-600 border border-blue-400"

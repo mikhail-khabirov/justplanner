@@ -252,30 +252,45 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, currentDate, onT
                             <div className="flex items-center gap-2 text-gray-700">
                                 <Send size={18} />
                                 <span className="font-medium">Telegram-уведомления</span>
+                                {!isPremium && (
+                                    <span className="ml-auto flex items-center gap-1 text-xs text-amber-600 bg-amber-50 px-2 py-1 rounded-full border border-amber-200">
+                                        <Crown size={12} />
+                                        Pro
+                                    </span>
+                                )}
                             </div>
                             <p className="text-sm text-gray-500">
                                 Подключите Telegram, чтобы получать напоминания о задачах
                             </p>
-                            {telegramLinked ? (
-                                <div className="flex items-center justify-between">
-                                    <span className="text-sm text-green-600 font-medium flex items-center gap-2">
-                                        ✅ Telegram подключён
-                                    </span>
+                            {isPremium ? (
+                                telegramLinked ? (
+                                    <div className="flex items-center justify-between">
+                                        <span className="text-sm text-green-600 font-medium flex items-center gap-2">
+                                            ✅ Telegram подключён
+                                        </span>
+                                        <button
+                                            onClick={onDisconnectTelegram}
+                                            className="text-xs text-red-500 hover:text-red-700 hover:bg-red-50 px-3 py-1.5 rounded-lg transition-colors"
+                                        >
+                                            Отключить
+                                        </button>
+                                    </div>
+                                ) : (
                                     <button
-                                        onClick={onDisconnectTelegram}
-                                        className="text-xs text-red-500 hover:text-red-700 hover:bg-red-50 px-3 py-1.5 rounded-lg transition-colors"
+                                        onClick={onConnectTelegram}
+                                        className="w-full py-2.5 px-4 bg-blue-500 text-white rounded-lg text-sm font-medium hover:bg-blue-600 transition-colors flex items-center justify-center gap-2"
                                     >
-                                        Отключить
+                                        <Send size={16} />
+                                        Подключить Telegram
                                     </button>
-                                </div>
+                                )
                             ) : (
-                                <button
-                                    onClick={onConnectTelegram}
-                                    className="w-full py-2.5 px-4 bg-blue-500 text-white rounded-lg text-sm font-medium hover:bg-blue-600 transition-colors flex items-center justify-center gap-2"
-                                >
-                                    <Send size={16} />
-                                    Подключить Telegram
-                                </button>
+                                <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg flex items-center gap-2">
+                                    <Crown size={16} className="text-amber-600 shrink-0" />
+                                    <p className="text-sm text-amber-700 font-medium">
+                                        Оформите Pro подписку для Telegram-уведомлений
+                                    </p>
+                                </div>
                             )}
                         </div>
                     )}
