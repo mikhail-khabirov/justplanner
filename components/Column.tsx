@@ -44,6 +44,7 @@ interface ColumnProps {
   onTouchDragEnd?: (taskId: string, targetElement: Element | null) => void;
   isPremium?: boolean;
   onShowUpgradePrompt?: () => void;
+  isFirstColumn?: boolean; // For product tour targeting
 }
 
 const Column: React.FC<ColumnProps> = ({
@@ -65,7 +66,8 @@ const Column: React.FC<ColumnProps> = ({
   onOpenModal,
   onTouchDragEnd,
   isPremium = false,
-  onShowUpgradePrompt
+  onShowUpgradePrompt,
+  isFirstColumn = false
 }) => {
   // Get user settings
   const { settings } = useSettings();
@@ -104,11 +106,21 @@ const Column: React.FC<ColumnProps> = ({
     return 'text-gray-300';
   };
 
+  // Track if we've placed the tour marker
+  let tourCreatePlaced = false;
+  let tourDragPlaced = false;
+
   const renderHourSlot = (hour: number) => {
     const hourTasks = tasks.filter(t => t.hour === hour);
     const isFull = hourTasks.length >= 3;
     const displayTime = hour === 0 ? '00:00' : `${hour}:00`;
     const isQuickAddActive = quickAddState?.columnId === column.id && quickAddState?.hour === hour;
+
+    // Place data-tour on first empty slot of today, and first task
+    const shouldMarkCreate = isFirstColumn && column.isToday && !tourCreatePlaced && hourTasks.length === 0;
+    const shouldMarkDrag = isFirstColumn && column.isToday && !tourDragPlaced && hourTasks.length > 0;
+    if (shouldMarkCreate) tourCreatePlaced = true;
+    if (shouldMarkDrag) tourDragPlaced = true;
 
     return (
       <div
@@ -116,6 +128,7 @@ const Column: React.FC<ColumnProps> = ({
         className="hour-block flex group/time min-h-[40px]"
         data-column={column.id}
         data-hour={hour}
+        {...(shouldMarkCreate ? { 'data-tour': 'create-task' } : {})}
         onDragOver={onDragOver}
         onDrop={(e) => {
           e.preventDefault();
@@ -141,21 +154,24 @@ const Column: React.FC<ColumnProps> = ({
           }}
         >
           <div className="flex flex-col gap-1 pt-1 pb-1">
-            {hourTasks.map((task) => (
-              <div key={task.id} className="relative z-10">
-                <TaskItem
-                  task={task}
-                  onUpdate={onUpdateTask}
-                  onColorChange={onColorChange}
-                  onDelete={onDeleteTask}
-                  onDragStart={onDragStart}
-                  onDrop={onDropTask}
-                  onToggleComplete={onToggleComplete}
-                  onOpenModal={onOpenModal}
-                  onTouchDragEnd={onTouchDragEnd}
-                />
-              </div>
-            ))}
+            {hourTasks.map((task, taskIdx) => {
+              const isFirstTask = shouldMarkDrag && taskIdx === 0;
+              return (
+                <div key={task.id} className="relative z-10" {...(isFirstTask ? { 'data-tour': 'drag-task' } : {})}>
+                  <TaskItem
+                    task={task}
+                    onUpdate={onUpdateTask}
+                    onColorChange={onColorChange}
+                    onDelete={onDeleteTask}
+                    onDragStart={onDragStart}
+                    onDrop={onDropTask}
+                    onToggleComplete={onToggleComplete}
+                    onOpenModal={onOpenModal}
+                    onTouchDragEnd={onTouchDragEnd}
+                  />
+                </div>
+              );
+            })}
 
             {/* Quick Add Input in Calendar Slot */}
             {isQuickAddActive && (

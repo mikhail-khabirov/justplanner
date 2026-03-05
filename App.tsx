@@ -7,6 +7,7 @@ import AuthModal from './components/AuthModal';
 import SettingsModal from './components/SettingsModal';
 import OnboardingTooltip from './components/OnboardingTooltip';
 import OnboardingOverlay from './components/OnboardingOverlay';
+import ProductTour from './components/ProductTour';
 import LandingPage from './components/LandingPage';
 import FeaturesPage from './components/FeaturesPage';
 import PublicOffer from './components/Legal/PublicOffer';
@@ -122,6 +123,7 @@ const App: React.FC = () => {
   const [feedbackHidden, setFeedbackHidden] = useState(() => safeLocalStorage.getItem('feedbackHidden') === '1');
   const [showMenuDropdown, setShowMenuDropdown] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
+  const [showProductTour, setShowProductTour] = useState(false);
   // URL-based routing: initialize state from current pathname
   const initPath = typeof window !== 'undefined' ? window.location.pathname : '/';
   const [showLanding, setShowLanding] = useState(() => {
@@ -1447,6 +1449,7 @@ const App: React.FC = () => {
               onTouchDragEnd={handleTouchDragEnd}
               isPremium={isPremium}
               onShowUpgradePrompt={() => showUpgradePromptWithReason('colors')}
+              isFirstColumn={col.isToday}
             />
           ))}
         </div>
@@ -1594,7 +1597,26 @@ const App: React.FC = () => {
         userId={user?.id}
         onComplete={() => {
           setShowOnboarding(false);
-          // Show annual offer modal 10s after onboarding closes
+          // Start product tour after onboarding overlay
+          const tourKey = `tour_complete_${user?.id || 'default'}`;
+          if (!safeLocalStorage.getItem(tourKey)) {
+            setTimeout(() => setShowProductTour(true), 500);
+          } else {
+            // Show annual offer modal 10s after onboarding closes
+            if (isOfferActive() && !isOfferDismissed() && !isPremium) {
+              setTimeout(() => setShowAnnualModal(true), 10000);
+            }
+          }
+        }}
+      />
+
+      {/* Product Tour — spotlight tooltips after onboarding */}
+      <ProductTour
+        isOpen={showProductTour}
+        userId={user?.id}
+        onComplete={() => {
+          setShowProductTour(false);
+          // Show annual offer modal 10s after tour completes
           if (isOfferActive() && !isOfferDismissed() && !isPremium) {
             setTimeout(() => setShowAnnualModal(true), 10000);
           }
