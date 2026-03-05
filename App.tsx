@@ -1627,27 +1627,18 @@ const App: React.FC = () => {
             />
           )}
 
-          {/* Telegram Connect Button - bottom left */}
-          <button
-            onClick={telegramLinked ? () => setShowSettingsModal(true) : handleConnectTelegram}
-            className={`
-              fixed bottom-5 left-5 z-40 flex items-center gap-2 px-4 py-2.5 rounded-xl shadow-lg
-              transition-all duration-300 hover:scale-105 hover:shadow-xl
-              text-sm font-semibold
-              ${telegramLinked
-                ? 'bg-green-50 border border-green-200 text-green-700 hover:bg-green-100'
-                : 'bg-blue-500 text-white hover:bg-blue-600 border border-blue-400'}
-            `}
-            title={telegramLinked ? 'Telegram подключён' : 'Подключить Telegram'}
-          >
-            <Send size={16} className={telegramLinked ? 'text-green-500' : ''} />
-            <span className="hidden sm:inline">
-              {telegramLinked ? '✅ Telegram' : 'Подключить Telegram'}
-            </span>
-            {!telegramLinked && (
+          {/* Telegram Connect Button - bottom left (only when not linked) */}
+          {!telegramLinked && (
+            <button
+              onClick={handleConnectTelegram}
+              className="fixed bottom-5 left-5 z-40 flex items-center gap-2 px-4 py-2.5 rounded-xl shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl text-sm font-semibold bg-blue-500 text-white hover:bg-blue-600 border border-blue-400"
+              title="Подключить Telegram"
+            >
+              <Send size={16} />
+              <span className="hidden sm:inline">Подключить Telegram</span>
               <Bell size={14} className="animate-pulse" />
-            )}
-          </button>
+            </button>
+          )}
         </>
       )}
     </div>
