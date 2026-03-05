@@ -174,6 +174,15 @@ export const Task = {
         try {
             await client.query('BEGIN');
 
+            // Read existing reminder_sent values before deleting (to preserve across sync)
+            const existingReminders = await client.query(
+                'SELECT content, column_id, hour, reminder_offset, reminder_sent FROM tasks WHERE user_id = $1 AND reminder_sent = TRUE',
+                [userId]
+            );
+            const sentMap = new Set(
+                existingReminders.rows.map(r => `${r.content}|${r.column_id}|${r.hour}|${r.reminder_offset}`)
+            );
+
             // Delete all existing tasks
             await client.query('DELETE FROM tasks WHERE user_id = $1', [userId]);
 
@@ -188,6 +197,9 @@ export const Task = {
 
             // Insert all unique tasks
             for (const task of uniqueTasks) {
+                // Preserve reminder_sent if it was already sent for this exact task+offset
+                const wasSent = sentMap.has(`${task.content}|${task.columnId}|${task.hour}|${task.reminderOffset || null}`);
+
                 await client.query(
                     `INSERT INTO tasks (user_id, content, column_id, hour, color, completed, subtasks, recurrence_type, recurrence_interval, recurrence_end_date, reminder_offset, reminder_sent) 
            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`,
@@ -203,7 +215,7 @@ export const Task = {
                         task.recurrence?.interval || 1,
                         task.recurrence?.endDate || null,
                         task.reminderOffset || null,
-                        task.reminderOffset ? false : false
+                        wasSent
                     ]
                 );
             }
