@@ -105,3 +105,40 @@ export const tasksApi = {
         return response.json();
     }
 };
+
+export const telegramApi = {
+    async getStatus() {
+        const response = await fetch(`${API_URL}/settings/telegram/status`, {
+            headers: getAuthHeaders()
+        });
+        if (!response.ok) {
+            if (response.status === 401 || response.status === 403) throw new AuthError();
+            throw new Error('Failed to get telegram status');
+        }
+        return response.json();
+    },
+
+    async getLink() {
+        const response = await fetch(`${API_URL}/settings/telegram/link`, {
+            method: 'POST',
+            headers: getAuthHeaders()
+        });
+        if (!response.ok) {
+            if (response.status === 401 || response.status === 403) throw new AuthError();
+            throw new Error('Failed to get telegram link');
+        }
+        return response.json();
+    },
+
+    async unlink() {
+        const response = await fetch(`${API_URL}/settings/telegram/unlink`, {
+            method: 'POST',
+            headers: getAuthHeaders()
+        });
+        if (!response.ok) {
+            if (response.status === 401 || response.status === 403) throw new AuthError();
+            throw new Error('Failed to unlink telegram');
+        }
+        return response.json();
+    }
+};

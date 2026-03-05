@@ -15,10 +15,10 @@ import PricingPage from './components/PricingPage';
 import { useAuth } from './contexts/AuthContext';
 import { useSettings } from './contexts/SettingsContext';
 import { useBilling, ProBadge, UpgradePrompt, UpgradeReason } from './billing';
-import { tasksApi, AuthError } from './api';
+import { tasksApi, telegramApi, AuthError } from './api';
 import { AnnualOfferModal, AnnualOfferWidget, startAnnualOffer, isOfferActive, isOfferDismissed } from './annual-offer';
 // import NotificationSurvey from './components/NotificationSurvey';
-import { User, MoreHorizontal, ChevronLeft, ChevronRight, ChevronDown, ChevronUp, TrendingUp, LogOut, Settings, LifeBuoy, X, Crown, FileDown, Printer, Zap } from 'lucide-react';
+import { User, MoreHorizontal, ChevronLeft, ChevronRight, ChevronDown, ChevronUp, TrendingUp, LogOut, Settings, LifeBuoy, X, Crown, FileDown, Printer, Zap, Sun, CalendarDays, CalendarRange, Send, Bell } from 'lucide-react';
 
 // Configuration for the 4 bottom columns
 const BOTTOM_COLUMNS = [
@@ -75,31 +75,24 @@ interface QuickAddState {
 }
 
 // Reusable Stats Content Component
-const StatsDisplay = ({ stats, vertical = false }: { stats: any; vertical?: boolean }) => (
-  <>
-    <div className="bg-white p-1.5 rounded-full shadow-sm shrink-0">
-      <TrendingUp size={16} className="text-blue-500" />
-    </div>
-    <div className="flex flex-col min-w-0">
-      <span className="text-[10px] uppercase font-bold text-gray-400 tracking-wider mb-0.5 leading-none truncate">Задач закрыто</span>
-      <div className={`${vertical ? 'flex flex-col gap-1' : 'flex items-center gap-3'} text-xs font-semibold text-gray-700 leading-none`}>
-        <div className="flex items-center gap-1">
-          <span className="text-gray-500 font-normal">Сегодня</span>
-          <span className={stats.todayTotal > 0 && stats.todayDone === stats.todayTotal ? "text-green-600" : ""}>{stats.todayDone}/{stats.todayTotal}</span>
-        </div>
-        {!vertical && <div className="w-[1px] h-3 bg-gray-200"></div>}
-        <div className="flex items-center gap-1">
-          <span className="text-gray-500 font-normal">Неделя</span>
-          <span className={stats.weekTotal > 0 && stats.weekDone === stats.weekTotal ? "text-green-600" : ""}>{stats.weekDone}/{stats.weekTotal}</span>
-        </div>
-        {!vertical && <div className="w-[1px] h-3 bg-gray-200"></div>}
-        <div className="flex items-center gap-1">
-          <span className="text-gray-500 font-normal">Месяц</span>
-          <span className={stats.monthTotal > 0 && stats.monthDone === stats.monthTotal ? "text-green-600" : ""}>{stats.monthDone}/{stats.monthTotal}</span>
-        </div>
+const StatsDisplay = ({ stats }: { stats: any }) => (
+  <div className="flex items-center gap-1.5 bg-gray-50 px-2 py-1.5 rounded-xl border border-gray-100/80 shadow-sm">
+    <TrendingUp size={13} className="text-blue-400 shrink-0" />
+    <div className="flex flex-col gap-0.5 text-[11px] font-semibold text-gray-700 leading-none">
+      <div className="flex items-center gap-0.5" title="Сегодня">
+        <Sun size={11} className="text-amber-400" />
+        <span className={stats.todayTotal > 0 && stats.todayDone === stats.todayTotal ? 'text-green-600' : ''}>{stats.todayDone}/{stats.todayTotal}</span>
+      </div>
+      <div className="flex items-center gap-0.5" title="Неделя">
+        <CalendarDays size={11} className="text-blue-400" />
+        <span className={stats.weekTotal > 0 && stats.weekDone === stats.weekTotal ? 'text-green-600' : ''}>{stats.weekDone}/{stats.weekTotal}</span>
+      </div>
+      <div className="flex items-center gap-0.5" title="Месяц">
+        <CalendarRange size={11} className="text-purple-400" />
+        <span className={stats.monthTotal > 0 && stats.monthDone === stats.monthTotal ? 'text-green-600' : ''}>{stats.monthDone}/{stats.monthTotal}</span>
       </div>
     </div>
-  </>
+  </div>
 );
 
 const App: React.FC = () => {
@@ -153,6 +146,10 @@ const App: React.FC = () => {
   const [isBacklogCollapsed, setIsBacklogCollapsed] = useState(() => safeLocalStorage.getItem('backlogCollapsed') === '1');
   const [showAnnualModal, setShowAnnualModal] = useState(false);
   const [showAnnualWidget, setShowAnnualWidget] = useState(() => isOfferActive() && !isOfferDismissed());
+
+  // Telegram state
+  const [telegramLinked, setTelegramLinked] = useState(false);
+  const telegramPollingRef = useRef<NodeJS.Timeout | null>(null);
 
   // Helper: navigate to a URL and update state
   const navigateTo = useCallback((path: string) => {
@@ -994,6 +991,63 @@ const App: React.FC = () => {
     setTasks(prev => prev.map(t => t.id === id ? { ...t, recurrence: recurrence || undefined } : t));
   };
 
+  // Reminder handler
+  const handleReminderChange = (id: string, offset: string | null) => {
+    setTasks(prev => prev.map(t => t.id === id ? { ...t, reminderOffset: offset } : t));
+  };
+
+  // Telegram integration
+  const loadTelegramStatus = useCallback(async () => {
+    if (!isAuthenticated) return;
+    try {
+      const status = await telegramApi.getStatus();
+      setTelegramLinked(status.linked);
+    } catch (err) {
+      // ignore
+    }
+  }, [isAuthenticated]);
+
+  useEffect(() => {
+    loadTelegramStatus();
+  }, [loadTelegramStatus]);
+
+  const handleConnectTelegram = async () => {
+    try {
+      const { link } = await telegramApi.getLink();
+      window.open(link, '_blank');
+      // Start polling for status
+      let attempts = 0;
+      const maxAttempts = 40; // ~2 minutes at 3s intervals
+      if (telegramPollingRef.current) clearInterval(telegramPollingRef.current);
+      telegramPollingRef.current = setInterval(async () => {
+        attempts++;
+        try {
+          const status = await telegramApi.getStatus();
+          if (status.linked) {
+            setTelegramLinked(true);
+            if (telegramPollingRef.current) clearInterval(telegramPollingRef.current);
+          }
+        } catch (_) { /* ignore */ }
+        if (attempts >= maxAttempts && telegramPollingRef.current) {
+          clearInterval(telegramPollingRef.current);
+        }
+      }, 3000);
+    } catch (err) {
+      console.error('Failed to connect Telegram:', err);
+    }
+  };
+
+  const handleDisconnectTelegram = async () => {
+    try {
+      await telegramApi.unlink();
+      setTelegramLinked(false);
+      // Clear reminder offsets from local tasks
+      setTasks(prev => prev.map(t => ({ ...t, reminderOffset: null })));
+    } catch (err) {
+      console.error('Failed to disconnect Telegram:', err);
+    }
+  };
+
   // --- Subtask Handlers ---
 
   const handleAddSubtask = (taskId: string, content: string) => {
@@ -1172,7 +1226,7 @@ const App: React.FC = () => {
             <div className="flex items-center gap-2 flex-shrink-0">
               <h1
                 onClick={handleBackToToday}
-                className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-serif font-bold tracking-tight leading-none cursor-pointer hover:opacity-70 transition-opacity whitespace-nowrap"
+                className="text-base sm:text-2xl md:text-3xl lg:text-4xl font-serif font-bold tracking-tight leading-none cursor-pointer hover:opacity-70 transition-opacity whitespace-nowrap"
                 title="Вернуться к текущей неделе"
               >
                 {monthTitle}
@@ -1193,10 +1247,8 @@ const App: React.FC = () => {
               </div>
             </div>
 
-            {/* Efficiency Stats Widget - compact vertical on small, horizontal on lg+ */}
-            <div className="flex items-start gap-2 bg-gray-50 px-3 py-1.5 rounded-xl border border-gray-100/80 shadow-sm">
-              <StatsDisplay stats={stats} vertical={true} />
-            </div>
+            {/* Efficiency Stats Widget */}
+            <StatsDisplay stats={stats} />
 
           </div>
 
@@ -1390,7 +1442,10 @@ const App: React.FC = () => {
       </main>
 
       {/* Backlog Toggle Button */}
-      <div className="flex-shrink-0 flex justify-center py-1 z-20">
+      <div
+        className="flex-shrink-0 flex justify-center py-1 z-20"
+        style={isBacklogCollapsed ? { paddingBottom: 'calc(0.25rem + env(safe-area-inset-bottom))' } : undefined}
+      >
         <button
           onClick={() => {
             const next = !isBacklogCollapsed;
@@ -1398,8 +1453,8 @@ const App: React.FC = () => {
             safeLocalStorage.setItem('backlogCollapsed', next ? '1' : '0');
           }}
           className={`flex items-center gap-1 px-4 py-1.5 sm:px-3 sm:py-0.5 rounded-full text-xs transition-colors shadow-sm ${isBacklogCollapsed
-              ? 'bg-gray-100 border-2 border-gray-300 text-gray-600 hover:bg-gray-200'
-              : 'bg-white border border-gray-200 text-gray-400 hover:text-gray-600 hover:border-gray-300'
+            ? 'bg-gray-100 border-2 border-gray-300 text-gray-600 hover:bg-gray-200'
+            : 'bg-white border border-gray-200 text-gray-400 hover:text-gray-600 hover:border-gray-300'
             }`}
         >
           {isBacklogCollapsed ? <ChevronUp size={18} className="sm:w-3.5 sm:h-3.5" /> : <ChevronDown size={18} className="sm:w-3.5 sm:h-3.5" />}
@@ -1409,7 +1464,7 @@ const App: React.FC = () => {
 
       {/* Footer / Backlog Area */}
       {!isBacklogCollapsed && (
-        <section className="flex-shrink-0 h-1/4 px-4 md:px-8 pb-4 border-t-2 border-gray-200 bg-gray-50 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] z-10">
+        <section className="flex-shrink-0 h-1/4 px-4 md:px-8 pb-4 border-t-2 border-gray-200 bg-gray-50 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] z-10" style={{ paddingBottom: 'calc(1rem + env(safe-area-inset-bottom))' }}>
           <div className="flex overflow-x-auto snap-x snap-mandatory gap-4 md:grid md:grid-cols-4 md:gap-8 h-full scrollbar-hide pb-2 md:pb-0">
             {BOTTOM_COLUMNS.map(colDef => (
               <div key={colDef.id} className="min-w-[85vw] md:min-w-0 h-full snap-center last:pr-4 md:last:pr-0">
@@ -1461,6 +1516,8 @@ const App: React.FC = () => {
           onReorderSubtasks={handleReorderSubtasks}
           isPremium={isPremium}
           onShowUpgradePrompt={(reason) => showUpgradePromptWithReason(reason || 'colors')}
+          isTelegramLinked={telegramLinked}
+          onReminderChange={handleReminderChange}
         />
       )}
 
@@ -1479,6 +1536,9 @@ const App: React.FC = () => {
           onClose={() => setShowSettingsModal(false)}
           currentDate={startDate}
           onTasksDeleted={loadServerTasks}
+          telegramLinked={telegramLinked}
+          onConnectTelegram={handleConnectTelegram}
+          onDisconnectTelegram={handleDisconnectTelegram}
         />
       )}
 
@@ -1558,6 +1618,28 @@ const App: React.FC = () => {
               onClick={() => setShowAnnualModal(true)}
             />
           )}
+
+          {/* Telegram Connect Button - bottom left */}
+          <button
+            onClick={telegramLinked ? () => setShowSettingsModal(true) : handleConnectTelegram}
+            className={`
+              fixed bottom-5 left-5 z-40 flex items-center gap-2 px-4 py-2.5 rounded-xl shadow-lg
+              transition-all duration-300 hover:scale-105 hover:shadow-xl
+              text-sm font-semibold
+              ${telegramLinked
+                ? 'bg-green-50 border border-green-200 text-green-700 hover:bg-green-100'
+                : 'bg-blue-500 text-white hover:bg-blue-600 border border-blue-400'}
+            `}
+            title={telegramLinked ? 'Telegram подключён' : 'Подключить Telegram'}
+          >
+            <Send size={16} className={telegramLinked ? 'text-green-500' : ''} />
+            <span className="hidden sm:inline">
+              {telegramLinked ? '✅ Telegram' : 'Подключить Telegram'}
+            </span>
+            {!telegramLinked && (
+              <Bell size={14} className="animate-pulse" />
+            )}
+          </button>
         </>
       )}
     </div>

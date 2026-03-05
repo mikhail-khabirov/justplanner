@@ -6,6 +6,7 @@ import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
 import { User } from './models/User.js';
 import { notifyNewUser } from './utils/telegram.js';
 import { addContactToUnisender } from './utils/unisender.js';
+import { startUserBotPolling, sendUserReminder } from './utils/userBot.js';
 import authRoutes from './routes/auth.js';
 import tasksRoutes from './routes/tasks.js';
 
@@ -163,6 +164,20 @@ async function updateSchema() {
                 created_at TIMESTAMP DEFAULT NOW()
             )
         `);
+        // Telegram user bot: link token + chat ID
+        await pool.query(`
+            ALTER TABLE users
+            ADD COLUMN IF NOT EXISTS telegram_chat_id VARCHAR(50),
+            ADD COLUMN IF NOT EXISTS telegram_link_token VARCHAR(100),
+            ADD COLUMN IF NOT EXISTS telegram_link_token_created TIMESTAMP,
+            ADD COLUMN IF NOT EXISTS telegram_linked_at TIMESTAMP;
+        `);
+        // Task reminders
+        await pool.query(`
+            ALTER TABLE tasks
+            ADD COLUMN IF NOT EXISTS reminder_offset VARCHAR(20),
+            ADD COLUMN IF NOT EXISTS reminder_sent BOOLEAN DEFAULT FALSE;
+        `);
 
         console.log('✅ Database schema updated');
     } catch (err) {
@@ -269,7 +284,50 @@ app.listen(PORT, async () => {
         }
     });
 
-    console.log(`�🚀 Server running on http://localhost:${PORT}`);
+    // Cron: Task reminders via Telegram (every minute)
+    cron.schedule('* * * * *', async () => {
+        try {
+            const { default: pool } = await import('./config/db.js');
+            const result = await pool.query(`
+                SELECT t.id, t.content, t.column_id, t.hour, t.reminder_offset,
+                       u.telegram_chat_id
+                FROM tasks t
+                JOIN users u ON u.id = t.user_id
+                WHERE t.reminder_offset IS NOT NULL
+                  AND t.reminder_sent = FALSE
+                  AND t.completed = FALSE
+                  AND u.telegram_chat_id IS NOT NULL
+                  AND t.column_id ~ '^\\d{4}-\\d{2}-\\d{2}$'
+                  AND t.hour IS NOT NULL
+                  AND (
+                    (t.column_id || ' ' || LPAD(t.hour::text, 2, '0') || ':00:00')::timestamp
+                    - (CASE t.reminder_offset
+                        WHEN '0min' THEN INTERVAL '0 minutes'
+                        WHEN '15min' THEN INTERVAL '15 minutes'
+                        WHEN '30min' THEN INTERVAL '30 minutes'
+                        WHEN '1h' THEN INTERVAL '1 hour'
+                        WHEN '2h' THEN INTERVAL '2 hours'
+                        WHEN '12h' THEN INTERVAL '12 hours'
+                      END)
+                  ) <= NOW() AT TIME ZONE 'Europe/Moscow'
+            `);
+
+            for (const task of result.rows) {
+                await sendUserReminder(task.telegram_chat_id, task.content, task.column_id, task.hour);
+                await pool.query('UPDATE tasks SET reminder_sent = TRUE WHERE id = $1', [task.id]);
+                console.log(`🔔 Reminder sent: task ${task.id} → chat ${task.telegram_chat_id}`);
+            }
+        } catch (err) {
+            console.error('❌ Reminder cron error:', err.message);
+        }
+    });
+
+    // Start user-facing Telegram bot polling
+    startUserBotPolling();
+
+    console.log(`🚀 Server running on http://localhost:${PORT}`);
     console.log('📅 Subscription renewal cron scheduled: daily at 3:00 AM');
     console.log('📧 Unisender trigger crons scheduled: no-task 48h, inactive 5d, Sunday 10:00 MSK');
+    console.log('🔔 Task reminder cron scheduled: every minute');
+    console.log('🤖 User Telegram bot: ' + (process.env.TELEGRAM_USER_BOT_TOKEN ? 'enabled' : 'disabled'));
 });

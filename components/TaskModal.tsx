@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Task, TaskColor, RecurrenceType, Recurrence } from '../types';
-import { X, Plus, Check, Trash2, Calendar, Clock, ChevronLeft, ChevronRight, Repeat, GripVertical } from 'lucide-react';
+import { X, Plus, Check, Trash2, Calendar, Clock, ChevronLeft, ChevronRight, Repeat, GripVertical, Bell } from 'lucide-react';
 import { toISODate } from '../utils';
 
 interface TaskModalProps {
@@ -18,6 +18,8 @@ interface TaskModalProps {
     onReorderSubtasks: (taskId: string, subtasks: import('../types').Subtask[]) => void;
     isPremium?: boolean;
     onShowUpgradePrompt?: (reason?: 'colors' | 'recurrence') => void;
+    isTelegramLinked?: boolean;
+    onReminderChange?: (id: string, offset: string | null) => void;
 }
 
 const HOURS_OPTIONS = [
@@ -45,7 +47,9 @@ const TaskModal: React.FC<TaskModalProps> = ({
     onEditSubtask,
     onReorderSubtasks,
     isPremium = false,
-    onShowUpgradePrompt
+    onShowUpgradePrompt,
+    isTelegramLinked = false,
+    onReminderChange
 }) => {
     const [title, setTitle] = useState(task.content);
     const [newSubtask, setNewSubtask] = useState('');
@@ -394,6 +398,45 @@ const TaskModal: React.FC<TaskModalProps> = ({
                         )}
                     </div>
 
+                    {/* Reminder Section - only if Telegram linked AND task is on a specific date+time */}
+                    {isTelegramLinked && isDateColumn(task.columnId) && task.hour !== undefined && (
+                        <div className="flex items-center gap-3 mb-4">
+                            <button
+                                onClick={() => {
+                                    if (task.reminderOffset) {
+                                        onReminderChange?.(task.id, null);
+                                    } else {
+                                        onReminderChange?.(task.id, '15min');
+                                    }
+                                }}
+                                className={`
+                                    flex items-center gap-1.5 px-2 py-1 rounded border transition-all text-[11px] font-medium
+                                    ${task.reminderOffset
+                                        ? 'bg-amber-50 border-amber-300 text-amber-700'
+                                        : 'bg-white/50 border-gray-300 hover:border-gray-400 hover:bg-white text-gray-600'}
+                                `}
+                            >
+                                <Bell size={13} />
+                                <span>{task.reminderOffset ? 'Напомнить' : 'Напомнить'}</span>
+                            </button>
+
+                            {task.reminderOffset && (
+                                <select
+                                    value={task.reminderOffset}
+                                    onChange={(e) => onReminderChange?.(task.id, e.target.value)}
+                                    className="bg-white border border-amber-300 rounded px-2 py-1 text-xs outline-none focus:ring-2 focus:ring-amber-100 text-amber-700"
+                                >
+                                    <option value="0min">В момент задачи</option>
+                                    <option value="15min">За 15 минут</option>
+                                    <option value="30min">За 30 минут</option>
+                                    <option value="1h">За 1 час</option>
+                                    <option value="2h">За 2 часа</option>
+                                    <option value="12h">За 12 часов</option>
+                                </select>
+                            )}
+                        </div>
+                    )}
+
                     {/* Title */}
                     <input
                         ref={titleInputRef}
@@ -447,9 +490,8 @@ const TaskModal: React.FC<TaskModalProps> = ({
                                         dragOverSubtaskId.current = null;
                                     }}
                                     onDragEnd={() => { setDragOverId(null); dragSubtaskId.current = null; }}
-                                    className={`group flex items-center gap-3 p-2.5 rounded-lg bg-white border shadow-sm hover:shadow-md transition-all duration-200 animate-in fade-in slide-in-from-bottom-1 ${
-                                        dragOverId === sub.id ? 'border-blue-400 border-t-2' : 'border-gray-100'
-                                    }`}
+                                    className={`group flex items-center gap-3 p-2.5 rounded-lg bg-white border shadow-sm hover:shadow-md transition-all duration-200 animate-in fade-in slide-in-from-bottom-1 ${dragOverId === sub.id ? 'border-blue-400 border-t-2' : 'border-gray-100'
+                                        }`}
                                 >
                                     <div className="opacity-0 group-hover:opacity-100 cursor-grab active:cursor-grabbing text-gray-300 hover:text-gray-500 flex-shrink-0 transition-opacity" onMouseDown={(e) => e.stopPropagation()}>
                                         <GripVertical size={14} />

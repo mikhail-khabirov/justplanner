@@ -19,7 +19,8 @@ export const Task = {
                 type: row.recurrence_type,
                 interval: row.recurrence_interval || 1,
                 endDate: row.recurrence_end_date
-            } : undefined
+            } : undefined,
+            reminderOffset: row.reminder_offset || null
         }));
     },
 
@@ -27,8 +28,8 @@ export const Task = {
     async create(userId, task) {
         await pool.query('UPDATE users SET no_task_reminder_sent = FALSE WHERE id = $1', [userId]);
         const result = await pool.query(
-            `INSERT INTO tasks (user_id, content, column_id, hour, color, completed, subtasks, recurrence_type, recurrence_interval, recurrence_end_date) 
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) 
+            `INSERT INTO tasks (user_id, content, column_id, hour, color, completed, subtasks, recurrence_type, recurrence_interval, recurrence_end_date, reminder_offset, reminder_sent) 
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, FALSE) 
        RETURNING *`,
             [
                 userId,
@@ -40,7 +41,8 @@ export const Task = {
                 JSON.stringify(task.subtasks || []),
                 task.recurrence?.type || null,
                 task.recurrence?.interval || 1,
-                task.recurrence?.endDate || null
+                task.recurrence?.endDate || null,
+                task.reminderOffset || null
             ]
         );
         const row = result.rows[0];
@@ -56,7 +58,8 @@ export const Task = {
                 type: row.recurrence_type,
                 interval: row.recurrence_interval || 1,
                 endDate: row.recurrence_end_date
-            } : undefined
+            } : undefined,
+            reminderOffset: row.reminder_offset || null
         };
     },
 
@@ -107,6 +110,13 @@ export const Task = {
                 values.push(updates.recurrence.endDate || null);
             }
         }
+        if (updates.reminderOffset !== undefined) {
+            fields.push(`reminder_offset = $${paramIndex++}`);
+            values.push(updates.reminderOffset || null);
+            // Reset reminder_sent when offset changes
+            fields.push(`reminder_sent = $${paramIndex++}`);
+            values.push(false);
+        }
 
         if (fields.length === 0) {
             return null;
@@ -133,7 +143,8 @@ export const Task = {
                 type: row.recurrence_type,
                 interval: row.recurrence_interval || 1,
                 endDate: row.recurrence_end_date
-            } : undefined
+            } : undefined,
+            reminderOffset: row.reminder_offset || null
         };
     },
 
@@ -169,8 +180,8 @@ export const Task = {
             // Insert all new tasks
             for (const task of tasks) {
                 await client.query(
-                    `INSERT INTO tasks (user_id, content, column_id, hour, color, completed, subtasks, recurrence_type, recurrence_interval, recurrence_end_date) 
-           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
+                    `INSERT INTO tasks (user_id, content, column_id, hour, color, completed, subtasks, recurrence_type, recurrence_interval, recurrence_end_date, reminder_offset, reminder_sent) 
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`,
                     [
                         userId,
                         task.content,
@@ -181,7 +192,9 @@ export const Task = {
                         JSON.stringify(task.subtasks || []),
                         task.recurrence?.type || null,
                         task.recurrence?.interval || 1,
-                        task.recurrence?.endDate || null
+                        task.recurrence?.endDate || null,
+                        task.reminderOffset || null,
+                        task.reminderOffset ? false : false
                     ]
                 );
             }

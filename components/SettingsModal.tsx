@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Clock, Trash2, AlertTriangle, Crown, RefreshCw } from 'lucide-react';
+import { X, Clock, Trash2, AlertTriangle, Crown, RefreshCw, Send } from 'lucide-react';
 import { useSettings } from '../contexts/SettingsContext';
 import { useAuth } from '../contexts/AuthContext';
 import { toISODate } from '../utils';
@@ -9,11 +9,14 @@ interface SettingsModalProps {
     onClose: () => void;
     currentDate?: Date;
     onTasksDeleted?: () => void;
+    telegramLinked?: boolean;
+    onConnectTelegram?: () => void;
+    onDisconnectTelegram?: () => void;
 }
 
 const DAY_START_OPTIONS = [5, 6, 7, 8, 9, 10];
 
-const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, currentDate, onTasksDeleted }) => {
+const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, currentDate, onTasksDeleted, telegramLinked, onConnectTelegram, onDisconnectTelegram }) => {
     const { settings, updateSettings } = useSettings();
     const { token, isAuthenticated } = useAuth();
     const { isPremium, startPayment } = useBilling();
@@ -242,6 +245,40 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, currentDate, onT
                             </div>
                         )}
                     </div>
+
+                    {/* Telegram Section */}
+                    {isAuthenticated && (
+                        <div className="space-y-3 pt-4 border-t border-gray-100">
+                            <div className="flex items-center gap-2 text-gray-700">
+                                <Send size={18} />
+                                <span className="font-medium">Telegram-уведомления</span>
+                            </div>
+                            <p className="text-sm text-gray-500">
+                                Подключите Telegram, чтобы получать напоминания о задачах
+                            </p>
+                            {telegramLinked ? (
+                                <div className="flex items-center justify-between">
+                                    <span className="text-sm text-green-600 font-medium flex items-center gap-2">
+                                        ✅ Telegram подключён
+                                    </span>
+                                    <button
+                                        onClick={onDisconnectTelegram}
+                                        className="text-xs text-red-500 hover:text-red-700 hover:bg-red-50 px-3 py-1.5 rounded-lg transition-colors"
+                                    >
+                                        Отключить
+                                    </button>
+                                </div>
+                            ) : (
+                                <button
+                                    onClick={onConnectTelegram}
+                                    className="w-full py-2.5 px-4 bg-blue-500 text-white rounded-lg text-sm font-medium hover:bg-blue-600 transition-colors flex items-center justify-center gap-2"
+                                >
+                                    <Send size={16} />
+                                    Подключить Telegram
+                                </button>
+                            )}
+                        </div>
+                    )}
 
                     {/* Danger Zone */}
                     {isAuthenticated && (

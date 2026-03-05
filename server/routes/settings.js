@@ -1,4 +1,5 @@
 import express from 'express';
+import crypto from 'crypto';
 import pool from '../config/db.js';
 import jwt from 'jsonwebtoken';
 
@@ -79,6 +80,76 @@ router.post('/survey', auth, async (req, res) => {
     } catch (error) {
         console.error('Survey submit error:', error);
         res.status(500).json({ error: 'Failed to submit survey' });
+    }
+});
+
+// ─── Telegram integration ─────────────────────────────────
+
+// Generate deep-link for Telegram bot
+router.post('/telegram/link', auth, async (req, res) => {
+    try {
+        const botUsername = process.env.TELEGRAM_USER_BOT_USERNAME;
+        if (!botUsername) {
+            return res.status(500).json({ error: 'Telegram bot not configured' });
+        }
+
+        // Generate a unique token
+        const token = crypto.randomUUID();
+
+        await pool.query(
+            `UPDATE users SET telegram_link_token = $1, telegram_link_token_created = NOW() WHERE id = $2`,
+            [token, req.userId]
+        );
+
+        const link = `https://t.me/${botUsername}?start=${token}`;
+        res.json({ link });
+    } catch (error) {
+        console.error('Telegram link error:', error);
+        res.status(500).json({ error: 'Failed to generate link' });
+    }
+});
+
+// Get Telegram connection status
+router.get('/telegram/status', auth, async (req, res) => {
+    try {
+        const result = await pool.query(
+            'SELECT telegram_chat_id, telegram_linked_at FROM users WHERE id = $1',
+            [req.userId]
+        );
+
+        if (!result.rows[0]) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+
+        const { telegram_chat_id, telegram_linked_at } = result.rows[0];
+        res.json({
+            linked: !!telegram_chat_id,
+            linkedAt: telegram_linked_at || null
+        });
+    } catch (error) {
+        console.error('Telegram status error:', error);
+        res.status(500).json({ error: 'Failed to get status' });
+    }
+});
+
+// Unlink Telegram
+router.post('/telegram/unlink', auth, async (req, res) => {
+    try {
+        await pool.query(
+            `UPDATE users SET telegram_chat_id = NULL, telegram_linked_at = NULL WHERE id = $1`,
+            [req.userId]
+        );
+
+        // Clear all reminders for this user
+        await pool.query(
+            `UPDATE tasks SET reminder_offset = NULL, reminder_sent = FALSE WHERE user_id = $1`,
+            [req.userId]
+        );
+
+        res.json({ success: true });
+    } catch (error) {
+        console.error('Telegram unlink error:', error);
+        res.status(500).json({ error: 'Failed to unlink' });
     }
 });
 

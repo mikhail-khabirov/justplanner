@@ -35,6 +35,7 @@ export interface Task {
   completed: boolean;
   subtasks: Subtask[];
   recurrence?: Recurrence;
+  reminderOffset?: string | null; // "0min" | "15min" | "30min" | "1h" | "2h" | "12h"
 }
 
 export interface Column {
