@@ -5,6 +5,7 @@ import { safeLocalStorage } from '../utils';
 interface ProductTourProps {
     isOpen: boolean;
     userId?: string;
+    todayISO?: string;
     onComplete: () => void;
     onCreateDemoTask?: (stepId: string) => void;
 }
@@ -16,7 +17,7 @@ interface SpotlightRect {
     height: number;
 }
 
-const TOUR_STEPS = [
+const getTourSteps = (todayISO: string) => [
     {
         id: 'create-task',
         emoji: '👆',
@@ -24,7 +25,6 @@ const TOUR_STEPS = [
         title: 'Создайте первую задачу',
         description: 'Просто кликните по любой ячейке — создание задачи займёт 5 секунд',
         selector: '[data-tour="create-task"]',
-        tooltipPosition: 'right' as const,
     },
     {
         id: 'drag-drop',
@@ -32,8 +32,7 @@ const TOUR_STEPS = [
         icon: GripVertical,
         title: 'Перетаскивайте задачи',
         description: 'Зажмите задачу и перетащите на любой день или час. Работает и на мобильных!',
-        selector: '[data-tour="drag-task"]',
-        tooltipPosition: 'right' as const,
+        selector: `[data-column="${todayISO}"][data-hour="10"]`,
     },
     {
         id: 'multi-task',
@@ -41,13 +40,13 @@ const TOUR_STEPS = [
         icon: Layers,
         title: 'До 3 задач в час',
         description: 'В каждый часовой слот можно добавить до 3 задач — группируйте дела по времени',
-        selector: '[data-tour="drag-task"]',
-        tooltipPosition: 'right' as const,
+        selector: `[data-column="${todayISO}"][data-hour="10"]`,
     },
 ];
 
-const ProductTour: React.FC<ProductTourProps> = ({ isOpen, userId, onComplete, onCreateDemoTask }) => {
+const ProductTour: React.FC<ProductTourProps> = ({ isOpen, userId, todayISO, onComplete, onCreateDemoTask }) => {
     const [step, setStep] = useState(0);
+    const TOUR_STEPS = getTourSteps(todayISO || '');
     const [spotlight, setSpotlight] = useState<SpotlightRect | null>(null);
     const [tooltipStyle, setTooltipStyle] = useState<React.CSSProperties>({});
     const [arrowStyle, setArrowStyle] = useState<React.CSSProperties>({});

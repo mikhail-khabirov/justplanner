@@ -1614,6 +1614,7 @@ const App: React.FC = () => {
       <ProductTour
         isOpen={showProductTour}
         userId={user?.id}
+        todayISO={getTodayISO()}
         onComplete={() => {
           setShowProductTour(false);
           // Show annual offer modal 10s after tour completes
@@ -1626,7 +1627,7 @@ const App: React.FC = () => {
           if (stepId === 'drag-drop') {
             const demoTask: Task = {
               id: generateId(),
-              content: 'Моя первая задача ✏️',
+              content: 'Моя первая задача',
               columnId: todayCol,
               hour: 10,
               color: 'blue' as TaskColor,
@@ -1637,7 +1638,7 @@ const App: React.FC = () => {
           } else if (stepId === 'multi-task') {
             const task2: Task = {
               id: generateId(),
-              content: 'Позвонить клиенту 📞',
+              content: 'Позвонить клиенту',
               columnId: todayCol,
               hour: 10,
               color: 'green' as TaskColor,
@@ -1646,7 +1647,7 @@ const App: React.FC = () => {
             };
             const task3: Task = {
               id: generateId(),
-              content: 'Отправить отчёт 📊',
+              content: 'Отправить отчёт',
               columnId: todayCol,
               hour: 10,
               color: 'purple' as TaskColor,
