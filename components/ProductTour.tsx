@@ -132,28 +132,14 @@ const ProductTour: React.FC<ProductTourProps> = ({ isOpen, userId, todayISO, onC
                 });
             }
         } else {
-            // Desktop: try right, then above, then below
-            const tooltipLeft = spotRect.left + spotRect.width + 16;
-            const tooltipTop = spotRect.top + spotRect.height / 2 - 60;
+            // Desktop: check bottom first, then right, then below
             const spaceBelow = vh - (spotRect.top + spotRect.height);
-            const hasSpaceRight = tooltipLeft + tooltipWidth <= window.innerWidth - 16;
-            const hasSpaceBelow = spaceBelow > tooltipHeight + 32;
+            const spaceAbove = spotRect.top;
+            const hasSpaceRight = (spotRect.left + spotRect.width + 16 + tooltipWidth) <= window.innerWidth - 16;
+            const isNearBottom = spaceBelow < tooltipHeight + 60;
 
-            if (hasSpaceRight) {
-                // Right of element
-                setTooltipStyle({
-                    position: 'fixed',
-                    top: Math.max(16, Math.min(tooltipTop, vh - tooltipHeight - 16)),
-                    left: tooltipLeft,
-                    width: tooltipWidth,
-                });
-                setArrowDirection('left');
-                setArrowStyle({
-                    position: 'absolute', left: -6,
-                    top: Math.min(spotRect.top + spotRect.height / 2 - Math.max(16, Math.min(tooltipTop, vh - tooltipHeight - 16)) - 6, 100),
-                });
-            } else if (!hasSpaceBelow) {
-                // Above element (when at bottom of screen)
+            if (isNearBottom && spaceAbove > tooltipHeight + 32) {
+                // Above element (priority when at bottom of screen)
                 const altTop = spotRect.top - tooltipHeight - 16;
                 const altLeft = Math.max(16, Math.min(
                     spotRect.left + spotRect.width / 2 - tooltipWidth / 2,
@@ -164,6 +150,21 @@ const ProductTour: React.FC<ProductTourProps> = ({ isOpen, userId, todayISO, onC
                 setArrowStyle({
                     position: 'absolute', bottom: -6, top: 'auto' as any,
                     left: Math.min(Math.max(spotRect.left + spotRect.width / 2 - altLeft - 6, 12), tooltipWidth - 24),
+                });
+            } else if (hasSpaceRight) {
+                // Right of element
+                const tooltipLeft = spotRect.left + spotRect.width + 16;
+                const tooltipTop = spotRect.top + spotRect.height / 2 - 60;
+                setTooltipStyle({
+                    position: 'fixed',
+                    top: Math.max(16, Math.min(tooltipTop, vh - tooltipHeight - 16)),
+                    left: tooltipLeft,
+                    width: tooltipWidth,
+                });
+                setArrowDirection('left');
+                setArrowStyle({
+                    position: 'absolute', left: -6,
+                    top: Math.min(spotRect.top + spotRect.height / 2 - Math.max(16, Math.min(tooltipTop, vh - tooltipHeight - 16)) - 6, 100),
                 });
             } else {
                 // Below element
