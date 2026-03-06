@@ -1621,6 +1621,19 @@ const App: React.FC = () => {
             setTimeout(() => setShowAnnualModal(true), 10000);
           }
         }}
+        onCreateDemoTask={() => {
+          const todayCol = getTodayISO();
+          const demoTask: Task = {
+            id: generateId(),
+            content: 'Моя первая задача ✏️',
+            columnId: todayCol,
+            hour: 10,
+            color: 'blue' as TaskColor,
+            completed: false,
+            subtasks: []
+          };
+          setTasks(prev => [...prev, demoTask]);
+        }}
       />
 
       {/* Upgrade Prompt for free users hitting various limits */}

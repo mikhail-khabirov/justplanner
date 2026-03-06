@@ -6,6 +6,7 @@ interface ProductTourProps {
     isOpen: boolean;
     userId?: string;
     onComplete: () => void;
+    onCreateDemoTask?: () => void;
 }
 
 interface SpotlightRect {
@@ -36,7 +37,7 @@ const TOUR_STEPS = [
     },
 ];
 
-const ProductTour: React.FC<ProductTourProps> = ({ isOpen, userId, onComplete }) => {
+const ProductTour: React.FC<ProductTourProps> = ({ isOpen, userId, onComplete, onCreateDemoTask }) => {
     const [step, setStep] = useState(0);
     const [spotlight, setSpotlight] = useState<SpotlightRect | null>(null);
     const [tooltipStyle, setTooltipStyle] = useState<React.CSSProperties>({});
@@ -50,7 +51,7 @@ const ProductTour: React.FC<ProductTourProps> = ({ isOpen, userId, onComplete })
 
         const el = document.querySelector(currentStep.selector);
         if (!el) {
-            // If element not found, skip to next step or complete
+            // If element not found and we already tried creating, skip
             if (step < TOUR_STEPS.length - 1) {
                 setStep(s => s + 1);
             } else {
@@ -164,7 +165,22 @@ const ProductTour: React.FC<ProductTourProps> = ({ isOpen, userId, onComplete })
 
     const handleNext = () => {
         if (step < TOUR_STEPS.length - 1) {
-            setStep(s => s + 1);
+            const nextStep = step + 1;
+            const nextStepDef = TOUR_STEPS[nextStep];
+
+            // If next step needs drag-task and it doesn't exist, create demo task first
+            if (nextStepDef.id === 'drag-drop' && !document.querySelector(nextStepDef.selector)) {
+                if (onCreateDemoTask) {
+                    onCreateDemoTask();
+                    // Wait for react to render the new task, then advance
+                    setTimeout(() => {
+                        setStep(nextStep);
+                    }, 400);
+                    return;
+                }
+            }
+
+            setStep(nextStep);
         } else {
             handleComplete();
         }
