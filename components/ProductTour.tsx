@@ -98,59 +98,85 @@ const ProductTour: React.FC<ProductTourProps> = ({ isOpen, userId, todayISO, onC
         // Position tooltip
         const isMobile = window.innerWidth < 640;
         const tooltipWidth = Math.min(280, window.innerWidth - 32);
+        const tooltipHeight = 160; // approximate
+        const vh = window.innerHeight;
 
         if (isMobile) {
-            // On mobile: position below the spotlight
-            const tooltipTop = spotRect.top + spotRect.height + 16;
-            const tooltipLeft = Math.max(16, Math.min(
-                spotRect.left + spotRect.width / 2 - tooltipWidth / 2,
-                window.innerWidth - tooltipWidth - 16
-            ));
-            setTooltipStyle({
-                position: 'fixed',
-                top: tooltipTop,
-                left: tooltipLeft,
-                width: tooltipWidth,
-            });
-            setArrowDirection('top');
-            setArrowStyle({
-                position: 'absolute',
-                top: -6,
-                left: Math.min(Math.max(spotRect.left + spotRect.width / 2 - tooltipLeft - 6, 12), tooltipWidth - 24),
-            });
-        } else {
-            // On desktop: position to the right of the spotlight
-            const tooltipLeft = spotRect.left + spotRect.width + 16;
-            const tooltipTop = spotRect.top + spotRect.height / 2 - 60;
-
-            // If not enough space on the right, position below
-            if (tooltipLeft + tooltipWidth > window.innerWidth - 16) {
-                const altTop = spotRect.top + spotRect.height + 16;
-                const altLeft = Math.max(16, spotRect.left + spotRect.width / 2 - tooltipWidth / 2);
-                setTooltipStyle({
-                    position: 'fixed',
-                    top: altTop,
-                    left: altLeft,
-                    width: tooltipWidth,
-                });
+            // On mobile: position below or above the spotlight
+            const spaceBelow = vh - (spotRect.top + spotRect.height);
+            if (spaceBelow > tooltipHeight + 32) {
+                // Below
+                const tooltipTop = spotRect.top + spotRect.height + 16;
+                const tooltipLeft = Math.max(16, Math.min(
+                    spotRect.left + spotRect.width / 2 - tooltipWidth / 2,
+                    window.innerWidth - tooltipWidth - 16
+                ));
+                setTooltipStyle({ position: 'fixed', top: tooltipTop, left: tooltipLeft, width: tooltipWidth });
                 setArrowDirection('top');
                 setArrowStyle({
-                    position: 'absolute',
-                    top: -6,
-                    left: Math.min(Math.max(spotRect.left + spotRect.width / 2 - altLeft - 6, 12), tooltipWidth - 24),
+                    position: 'absolute', top: -6,
+                    left: Math.min(Math.max(spotRect.left + spotRect.width / 2 - tooltipLeft - 6, 12), tooltipWidth - 24),
                 });
             } else {
+                // Above
+                const tooltipTop = spotRect.top - tooltipHeight - 16;
+                const tooltipLeft = Math.max(16, Math.min(
+                    spotRect.left + spotRect.width / 2 - tooltipWidth / 2,
+                    window.innerWidth - tooltipWidth - 16
+                ));
+                setTooltipStyle({ position: 'fixed', top: Math.max(16, tooltipTop), left: tooltipLeft, width: tooltipWidth });
+                setArrowDirection('top'); // arrow on bottom pointing down
+                setArrowStyle({
+                    position: 'absolute', bottom: -6, top: 'auto' as any,
+                    left: Math.min(Math.max(spotRect.left + spotRect.width / 2 - tooltipLeft - 6, 12), tooltipWidth - 24),
+                });
+            }
+        } else {
+            // Desktop: try right, then above, then below
+            const tooltipLeft = spotRect.left + spotRect.width + 16;
+            const tooltipTop = spotRect.top + spotRect.height / 2 - 60;
+            const spaceBelow = vh - (spotRect.top + spotRect.height);
+            const hasSpaceRight = tooltipLeft + tooltipWidth <= window.innerWidth - 16;
+            const hasSpaceBelow = spaceBelow > tooltipHeight + 32;
+
+            if (hasSpaceRight) {
+                // Right of element
                 setTooltipStyle({
                     position: 'fixed',
-                    top: Math.max(16, tooltipTop),
+                    top: Math.max(16, Math.min(tooltipTop, vh - tooltipHeight - 16)),
                     left: tooltipLeft,
                     width: tooltipWidth,
                 });
                 setArrowDirection('left');
                 setArrowStyle({
-                    position: 'absolute',
-                    left: -6,
-                    top: Math.min(spotRect.top + spotRect.height / 2 - Math.max(16, tooltipTop) - 6, 100),
+                    position: 'absolute', left: -6,
+                    top: Math.min(spotRect.top + spotRect.height / 2 - Math.max(16, Math.min(tooltipTop, vh - tooltipHeight - 16)) - 6, 100),
+                });
+            } else if (!hasSpaceBelow) {
+                // Above element (when at bottom of screen)
+                const altTop = spotRect.top - tooltipHeight - 16;
+                const altLeft = Math.max(16, Math.min(
+                    spotRect.left + spotRect.width / 2 - tooltipWidth / 2,
+                    window.innerWidth - tooltipWidth - 16
+                ));
+                setTooltipStyle({ position: 'fixed', top: Math.max(16, altTop), left: altLeft, width: tooltipWidth });
+                setArrowDirection('top');
+                setArrowStyle({
+                    position: 'absolute', bottom: -6, top: 'auto' as any,
+                    left: Math.min(Math.max(spotRect.left + spotRect.width / 2 - altLeft - 6, 12), tooltipWidth - 24),
+                });
+            } else {
+                // Below element
+                const altTop = spotRect.top + spotRect.height + 16;
+                const altLeft = Math.max(16, Math.min(
+                    spotRect.left + spotRect.width / 2 - tooltipWidth / 2,
+                    window.innerWidth - tooltipWidth - 16
+                ));
+                setTooltipStyle({ position: 'fixed', top: altTop, left: altLeft, width: tooltipWidth });
+                setArrowDirection('top');
+                setArrowStyle({
+                    position: 'absolute', top: -6,
+                    left: Math.min(Math.max(spotRect.left + spotRect.width / 2 - altLeft - 6, 12), tooltipWidth - 24),
                 });
             }
         }
