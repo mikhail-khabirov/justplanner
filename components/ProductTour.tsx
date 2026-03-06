@@ -175,7 +175,7 @@ const ProductTour: React.FC<ProductTourProps> = ({ isOpen, userId, onComplete })
     const currentStep = TOUR_STEPS[step];
 
     return (
-        <div className="fixed inset-0 z-[60]" onClick={handleComplete}>
+        <div className="fixed inset-0 z-[60]" onClick={handleNext}>
             {/* Overlay with spotlight cutout using box-shadow */}
             <div
                 className="fixed z-[60] rounded-xl transition-all duration-500 ease-out"
@@ -253,14 +253,7 @@ const ProductTour: React.FC<ProductTourProps> = ({ isOpen, userId, onComplete })
                     </div>
 
                     {/* Actions */}
-                    <div className="px-4 pb-3 flex gap-2 items-center">
-                        <button
-                            onClick={handleComplete}
-                            className="text-gray-400 hover:text-gray-600 text-xs transition-colors"
-                        >
-                            Пропустить
-                        </button>
-                        <div className="flex-1" />
+                    <div className="px-4 pb-3 flex justify-end">
                         <button
                             onClick={handleNext}
                             className="px-4 py-2 bg-[#26A69A] hover:bg-[#1f8f84] text-white rounded-xl text-sm font-semibold transition-colors shadow-md hover:shadow-lg"
