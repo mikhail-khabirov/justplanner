@@ -1531,6 +1531,7 @@ const App: React.FC = () => {
           isPremium={isPremium}
           onShowUpgradePrompt={(reason) => showUpgradePromptWithReason(reason || 'colors')}
           isTelegramLinked={telegramLinked}
+          showTourReminder={showProductTour}
           onReminderChange={handleReminderChange}
         />
       )}
@@ -1655,6 +1656,17 @@ const App: React.FC = () => {
               subtasks: []
             };
             setTasks(prev => [...prev, task2, task3]);
+          } else if (stepId === 'telegram-btn') {
+            // No action needed — button shown via showProductTour state
+          } else if (stepId === 'reminder-section') {
+            // Open the first demo task modal to show reminder section
+            setTasks(prev => {
+              const demoTask = prev.find(t => t.columnId === todayCol && t.hour === 10);
+              if (demoTask) {
+                setTimeout(() => setActiveTaskId(demoTask.id), 50);
+              }
+              return prev;
+            });
           }
         }}
       />
@@ -1688,12 +1700,13 @@ const App: React.FC = () => {
             />
           )}
 
-          {/* Telegram Connect Button - bottom left (Pro only, when not linked) */}
-          {isPremium && !telegramLinked && (
+          {/* Telegram Connect Button - bottom left (show during tour or for Pro when not linked) */}
+          {(showProductTour || (isPremium && !telegramLinked)) && (
             <button
               onClick={handleConnectTelegram}
               className="fixed bottom-5 left-5 z-40 flex items-center gap-2 px-4 py-2.5 rounded-xl shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl text-sm font-semibold bg-blue-500 text-white hover:bg-blue-600 border border-blue-400"
               title="Подключить Telegram"
+              data-tour="telegram-btn"
             >
               <Send size={16} />
               <span className="hidden sm:inline">Подключить Telegram</span>

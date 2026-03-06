@@ -19,6 +19,7 @@ interface TaskModalProps {
     isPremium?: boolean;
     onShowUpgradePrompt?: (reason?: 'colors' | 'recurrence') => void;
     isTelegramLinked?: boolean;
+    showTourReminder?: boolean;
     onReminderChange?: (id: string, offset: string | null) => void;
 }
 
@@ -49,6 +50,7 @@ const TaskModal: React.FC<TaskModalProps> = ({
     isPremium = false,
     onShowUpgradePrompt,
     isTelegramLinked = false,
+    showTourReminder = false,
     onReminderChange
 }) => {
     const [title, setTitle] = useState(task.content);
@@ -399,8 +401,8 @@ const TaskModal: React.FC<TaskModalProps> = ({
                     </div>
 
                     {/* Reminder Section - only if Telegram linked AND task is on a specific date+time */}
-                    {isTelegramLinked && isDateColumn(task.columnId) && task.hour !== undefined && (
-                        <div className="flex items-center gap-3 mb-4">
+                    {(isTelegramLinked || showTourReminder) && isDateColumn(task.columnId) && task.hour !== undefined && (
+                        <div className="flex items-center gap-3 mb-4" data-tour="reminder-section">
                             <button
                                 onClick={() => {
                                     if (task.reminderOffset) {

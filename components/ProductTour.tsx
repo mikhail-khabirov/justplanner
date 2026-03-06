@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { X, MousePointerClick, GripVertical, Layers } from 'lucide-react';
+import { X, MousePointerClick, GripVertical, Layers, Send, Bell } from 'lucide-react';
 import { safeLocalStorage } from '../utils';
 
 interface ProductTourProps {
@@ -41,6 +41,22 @@ const getTourSteps = (todayISO: string) => [
         title: 'До 3 задач в час',
         description: 'В каждый часовой слот можно добавить до 3 задач — группируйте дела по времени',
         selector: `[data-column="${todayISO}"][data-hour="10"]`,
+    },
+    {
+        id: 'telegram-btn',
+        emoji: '✉️',
+        icon: Send,
+        title: 'Подключите Telegram',
+        description: 'Привяжите Telegram и получайте напоминания о задачах прямо в мессенджер',
+        selector: '[data-tour="telegram-btn"]',
+    },
+    {
+        id: 'reminder-section',
+        emoji: '🔔',
+        icon: Bell,
+        title: 'Настройте напоминания',
+        description: 'Откройте задачу и выберите время напоминания — бот пришлёт уведомление в Telegram',
+        selector: '[data-tour="reminder-section"]',
     },
 ];
 
@@ -176,10 +192,10 @@ const ProductTour: React.FC<ProductTourProps> = ({ isOpen, userId, todayISO, onC
             const nextStep = step + 1;
             const nextStepDef = TOUR_STEPS[nextStep];
 
-            // If next step needs tasks that don't exist yet, create them first
-            if ((nextStepDef.id === 'drag-drop' || nextStepDef.id === 'multi-task') && onCreateDemoTask) {
+            // Call onCreateDemoTask for steps that need setup
+            if (onCreateDemoTask) {
                 onCreateDemoTask(nextStepDef.id);
-                // Wait for react to render the new tasks, then advance
+                // Wait for react to render changes, then advance
                 setTimeout(() => {
                     setStep(nextStep);
                 }, 400);
