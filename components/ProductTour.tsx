@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { X, MousePointerClick, GripVertical, Layers, Send, Bell, TrendingUp, Inbox, Settings } from 'lucide-react';
+import { X, MousePointerClick, GripVertical, Layers, Send, Bell, TrendingUp, Inbox, Settings, Clock, RefreshCw, Crown } from 'lucide-react';
 import { safeLocalStorage } from '../utils';
 
 interface ProductTourProps {
@@ -75,12 +75,28 @@ const getTourSteps = (todayISO: string) => [
         selector: '[data-tour="backlog-section"]',
     },
     {
-        id: 'settings-modal',
-        emoji: '⚙️',
-        icon: Settings,
-        title: 'Настройте под себя',
-        description: 'Выберите начало рабочего дня, включите перенос незакрытых задач и переименуйте разделы бэклога',
-        selector: '[data-tour="settings-content"]',
+        id: 'settings-day-start',
+        emoji: '⏰',
+        icon: Clock,
+        title: 'Начало рабочего дня',
+        description: 'Выберите час, с которого начинается ваш день — календарь подстроится',
+        selector: '[data-tour="settings-day-start"]',
+    },
+    {
+        id: 'settings-rollover',
+        emoji: '🔄',
+        icon: RefreshCw,
+        title: 'Перенос задач',
+        description: 'Незакрытые задачи автоматически переносятся на сегодня — ничего не потеряется',
+        selector: '[data-tour="settings-rollover"]',
+    },
+    {
+        id: 'settings-pro',
+        emoji: '👑',
+        icon: Crown,
+        title: 'Разблокируйте все функции',
+        description: 'Перейдите на Pro и получите напоминания, настройку рабочего дня, перенос задач и многое другое',
+        selector: '[data-tour="settings-pro"]',
     },
 ];
 

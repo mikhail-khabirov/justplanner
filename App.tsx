@@ -1675,8 +1675,8 @@ const App: React.FC = () => {
             setActiveTaskId(null);
             setIsBacklogCollapsed(false);
             safeLocalStorage.setItem('backlogCollapsed', '0');
-          } else if (stepId === 'settings-modal') {
-            // Open settings modal
+          } else if (stepId === 'settings-day-start' || stepId === 'settings-rollover' || stepId === 'settings-pro') {
+            // Open settings modal (keep open if already open)
             setShowSettingsModal(true);
           }
         }}

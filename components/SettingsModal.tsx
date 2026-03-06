@@ -98,13 +98,13 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, currentDate, onT
                 <div className="px-6 py-5 space-y-8 max-h-[70vh] overflow-y-auto">
                     {/* Subscription Status - only for authenticated users */}
                     {isAuthenticated && (
-                        <div className="pb-4 border-b border-gray-100">
+                        <div className="pb-4 border-b border-gray-100" data-tour="settings-pro">
                             <SubscriptionStatus />
                         </div>
                     )}
 
                     {/* Day Start Hour Setting */}
-                    <div className="space-y-3">
+                    <div className="space-y-3" data-tour="settings-day-start">
                         <div className="flex items-center gap-2 text-gray-700">
                             <Clock size={18} />
                             <span className="font-medium">Начало рабочего дня</span>
@@ -157,7 +157,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, currentDate, onT
                     </div>
 
                     {/* Auto Rollover Setting */}
-                    <div className="space-y-3 pt-4 border-t border-gray-100">
+                    <div className="space-y-3 pt-4 border-t border-gray-100" data-tour="settings-rollover">
                         <div className="flex items-center gap-2 text-gray-700">
                             <RefreshCw size={18} />
                             <span className="font-medium">Перенос незакрытых задач</span>
