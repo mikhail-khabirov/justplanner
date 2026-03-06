@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { X, MousePointerClick, GripVertical, Layers, Send, Bell, TrendingUp } from 'lucide-react';
+import { X, MousePointerClick, GripVertical, Layers, Send, Bell, TrendingUp, Inbox, Settings } from 'lucide-react';
 import { safeLocalStorage } from '../utils';
 
 interface ProductTourProps {
@@ -65,6 +65,22 @@ const getTourSteps = (todayISO: string) => [
         title: 'Отслеживайте прогресс',
         description: 'Здесь видно сколько задач выполнено сегодня, за неделю и месяц — следите за своей эффективностью!',
         selector: '[data-tour="stats-widget"]',
+    },
+    {
+        id: 'backlog-section',
+        emoji: '📥',
+        icon: Inbox,
+        title: 'Бэклог для идей',
+        description: 'Внизу — 4 раздела: Входящие, Срочно, Достижения и Когда-нибудь. Записывайте сюда всё, что пока не привязано ко времени',
+        selector: '[data-tour="backlog-section"]',
+    },
+    {
+        id: 'settings-modal',
+        emoji: '⚙️',
+        icon: Settings,
+        title: 'Настройте под себя',
+        description: 'Выберите начало рабочего дня, включите перенос незакрытых задач и переименуйте разделы бэклога',
+        selector: '[data-tour="settings-content"]',
     },
 ];
 

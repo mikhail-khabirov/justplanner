@@ -82,7 +82,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, currentDate, onT
             />
 
             {/* Modal */}
-            <div className="relative w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden">
+            <div className="relative w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden" data-tour="settings-content">
                 {/* Header */}
                 <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
                     <h2 className="text-lg font-bold text-gray-900">Настройки</h2>

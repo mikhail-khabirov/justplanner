@@ -1478,7 +1478,7 @@ const App: React.FC = () => {
 
       {/* Footer / Backlog Area */}
       {!isBacklogCollapsed && (
-        <section className="flex-shrink-0 h-1/4 px-4 md:px-8 pb-4 border-t-2 border-gray-200 bg-gray-50 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] z-10" style={{ paddingBottom: 'calc(1rem + env(safe-area-inset-bottom))' }}>
+        <section className="flex-shrink-0 h-1/4 px-4 md:px-8 pb-4 border-t-2 border-gray-200 bg-gray-50 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] z-10" style={{ paddingBottom: 'calc(1rem + env(safe-area-inset-bottom))' }} data-tour="backlog-section">
           <div className="flex overflow-x-auto snap-x snap-mandatory gap-4 md:grid md:grid-cols-4 md:gap-8 h-full scrollbar-hide pb-2 md:pb-0">
             {BOTTOM_COLUMNS.map(colDef => (
               <div key={colDef.id} className="min-w-[85vw] md:min-w-0 h-full snap-center last:pr-4 md:last:pr-0">
@@ -1670,6 +1670,14 @@ const App: React.FC = () => {
           } else if (stepId === 'stats-widget') {
             // Close the task modal so stats widget is visible
             setActiveTaskId(null);
+          } else if (stepId === 'backlog-section') {
+            // Close modal and expand backlog
+            setActiveTaskId(null);
+            setIsBacklogCollapsed(false);
+            safeLocalStorage.setItem('backlogCollapsed', '0');
+          } else if (stepId === 'settings-modal') {
+            // Open settings modal
+            setShowSettingsModal(true);
           }
         }}
       />
