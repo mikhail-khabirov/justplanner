@@ -77,7 +77,7 @@ interface QuickAddState {
 
 // Reusable Stats Content Component
 const StatsDisplay = ({ stats }: { stats: any }) => (
-  <div className="flex items-center gap-1.5 bg-gray-50 px-2 py-1.5 rounded-xl border border-gray-100/80 shadow-sm">
+  <div className="flex items-center gap-1.5 bg-gray-50 px-2 py-1.5 rounded-xl border border-gray-100/80 shadow-sm" data-tour="stats-widget">
     <TrendingUp size={13} className="text-blue-400 shrink-0" />
     <div className="flex flex-col gap-0.5 text-[11px] font-semibold text-gray-700 leading-none">
       <div className="flex items-center gap-0.5" title="Сегодня">
@@ -1667,6 +1667,9 @@ const App: React.FC = () => {
               }
               return prev;
             });
+          } else if (stepId === 'stats-widget') {
+            // Close the task modal so stats widget is visible
+            setActiveTaskId(null);
           }
         }}
       />

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { X, MousePointerClick, GripVertical, Layers, Send, Bell } from 'lucide-react';
+import { X, MousePointerClick, GripVertical, Layers, Send, Bell, TrendingUp } from 'lucide-react';
 import { safeLocalStorage } from '../utils';
 
 interface ProductTourProps {
@@ -57,6 +57,14 @@ const getTourSteps = (todayISO: string) => [
         title: 'Настройте напоминания',
         description: 'Откройте задачу и выберите время напоминания — бот пришлёт уведомление в Telegram',
         selector: '[data-tour="reminder-section"]',
+    },
+    {
+        id: 'stats-widget',
+        emoji: '📈',
+        icon: TrendingUp,
+        title: 'Отслеживайте прогресс',
+        description: 'Здесь видно сколько задач выполнено сегодня, за неделю и месяц — следите за своей эффективностью!',
+        selector: '[data-tour="stats-widget"]',
     },
 ];
 
