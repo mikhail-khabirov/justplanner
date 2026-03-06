@@ -191,7 +191,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, currentDate, onT
                     </div>
 
                     {/* Section Names Setting */}
-                    <div className="space-y-3 pt-4 border-t border-gray-100">
+                    <div className="space-y-3 pt-4 border-t border-gray-100" data-tour="settings-sections">
                         <div className="flex items-center gap-2 text-gray-700">
                             <span className="font-medium">Названия разделов</span>
                             {!isPremium && (

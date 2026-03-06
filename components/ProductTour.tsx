@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { X, MousePointerClick, GripVertical, Layers, Send, Bell, TrendingUp, Inbox, Settings, Clock, RefreshCw, Crown } from 'lucide-react';
+import { X, MousePointerClick, GripVertical, Layers, Send, Bell, TrendingUp, Inbox, Settings, Clock, RefreshCw, Crown, PenLine } from 'lucide-react';
 import { safeLocalStorage } from '../utils';
 
 interface ProductTourProps {
@@ -89,6 +89,14 @@ const getTourSteps = (todayISO: string) => [
         title: 'Перенос задач',
         description: 'Незакрытые задачи автоматически переносятся на сегодня — ничего не потеряется',
         selector: '[data-tour="settings-rollover"]',
+    },
+    {
+        id: 'settings-sections',
+        emoji: '✏️',
+        icon: PenLine,
+        title: 'Названия разделов',
+        description: 'Переименуйте разделы бэклога под свои задачи — например, «Работа» или «Личное»',
+        selector: '[data-tour="settings-sections"]',
     },
     {
         id: 'settings-pro',
