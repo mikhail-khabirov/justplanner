@@ -1621,18 +1621,40 @@ const App: React.FC = () => {
             setTimeout(() => setShowAnnualModal(true), 10000);
           }
         }}
-        onCreateDemoTask={() => {
+        onCreateDemoTask={(stepId: string) => {
           const todayCol = getTodayISO();
-          const demoTask: Task = {
-            id: generateId(),
-            content: 'Моя первая задача ✏️',
-            columnId: todayCol,
-            hour: 10,
-            color: 'blue' as TaskColor,
-            completed: false,
-            subtasks: []
-          };
-          setTasks(prev => [...prev, demoTask]);
+          if (stepId === 'drag-drop') {
+            const demoTask: Task = {
+              id: generateId(),
+              content: 'Моя первая задача ✏️',
+              columnId: todayCol,
+              hour: 10,
+              color: 'blue' as TaskColor,
+              completed: false,
+              subtasks: []
+            };
+            setTasks(prev => [...prev, demoTask]);
+          } else if (stepId === 'multi-task') {
+            const task2: Task = {
+              id: generateId(),
+              content: 'Позвонить клиенту 📞',
+              columnId: todayCol,
+              hour: 10,
+              color: 'green' as TaskColor,
+              completed: false,
+              subtasks: []
+            };
+            const task3: Task = {
+              id: generateId(),
+              content: 'Отправить отчёт 📊',
+              columnId: todayCol,
+              hour: 10,
+              color: 'purple' as TaskColor,
+              completed: false,
+              subtasks: []
+            };
+            setTasks(prev => [...prev, task2, task3]);
+          }
         }}
       />
 

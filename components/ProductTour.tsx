@@ -1,12 +1,12 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { X, MousePointerClick, GripVertical } from 'lucide-react';
+import { X, MousePointerClick, GripVertical, Layers } from 'lucide-react';
 import { safeLocalStorage } from '../utils';
 
 interface ProductTourProps {
     isOpen: boolean;
     userId?: string;
     onComplete: () => void;
-    onCreateDemoTask?: () => void;
+    onCreateDemoTask?: (stepId: string) => void;
 }
 
 interface SpotlightRect {
@@ -32,6 +32,15 @@ const TOUR_STEPS = [
         icon: GripVertical,
         title: 'Перетаскивайте задачи',
         description: 'Зажмите задачу и перетащите на любой день или час. Работает и на мобильных!',
+        selector: '[data-tour="drag-task"]',
+        tooltipPosition: 'right' as const,
+    },
+    {
+        id: 'multi-task',
+        emoji: '📚',
+        icon: Layers,
+        title: 'До 3 задач в час',
+        description: 'В каждый часовой слот можно добавить до 3 задач — группируйте дела по времени',
         selector: '[data-tour="drag-task"]',
         tooltipPosition: 'right' as const,
     },
@@ -168,16 +177,14 @@ const ProductTour: React.FC<ProductTourProps> = ({ isOpen, userId, onComplete, o
             const nextStep = step + 1;
             const nextStepDef = TOUR_STEPS[nextStep];
 
-            // If next step needs drag-task and it doesn't exist, create demo task first
-            if (nextStepDef.id === 'drag-drop' && !document.querySelector(nextStepDef.selector)) {
-                if (onCreateDemoTask) {
-                    onCreateDemoTask();
-                    // Wait for react to render the new task, then advance
-                    setTimeout(() => {
-                        setStep(nextStep);
-                    }, 400);
-                    return;
-                }
+            // If next step needs tasks that don't exist yet, create them first
+            if ((nextStepDef.id === 'drag-drop' || nextStepDef.id === 'multi-task') && onCreateDemoTask) {
+                onCreateDemoTask(nextStepDef.id);
+                // Wait for react to render the new tasks, then advance
+                setTimeout(() => {
+                    setStep(nextStep);
+                }, 400);
+                return;
             }
 
             setStep(nextStep);
