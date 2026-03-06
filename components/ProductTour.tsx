@@ -192,6 +192,27 @@ const ProductTour: React.FC<ProductTourProps> = ({ isOpen, userId, onComplete, o
 
     return (
         <div className="fixed inset-0 z-[60]" onClick={handleNext}>
+            {/* CSS animations for drag demo */}
+            <style>{`
+                @keyframes tour-drag-hand {
+                    0% { transform: translate(0, 0) scale(1); opacity: 0; }
+                    10% { transform: translate(0, 0) scale(1); opacity: 1; }
+                    25% { transform: translate(0, -2px) scale(1.1); }
+                    40% { transform: translate(60px, -15px) scale(1.1); }
+                    70% { transform: translate(80px, -20px) scale(1.1); }
+                    85% { transform: translate(80px, -20px) scale(1); opacity: 0.5; }
+                    100% { transform: translate(0, 0) scale(1); opacity: 0; }
+                }
+                @keyframes tour-task-wiggle {
+                    0%, 100% { transform: translateX(0); }
+                    15% { transform: translateX(0); }
+                    25% { transform: translateX(2px) rotate(0.5deg); }
+                    40% { transform: translateX(60px) rotate(1deg); }
+                    70% { transform: translateX(80px) rotate(0.5deg); }
+                    85% { transform: translateX(0) rotate(0deg); }
+                }
+            `}</style>
+
             {/* Overlay with spotlight cutout using box-shadow */}
             <div
                 className="fixed z-[60] rounded-xl transition-all duration-500 ease-out"
@@ -202,6 +223,9 @@ const ProductTour: React.FC<ProductTourProps> = ({ isOpen, userId, onComplete, o
                     height: spotlight.height,
                     boxShadow: '0 0 0 9999px rgba(0, 0, 0, 0.55)',
                     pointerEvents: 'none',
+                    ...(currentStep.id === 'drag-drop' ? {
+                        animation: 'tour-task-wiggle 3s ease-in-out infinite',
+                    } : {}),
                 }}
             />
 
@@ -214,8 +238,26 @@ const ProductTour: React.FC<ProductTourProps> = ({ isOpen, userId, onComplete, o
                     width: spotlight.width,
                     height: spotlight.height,
                     boxShadow: '0 0 20px rgba(38, 166, 154, 0.3), inset 0 0 20px rgba(38, 166, 154, 0.1)',
+                    ...(currentStep.id === 'drag-drop' ? {
+                        animation: 'tour-task-wiggle 3s ease-in-out infinite',
+                    } : {}),
                 }}
             />
+
+            {/* Animated drag hand cursor on step 2 */}
+            {currentStep.id === 'drag-drop' && (
+                <div
+                    className="fixed z-[62] pointer-events-none"
+                    style={{
+                        top: spotlight.top + spotlight.height / 2 - 12,
+                        left: spotlight.left + 20,
+                        animation: 'tour-drag-hand 3s ease-in-out infinite',
+                        fontSize: 28,
+                    }}
+                >
+                    👆
+                </div>
+            )}
 
             {/* Tooltip */}
             <div
