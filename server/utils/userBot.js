@@ -54,7 +54,8 @@ export async function sendUserReminder(chatId, taskContent, taskDate, taskHour) 
         `🔔 <b>Напоминание</b>\n\n` +
         `📋 ${taskContent}\n` +
         `📅 ${dateFormatted}\n` +
-        `🕐 ${hourStr}`;
+        `🕐 ${hourStr}\n\n` +
+        `👉 <a href="https://justplanner.ru">Открыть JustPlanner</a>`;
 
     await sendUserMessage(chatId, text);
 }

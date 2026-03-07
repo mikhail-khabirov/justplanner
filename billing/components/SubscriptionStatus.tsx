@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Crown, Calendar, ToggleLeft, ToggleRight, Loader2, ExternalLink, CreditCard, X } from 'lucide-react';
+import { Crown, Calendar, ToggleLeft, ToggleRight, Loader2, ExternalLink, CreditCard, X, ShieldCheck } from 'lucide-react';
 import { useBilling } from '../BillingContext';
 
 interface SubscriptionStatusProps {
@@ -206,6 +206,10 @@ const SubscriptionStatus: React.FC<SubscriptionStatusProps> = ({ onUpgrade }) =>
                     )}
                 </button>
                 <p className="text-center text-xs text-gray-400 mt-1">далее 199 ₽/мес</p>
+                <div className="flex items-center justify-center gap-1.5 mt-1.5">
+                    <ShieldCheck size={13} className="text-green-600 shrink-0" />
+                    <span className="text-[11px] text-green-700 font-medium">Гарантия возврата 100%</span>
+                </div>
             </div>
         </div>
     );

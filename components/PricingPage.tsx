@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Check, ArrowLeft, Crown, Loader2, Info } from 'lucide-react';
+import { Check, ArrowLeft, Crown, Loader2, Info, ShieldCheck } from 'lucide-react';
 
 interface Subscription {
     plan?: string;
@@ -207,6 +207,13 @@ const PricingPage: React.FC<PricingPageProps> = ({ onBack, onSelectPlan, token, 
                             </button>
                         </div>
                     </div>
+                </div>
+
+                <div className="max-w-6xl mx-auto mt-10 flex items-center justify-center gap-2.5 bg-green-50 border border-green-200 rounded-2xl px-6 py-4">
+                    <ShieldCheck size={22} className="text-green-600 shrink-0" />
+                    <p className="text-sm text-green-700 font-medium">
+                        100% гарантия возврата денег, если продукт не понравится. Без вопросов.
+                    </p>
                 </div>
 
                 <div className="mt-16 text-center text-gray-500 text-sm">

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Crown, X, Loader2, Sparkles, Info } from 'lucide-react';
+import { Crown, X, Loader2, Sparkles, Info, ShieldCheck } from 'lucide-react';
 import { useBilling } from '../BillingContext';
 
 export type UpgradeReason = 'task_limit' | 'colors' | 'week_planning' | 'recurrence' | 'pdf' | 'print';
@@ -136,6 +136,11 @@ const UpgradePrompt: React.FC<UpgradePromptProps> = ({ isOpen, onClose, reason =
 
                     <p className="text-center text-xs text-gray-400 mt-1.5">далее 199 ₽/мес</p>
 
+                    <div className="flex items-center justify-center gap-1.5 mt-2">
+                        <ShieldCheck size={14} className="text-green-600 shrink-0" />
+                        <span className="text-xs text-green-700 font-medium">Гарантия возврата 100% — без вопросов</span>
+                    </div>
+
                     {/* Auto-renewal terms link */}
                     <p className="text-center mt-0.5">
                         <button
@@ -181,6 +186,9 @@ const UpgradePrompt: React.FC<UpgradePromptProps> = ({ isOpen, onClose, reason =
                             </p>
                             <p>
                                 Отменить подписку и отвязать способ оплаты вы сможете в любой момент в настройках.
+                            </p>
+                            <p>
+                                Если продукт не понравится — вернём 100% оплаты без вопросов.
                             </p>
                         </div>
 

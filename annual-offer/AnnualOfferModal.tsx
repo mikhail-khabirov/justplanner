@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Crown, Clock, Check, Loader2 } from 'lucide-react';
+import { X, Crown, Clock, Check, Loader2, ShieldCheck } from 'lucide-react';
 import { billingApi } from '../billing/api';
 import { useCountdown } from './useCountdown';
 import { formatCountdown, dismissOffer } from './utils';
@@ -143,7 +143,12 @@ const AnnualOfferModal: React.FC<AnnualOfferModalProps> = ({ isOpen, onClose, on
                         )}
                     </button>
 
-                    <p className="text-center text-xs text-gray-400 mt-3">
+                    <div className="flex items-center justify-center gap-1.5 mt-3">
+                        <ShieldCheck size={14} className="text-green-600 shrink-0" />
+                        <span className="text-xs text-green-700 font-medium">Гарантия возврата 100% — без вопросов</span>
+                    </div>
+
+                    <p className="text-center text-xs text-gray-400 mt-2">
                         Подписка продлевается автоматически через 365 дней по стоимости 2 388 ₽/год. Отменить можно в любой момент в настройках.
                     </p>
                 </div>
