@@ -614,7 +614,7 @@ const App: React.FC = () => {
   const weekGoals: WeeklyGoal[] = useMemo(() => {
     return tasks
       .filter(t => t.columnId === weekGoalsColumnId)
-      .map(t => ({ id: t.id, content: t.content, completed: t.completed }));
+      .map(t => ({ id: t.id, content: t.content, completed: t.completed, subtasks: (t.subtasks || []).map(s => ({ id: s.id, content: s.content, completed: s.completed })) }));
   }, [tasks, weekGoalsColumnId]);
 
   const weekLabel = useMemo(() => {
@@ -674,6 +674,33 @@ const App: React.FC = () => {
       t.id === id ? { ...t, columnId: nextWeekColumnId } : t
     ));
   }, [startDate]);
+
+  const handleAddGoalSubtask = useCallback((goalId: string, content: string) => {
+    setTasks(prev => prev.map(t => {
+      if (t.id === goalId) {
+        return { ...t, subtasks: [...t.subtasks, { id: generateId(), content, completed: false }] };
+      }
+      return t;
+    }));
+  }, []);
+
+  const handleToggleGoalSubtask = useCallback((goalId: string, subtaskId: string) => {
+    setTasks(prev => prev.map(t => {
+      if (t.id === goalId) {
+        return { ...t, subtasks: t.subtasks.map(s => s.id === subtaskId ? { ...s, completed: !s.completed } : s) };
+      }
+      return t;
+    }));
+  }, []);
+
+  const handleDeleteGoalSubtask = useCallback((goalId: string, subtaskId: string) => {
+    setTasks(prev => prev.map(t => {
+      if (t.id === goalId) {
+        return { ...t, subtasks: t.subtasks.filter(s => s.id !== subtaskId) };
+      }
+      return t;
+    }));
+  }, []);
 
   // Header Date Title
   const monthTitle = useMemo(() => {
@@ -1503,6 +1530,9 @@ const App: React.FC = () => {
         onUpdate={handleUpdateGoal}
         onReorder={handleReorderGoals}
         onMoveToNextWeek={handleMoveGoalToNextWeek}
+        onAddSubtask={handleAddGoalSubtask}
+        onToggleSubtask={handleToggleGoalSubtask}
+        onDeleteSubtask={handleDeleteGoalSubtask}
         weekLabel={weekLabel}
       />
 

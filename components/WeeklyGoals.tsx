@@ -1,10 +1,17 @@
 import React, { useState, useRef, useCallback } from 'react';
-import { Target, Plus, X, GripVertical, Check, ArrowRightToLine } from 'lucide-react';
+import { Target, Plus, X, GripVertical, Check, ArrowRightToLine, ChevronDown, ChevronRight } from 'lucide-react';
+
+export interface GoalSubtask {
+    id: string;
+    content: string;
+    completed: boolean;
+}
 
 export interface WeeklyGoal {
     id: string;
     content: string;
     completed: boolean;
+    subtasks: GoalSubtask[];
 }
 
 interface WeeklyGoalsProps {
@@ -17,7 +24,10 @@ interface WeeklyGoalsProps {
     onUpdate: (id: string, content: string) => void;
     onReorder: (goals: WeeklyGoal[]) => void;
     onMoveToNextWeek: (id: string) => void;
-    weekLabel: string; // e.g. "9 – 15 марта"
+    onAddSubtask: (goalId: string, content: string) => void;
+    onToggleSubtask: (goalId: string, subtaskId: string) => void;
+    onDeleteSubtask: (goalId: string, subtaskId: string) => void;
+    weekLabel: string;
 }
 
 const WeeklyGoals: React.FC<WeeklyGoalsProps> = ({
@@ -30,13 +40,19 @@ const WeeklyGoals: React.FC<WeeklyGoalsProps> = ({
     onUpdate,
     onReorder,
     onMoveToNextWeek,
+    onAddSubtask,
+    onToggleSubtask,
+    onDeleteSubtask,
     weekLabel,
 }) => {
     const [newGoalText, setNewGoalText] = useState('');
     const [editingId, setEditingId] = useState<string | null>(null);
     const [editText, setEditText] = useState('');
+    const [expandedGoalId, setExpandedGoalId] = useState<string | null>(null);
+    const [newSubtaskText, setNewSubtaskText] = useState('');
     const inputRef = useRef<HTMLInputElement>(null);
     const editInputRef = useRef<HTMLInputElement>(null);
+    const subtaskInputRef = useRef<HTMLInputElement>(null);
 
     // Drag state
     const [dragIdx, setDragIdx] = useState<number | null>(null);
@@ -71,6 +87,25 @@ const WeeklyGoals: React.FC<WeeklyGoalsProps> = ({
         setEditingId(null);
         setEditText('');
     }, [editingId, editText, onUpdate]);
+
+    const toggleExpanded = useCallback((goalId: string) => {
+        setExpandedGoalId(prev => {
+            const next = prev === goalId ? null : goalId;
+            if (next) {
+                setNewSubtaskText('');
+                setTimeout(() => subtaskInputRef.current?.focus(), 100);
+            }
+            return next;
+        });
+    }, []);
+
+    const handleAddSubtask = useCallback((goalId: string) => {
+        const trimmed = newSubtaskText.trim();
+        if (!trimmed) return;
+        onAddSubtask(goalId, trimmed);
+        setNewSubtaskText('');
+        setTimeout(() => subtaskInputRef.current?.focus(), 50);
+    }, [newSubtaskText, onAddSubtask]);
 
     // --- Drag handlers ---
     const handleDragStart = (idx: number) => {
@@ -133,7 +168,7 @@ const WeeklyGoals: React.FC<WeeklyGoalsProps> = ({
 
     return (
         <>
-            {/* Side tab button — always visible on left edge */}
+            {/* Side tab button */}
             {!isOpen && (
                 <button
                     onClick={onToggle}
@@ -156,8 +191,7 @@ const WeeklyGoals: React.FC<WeeklyGoalsProps> = ({
 
             {/* Panel */}
             <div
-                className={`fixed top-0 left-0 h-full z-50 transition-transform duration-300 ease-out ${isOpen ? 'translate-x-0' : '-translate-x-full'
-                    }`}
+                className={`fixed top-0 left-0 h-full z-50 transition-transform duration-300 ease-out ${isOpen ? 'translate-x-0' : '-translate-x-full'}`}
                 style={{ width: 'min(340px, 90vw)' }}
             >
                 <div className="h-full bg-white shadow-2xl flex flex-col border-r border-gray-100">
@@ -192,92 +226,164 @@ const WeeklyGoals: React.FC<WeeklyGoalsProps> = ({
                             </div>
                         ) : (
                             <div className="space-y-1.5">
-                                {goals.map((goal, idx) => (
-                                    <div
-                                        key={goal.id}
-                                        data-goal-item
-                                        draggable
-                                        onDragStart={() => handleDragStart(idx)}
-                                        onDragEnter={() => handleDragEnter(idx)}
-                                        onDragEnd={handleDragEnd}
-                                        onDragOver={(e) => e.preventDefault()}
-                                        onTouchStart={(e) => handleTouchStart(idx, e)}
-                                        onTouchMove={handleTouchMove}
-                                        onTouchEnd={handleTouchEnd}
-                                        className={`group flex items-start gap-2 p-2.5 rounded-xl border transition-all duration-150 ${dragIdx === idx
-                                            ? 'opacity-50 scale-[0.98] border-emerald-300 bg-emerald-50/50'
-                                            : overIdx === idx && dragIdx !== null
-                                                ? 'border-emerald-400 bg-emerald-50/30 shadow-sm'
-                                                : goal.completed
-                                                    ? 'border-gray-100 bg-gray-50/50'
-                                                    : 'border-gray-100 bg-white hover:border-gray-200 hover:shadow-sm'
-                                            }`}
-                                    >
-                                        {/* Drag handle */}
-                                        <div className="pt-0.5 cursor-grab active:cursor-grabbing text-gray-300 hover:text-gray-400 touch-none">
-                                            <GripVertical size={14} />
-                                        </div>
+                                {goals.map((goal, idx) => {
+                                    const isExpanded = expandedGoalId === goal.id;
+                                    const doneCount = goal.subtasks.filter(s => s.completed).length;
+                                    const totalCount = goal.subtasks.length;
 
-                                        {/* Checkbox */}
-                                        <button
-                                            onClick={() => onToggleComplete(goal.id)}
-                                            className={`mt-0.5 flex-shrink-0 w-4.5 h-4.5 rounded-md border-2 flex items-center justify-center transition-all ${goal.completed
-                                                ? 'bg-emerald-400 border-emerald-400 text-white'
-                                                : 'border-gray-300 hover:border-emerald-400'
-                                                }`}
-                                            style={{ width: 18, height: 18 }}
-                                        >
-                                            {goal.completed && <Check size={12} strokeWidth={3} />}
-                                        </button>
-
-                                        {/* Content */}
-                                        {editingId === goal.id ? (
-                                            <input
-                                                ref={editInputRef}
-                                                value={editText}
-                                                onChange={(e) => setEditText(e.target.value)}
-                                                onBlur={commitEdit}
-                                                onKeyDown={(e) => {
-                                                    if (e.key === 'Enter') commitEdit();
-                                                    if (e.key === 'Escape') { setEditingId(null); setEditText(''); }
-                                                }}
-                                                className="flex-1 text-sm bg-transparent outline-none border-b border-emerald-300 py-0.5 text-gray-800"
-                                            />
-                                        ) : (
-                                            <span
-                                                onClick={() => startEdit(goal.id, goal.content)}
-                                                className={`flex-1 text-sm leading-snug cursor-text break-words ${goal.completed ? 'text-gray-400 line-through' : 'text-gray-700'
+                                    return (
+                                        <div key={goal.id} data-goal-item>
+                                            <div
+                                                draggable
+                                                onDragStart={() => handleDragStart(idx)}
+                                                onDragEnter={() => handleDragEnter(idx)}
+                                                onDragEnd={handleDragEnd}
+                                                onDragOver={(e) => e.preventDefault()}
+                                                onTouchStart={(e) => handleTouchStart(idx, e)}
+                                                onTouchMove={handleTouchMove}
+                                                onTouchEnd={handleTouchEnd}
+                                                className={`group flex items-start gap-2 p-2.5 rounded-xl border transition-all duration-150 cursor-pointer ${dragIdx === idx
+                                                        ? 'opacity-50 scale-[0.98] border-emerald-300 bg-emerald-50/50'
+                                                        : overIdx === idx && dragIdx !== null
+                                                            ? 'border-emerald-400 bg-emerald-50/30 shadow-sm'
+                                                            : isExpanded
+                                                                ? 'border-emerald-200 bg-emerald-50/30 shadow-sm'
+                                                                : goal.completed
+                                                                    ? 'border-gray-100 bg-gray-50/50'
+                                                                    : 'border-gray-100 bg-white hover:border-gray-200 hover:shadow-sm'
                                                     }`}
                                             >
-                                                {goal.content}
-                                            </span>
-                                        )}
+                                                {/* Drag handle */}
+                                                <div className="pt-0.5 cursor-grab active:cursor-grabbing text-gray-300 hover:text-gray-400 touch-none">
+                                                    <GripVertical size={14} />
+                                                </div>
 
-                                        {/* Action buttons */}
-                                        <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 flex-shrink-0">
-                                            {/* Move to next week */}
-                                            <div className="relative group/move">
+                                                {/* Checkbox */}
                                                 <button
-                                                    onClick={() => onMoveToNextWeek(goal.id)}
-                                                    className="p-1 rounded-lg text-gray-300 hover:text-blue-500 hover:bg-blue-50 transition-colors"
+                                                    onClick={(e) => { e.stopPropagation(); onToggleComplete(goal.id); }}
+                                                    className={`mt-0.5 flex-shrink-0 rounded-md border-2 flex items-center justify-center transition-all ${goal.completed
+                                                            ? 'bg-emerald-400 border-emerald-400 text-white'
+                                                            : 'border-gray-300 hover:border-emerald-400'
+                                                        }`}
+                                                    style={{ width: 18, height: 18 }}
                                                 >
-                                                    <ArrowRightToLine size={14} />
+                                                    {goal.completed && <Check size={12} strokeWidth={3} />}
                                                 </button>
-                                                <span className="pointer-events-none absolute bottom-full left-1/2 -translate-x-1/2 mb-1.5 px-2 py-1 text-[10px] font-medium text-white bg-gray-800 rounded-md whitespace-nowrap opacity-0 group-hover/move:opacity-100 transition-opacity duration-150 shadow-lg">
-                                                    На следующую неделю
-                                                </span>
+
+                                                {/* Content + subtask counter */}
+                                                <div className="flex-1 min-w-0" onClick={() => toggleExpanded(goal.id)}>
+                                                    {editingId === goal.id ? (
+                                                        <input
+                                                            ref={editInputRef}
+                                                            value={editText}
+                                                            onChange={(e) => setEditText(e.target.value)}
+                                                            onBlur={commitEdit}
+                                                            onClick={(e) => e.stopPropagation()}
+                                                            onKeyDown={(e) => {
+                                                                if (e.key === 'Enter') commitEdit();
+                                                                if (e.key === 'Escape') { setEditingId(null); setEditText(''); }
+                                                            }}
+                                                            className="w-full text-sm bg-transparent outline-none border-b border-emerald-300 py-0.5 text-gray-800"
+                                                        />
+                                                    ) : (
+                                                        <div className="flex items-center gap-1.5">
+                                                            {isExpanded
+                                                                ? <ChevronDown size={13} className="text-emerald-400 flex-shrink-0 mt-0.5" />
+                                                                : <ChevronRight size={13} className="text-gray-300 flex-shrink-0 mt-0.5" />
+                                                            }
+                                                            <span
+                                                                onDoubleClick={(e) => { e.stopPropagation(); startEdit(goal.id, goal.content); }}
+                                                                className={`text-sm leading-snug break-words ${goal.completed ? 'text-gray-400 line-through' : 'text-gray-700'
+                                                                    }`}
+                                                            >
+                                                                {goal.content}
+                                                            </span>
+                                                            {totalCount > 0 && (
+                                                                <span className={`text-[10px] font-semibold ml-auto flex-shrink-0 px-1.5 py-0.5 rounded-full ${doneCount === totalCount
+                                                                        ? 'bg-emerald-100 text-emerald-600'
+                                                                        : 'bg-gray-100 text-gray-400'
+                                                                    }`}>
+                                                                    {doneCount}/{totalCount}
+                                                                </span>
+                                                            )}
+                                                        </div>
+                                                    )}
+                                                </div>
+
+                                                {/* Action buttons */}
+                                                <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 flex-shrink-0">
+                                                    <div className="relative group/move">
+                                                        <button
+                                                            onClick={(e) => { e.stopPropagation(); onMoveToNextWeek(goal.id); }}
+                                                            className="p-1 rounded-lg text-gray-300 hover:text-blue-500 hover:bg-blue-50 transition-colors"
+                                                        >
+                                                            <ArrowRightToLine size={14} />
+                                                        </button>
+                                                        <span className="pointer-events-none absolute bottom-full left-1/2 -translate-x-1/2 mb-1.5 px-2 py-1 text-[10px] font-medium text-white bg-gray-800 rounded-md whitespace-nowrap opacity-0 group-hover/move:opacity-100 transition-opacity duration-150 shadow-lg">
+                                                            На следующую неделю
+                                                        </span>
+                                                    </div>
+                                                    <button
+                                                        onClick={(e) => { e.stopPropagation(); onDelete(goal.id); }}
+                                                        className="p-1 rounded-lg text-gray-300 hover:text-red-400 hover:bg-red-50 transition-colors"
+                                                    >
+                                                        <X size={14} />
+                                                    </button>
+                                                </div>
                                             </div>
 
-                                            {/* Delete */}
-                                            <button
-                                                onClick={() => onDelete(goal.id)}
-                                                className="p-1 rounded-lg text-gray-300 hover:text-red-400 hover:bg-red-50 transition-colors"
-                                            >
-                                                <X size={14} />
-                                            </button>
+                                            {/* Expanded subtasks area */}
+                                            {isExpanded && (
+                                                <div className="ml-8 mt-1 mb-2 pl-3 border-l-2 border-emerald-100">
+                                                    {/* Subtask list */}
+                                                    {goal.subtasks.map(sub => (
+                                                        <div key={sub.id} className="group/sub flex items-center gap-2 py-1.5 px-1">
+                                                            <button
+                                                                onClick={() => onToggleSubtask(goal.id, sub.id)}
+                                                                className={`flex-shrink-0 rounded border-2 flex items-center justify-center transition-all ${sub.completed
+                                                                        ? 'bg-emerald-300 border-emerald-300 text-white'
+                                                                        : 'border-gray-300 hover:border-emerald-300'
+                                                                    }`}
+                                                                style={{ width: 15, height: 15 }}
+                                                            >
+                                                                {sub.completed && <Check size={10} strokeWidth={3} />}
+                                                            </button>
+                                                            <span className={`flex-1 text-xs leading-snug ${sub.completed ? 'text-gray-400 line-through' : 'text-gray-600'
+                                                                }`}>
+                                                                {sub.content}
+                                                            </span>
+                                                            <button
+                                                                onClick={() => onDeleteSubtask(goal.id, sub.id)}
+                                                                className="p-0.5 rounded text-gray-300 hover:text-red-400 transition-colors opacity-0 group-hover/sub:opacity-100"
+                                                            >
+                                                                <X size={12} />
+                                                            </button>
+                                                        </div>
+                                                    ))}
+
+                                                    {/* Add subtask input */}
+                                                    <div className="flex items-center gap-1.5 mt-1 px-1">
+                                                        <Plus size={13} className="text-gray-300 flex-shrink-0" />
+                                                        <input
+                                                            ref={subtaskInputRef}
+                                                            type="text"
+                                                            value={newSubtaskText}
+                                                            onChange={(e) => setNewSubtaskText(e.target.value)}
+                                                            onKeyDown={(e) => {
+                                                                if (e.key === 'Enter') {
+                                                                    e.preventDefault();
+                                                                    handleAddSubtask(goal.id);
+                                                                }
+                                                            }}
+                                                            placeholder="Подзадача..."
+                                                            className="flex-1 bg-transparent outline-none text-xs text-gray-600 placeholder-gray-300 py-1"
+                                                        />
+                                                    </div>
+                                                </div>
+                                            )}
                                         </div>
-                                    </div>
-                                ))}
+                                    );
+                                })}
                             </div>
                         )}
                     </div>
