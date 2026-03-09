@@ -151,7 +151,9 @@ const App: React.FC = () => {
 
   // Annual offer state
   const [isBacklogCollapsed, setIsBacklogCollapsed] = useState(() => safeLocalStorage.getItem('backlogCollapsed') === '1');
-  const [isGoalsPanelOpen, setIsGoalsPanelOpen] = useState(false);
+  const goalsIntroSeen = safeLocalStorage.getItem('goalsIntroSeen') === '1';
+  const [isGoalsPanelOpen, setIsGoalsPanelOpen] = useState(!goalsIntroSeen);
+  const [showGoalsIntro, setShowGoalsIntro] = useState(!goalsIntroSeen);
   const [showAnnualModal, setShowAnnualModal] = useState(false);
   const [showAnnualWidget, setShowAnnualWidget] = useState(() => isOfferActive() && !isOfferDismissed());
 
@@ -1534,6 +1536,8 @@ const App: React.FC = () => {
         onToggleSubtask={handleToggleGoalSubtask}
         onDeleteSubtask={handleDeleteGoalSubtask}
         weekLabel={weekLabel}
+        showIntro={showGoalsIntro}
+        onDismissIntro={() => { setShowGoalsIntro(false); safeLocalStorage.setItem('goalsIntroSeen', '1'); }}
       />
 
       {/* Main Content: Horizontal Scroll for Days */}
