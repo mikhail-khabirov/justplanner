@@ -666,6 +666,15 @@ const App: React.FC = () => {
     });
   }, [weekGoalsColumnId]);
 
+  const handleMoveGoalToNextWeek = useCallback((id: string) => {
+    const nextMonday = new Date(startDate);
+    nextMonday.setDate(nextMonday.getDate() + 7);
+    const nextWeekColumnId = `goals-${toISODate(nextMonday)}`;
+    setTasks(prev => prev.map(t =>
+      t.id === id ? { ...t, columnId: nextWeekColumnId } : t
+    ));
+  }, [startDate]);
+
   // Header Date Title
   const monthTitle = useMemo(() => {
     const title = startDate.toLocaleDateString('ru-RU', { month: 'long', year: 'numeric' });
@@ -1493,6 +1502,7 @@ const App: React.FC = () => {
         onToggleComplete={handleToggleGoal}
         onUpdate={handleUpdateGoal}
         onReorder={handleReorderGoals}
+        onMoveToNextWeek={handleMoveGoalToNextWeek}
         weekLabel={weekLabel}
       />
 

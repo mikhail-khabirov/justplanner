@@ -1,5 +1,5 @@
 import React, { useState, useRef, useCallback } from 'react';
-import { Target, Plus, X, GripVertical, Check } from 'lucide-react';
+import { Target, Plus, X, GripVertical, Check, ArrowRightToLine } from 'lucide-react';
 
 export interface WeeklyGoal {
     id: string;
@@ -16,6 +16,7 @@ interface WeeklyGoalsProps {
     onToggleComplete: (id: string) => void;
     onUpdate: (id: string, content: string) => void;
     onReorder: (goals: WeeklyGoal[]) => void;
+    onMoveToNextWeek: (id: string) => void;
     weekLabel: string; // e.g. "9 – 15 марта"
 }
 
@@ -28,6 +29,7 @@ const WeeklyGoals: React.FC<WeeklyGoalsProps> = ({
     onToggleComplete,
     onUpdate,
     onReorder,
+    onMoveToNextWeek,
     weekLabel,
 }) => {
     const [newGoalText, setNewGoalText] = useState('');
@@ -203,12 +205,12 @@ const WeeklyGoals: React.FC<WeeklyGoalsProps> = ({
                                         onTouchMove={handleTouchMove}
                                         onTouchEnd={handleTouchEnd}
                                         className={`group flex items-start gap-2 p-2.5 rounded-xl border transition-all duration-150 ${dragIdx === idx
-                                                ? 'opacity-50 scale-[0.98] border-emerald-300 bg-emerald-50/50'
-                                                : overIdx === idx && dragIdx !== null
-                                                    ? 'border-emerald-400 bg-emerald-50/30 shadow-sm'
-                                                    : goal.completed
-                                                        ? 'border-gray-100 bg-gray-50/50'
-                                                        : 'border-gray-100 bg-white hover:border-gray-200 hover:shadow-sm'
+                                            ? 'opacity-50 scale-[0.98] border-emerald-300 bg-emerald-50/50'
+                                            : overIdx === idx && dragIdx !== null
+                                                ? 'border-emerald-400 bg-emerald-50/30 shadow-sm'
+                                                : goal.completed
+                                                    ? 'border-gray-100 bg-gray-50/50'
+                                                    : 'border-gray-100 bg-white hover:border-gray-200 hover:shadow-sm'
                                             }`}
                                     >
                                         {/* Drag handle */}
@@ -216,18 +218,12 @@ const WeeklyGoals: React.FC<WeeklyGoalsProps> = ({
                                             <GripVertical size={14} />
                                         </div>
 
-                                        {/* Number */}
-                                        <span className={`text-xs font-bold mt-0.5 min-w-[16px] ${goal.completed ? 'text-gray-300' : 'text-emerald-400'
-                                            }`}>
-                                            {idx + 1}.
-                                        </span>
-
                                         {/* Checkbox */}
                                         <button
                                             onClick={() => onToggleComplete(goal.id)}
                                             className={`mt-0.5 flex-shrink-0 w-4.5 h-4.5 rounded-md border-2 flex items-center justify-center transition-all ${goal.completed
-                                                    ? 'bg-emerald-400 border-emerald-400 text-white'
-                                                    : 'border-gray-300 hover:border-emerald-400'
+                                                ? 'bg-emerald-400 border-emerald-400 text-white'
+                                                : 'border-gray-300 hover:border-emerald-400'
                                                 }`}
                                             style={{ width: 18, height: 18 }}
                                         >
@@ -256,6 +252,15 @@ const WeeklyGoals: React.FC<WeeklyGoalsProps> = ({
                                                 {goal.content}
                                             </span>
                                         )}
+
+                                        {/* Move to next week */}
+                                        <button
+                                            onClick={() => onMoveToNextWeek(goal.id)}
+                                            className="p-1 rounded-lg text-gray-300 hover:text-blue-500 hover:bg-blue-50 transition-colors opacity-0 group-hover:opacity-100 flex-shrink-0"
+                                            title="Перенести на следующую неделю"
+                                        >
+                                            <ArrowRightToLine size={14} />
+                                        </button>
 
                                         {/* Delete */}
                                         <button
