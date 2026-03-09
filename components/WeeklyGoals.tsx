@@ -253,22 +253,29 @@ const WeeklyGoals: React.FC<WeeklyGoalsProps> = ({
                                             </span>
                                         )}
 
-                                        {/* Move to next week */}
-                                        <button
-                                            onClick={() => onMoveToNextWeek(goal.id)}
-                                            className="p-1 rounded-lg text-gray-300 hover:text-blue-500 hover:bg-blue-50 transition-colors opacity-0 group-hover:opacity-100 flex-shrink-0"
-                                            title="Перенести на следующую неделю"
-                                        >
-                                            <ArrowRightToLine size={14} />
-                                        </button>
+                                        {/* Action buttons */}
+                                        <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 flex-shrink-0">
+                                            {/* Move to next week */}
+                                            <div className="relative group/move">
+                                                <button
+                                                    onClick={() => onMoveToNextWeek(goal.id)}
+                                                    className="p-1 rounded-lg text-gray-300 hover:text-blue-500 hover:bg-blue-50 transition-colors"
+                                                >
+                                                    <ArrowRightToLine size={14} />
+                                                </button>
+                                                <span className="pointer-events-none absolute bottom-full left-1/2 -translate-x-1/2 mb-1.5 px-2 py-1 text-[10px] font-medium text-white bg-gray-800 rounded-md whitespace-nowrap opacity-0 group-hover/move:opacity-100 transition-opacity duration-150 shadow-lg">
+                                                    На следующую неделю
+                                                </span>
+                                            </div>
 
-                                        {/* Delete */}
-                                        <button
-                                            onClick={() => onDelete(goal.id)}
-                                            className="p-1 rounded-lg text-gray-300 hover:text-red-400 hover:bg-red-50 transition-colors opacity-0 group-hover:opacity-100 flex-shrink-0"
-                                        >
-                                            <X size={14} />
-                                        </button>
+                                            {/* Delete */}
+                                            <button
+                                                onClick={() => onDelete(goal.id)}
+                                                className="p-1 rounded-lg text-gray-300 hover:text-red-400 hover:bg-red-50 transition-colors"
+                                            >
+                                                <X size={14} />
+                                            </button>
+                                        </div>
                                     </div>
                                 ))}
                             </div>
