@@ -176,7 +176,7 @@ const WeeklyGoals: React.FC<WeeklyGoalsProps> = ({
                     title="Цели недели"
                     style={{ writingMode: 'vertical-lr', textOrientation: 'mixed' }}
                 >
-                    <Target size={16} className="text-emerald-500 group-hover:text-emerald-600 transition-colors rotate-0" style={{ writingMode: 'horizontal-tb' }} />
+                    <Target size={16} className="transition-colors rotate-0" style={{ writingMode: 'horizontal-tb', color: '#26A69A' }} />
                     <span className="text-[11px] font-semibold text-gray-500 group-hover:text-gray-700 tracking-wide transition-colors">Цели</span>
                 </button>
             )}
@@ -198,8 +198,8 @@ const WeeklyGoals: React.FC<WeeklyGoalsProps> = ({
                     {/* Header */}
                     <div className="flex items-center justify-between px-4 pt-5 pb-3 border-b border-gray-100">
                         <div className="flex items-center gap-2">
-                            <div className="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center">
-                                <Target size={18} className="text-emerald-500" />
+                            <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: '#26A69A1A' }}>
+                                <Target size={18} style={{ color: '#26A69A' }} />
                             </div>
                             <div>
                                 <h2 className="text-base font-bold text-gray-900 leading-tight">Цели недели</h2>
@@ -271,29 +271,33 @@ const WeeklyGoals: React.FC<WeeklyGoalsProps> = ({
                                                 </button>
 
                                                 {/* Content + subtask counter */}
-                                                <div className="flex-1 min-w-0" onClick={() => toggleExpanded(goal.id)}>
+                                                <div className="flex-1 min-w-0">
                                                     {editingId === goal.id ? (
                                                         <input
                                                             ref={editInputRef}
                                                             value={editText}
                                                             onChange={(e) => setEditText(e.target.value)}
                                                             onBlur={commitEdit}
-                                                            onClick={(e) => e.stopPropagation()}
                                                             onKeyDown={(e) => {
                                                                 if (e.key === 'Enter') commitEdit();
                                                                 if (e.key === 'Escape') { setEditingId(null); setEditText(''); }
                                                             }}
-                                                            className="w-full text-xs bg-transparent outline-none border-b border-emerald-300 py-0.5 text-gray-800"
+                                                            className="w-full text-xs bg-transparent outline-none py-0.5 text-gray-800" style={{ borderBottom: '1px solid #26A69A' }}
                                                         />
                                                     ) : (
                                                         <div className="flex items-center gap-1">
-                                                            {isExpanded
-                                                                ? <ChevronDown size={12} className="text-emerald-400 flex-shrink-0 mt-0.5" />
-                                                                : <ChevronRight size={12} className="text-gray-300 flex-shrink-0 mt-0.5" />
-                                                            }
+                                                            <button
+                                                                onClick={(e) => { e.stopPropagation(); toggleExpanded(goal.id); }}
+                                                                className="flex-shrink-0 mt-0.5 p-0 bg-transparent border-0 cursor-pointer"
+                                                            >
+                                                                {isExpanded
+                                                                    ? <ChevronDown size={12} style={{ color: '#26A69A' }} />
+                                                                    : <ChevronRight size={12} style={{ color: '#26A69A' }} />
+                                                                }
+                                                            </button>
                                                             <span
-                                                                onDoubleClick={(e) => { e.stopPropagation(); startEdit(goal.id, goal.content); }}
-                                                                className={`text-xs leading-snug break-words ${goal.completed ? 'text-gray-400 line-through' : 'text-gray-700'
+                                                                onClick={() => startEdit(goal.id, goal.content)}
+                                                                className={`text-xs leading-snug break-words cursor-text ${goal.completed ? 'text-gray-400 line-through' : 'text-gray-700'
                                                                     }`}
                                                             >
                                                                 {goal.content}
