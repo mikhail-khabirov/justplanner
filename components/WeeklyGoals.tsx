@@ -52,8 +52,8 @@ const WeeklyGoals: React.FC<WeeklyGoalsProps> = ({
     const [newGoalText, setNewGoalText] = useState('');
     const [editingId, setEditingId] = useState<string | null>(null);
     const [editText, setEditText] = useState('');
-    const [expandedGoalId, setExpandedGoalId] = useState<string | null>(null);
-    const [newSubtaskText, setNewSubtaskText] = useState('');
+    const [expandedGoals, setExpandedGoals] = useState<Set<string>>(new Set());
+    const [subtaskTexts, setSubtaskTexts] = useState<Record<string, string>>({});
     const inputRef = useRef<HTMLInputElement>(null);
     const editInputRef = useRef<HTMLInputElement>(null);
     const subtaskInputRef = useRef<HTMLInputElement>(null);
@@ -93,10 +93,12 @@ const WeeklyGoals: React.FC<WeeklyGoalsProps> = ({
     }, [editingId, editText, onUpdate]);
 
     const toggleExpanded = useCallback((goalId: string) => {
-        setExpandedGoalId(prev => {
-            const next = prev === goalId ? null : goalId;
-            if (next) {
-                setNewSubtaskText('');
+        setExpandedGoals(prev => {
+            const next = new Set(prev);
+            if (next.has(goalId)) {
+                next.delete(goalId);
+            } else {
+                next.add(goalId);
                 setTimeout(() => subtaskInputRef.current?.focus(), 100);
             }
             return next;
@@ -104,12 +106,12 @@ const WeeklyGoals: React.FC<WeeklyGoalsProps> = ({
     }, []);
 
     const handleAddSubtask = useCallback((goalId: string) => {
-        const trimmed = newSubtaskText.trim();
-        if (!trimmed) return;
-        onAddSubtask(goalId, trimmed);
-        setNewSubtaskText('');
+        const text = (subtaskTexts[goalId] || '').trim();
+        if (!text) return;
+        onAddSubtask(goalId, text);
+        setSubtaskTexts(prev => ({ ...prev, [goalId]: '' }));
         setTimeout(() => subtaskInputRef.current?.focus(), 50);
-    }, [newSubtaskText, onAddSubtask]);
+    }, [subtaskTexts, onAddSubtask]);
 
     // --- Drag handlers ---
     const handleDragStart = (idx: number) => {
@@ -255,7 +257,7 @@ const WeeklyGoals: React.FC<WeeklyGoalsProps> = ({
                         ) : (
                             <div className="space-y-1">
                                 {goals.map((goal, idx) => {
-                                    const isExpanded = expandedGoalId === goal.id;
+                                    const isExpanded = expandedGoals.has(goal.id);
                                     const doneCount = goal.subtasks.filter(s => s.completed).length;
                                     const totalCount = goal.subtasks.length;
 
@@ -400,8 +402,8 @@ const WeeklyGoals: React.FC<WeeklyGoalsProps> = ({
                                                         <input
                                                             ref={subtaskInputRef}
                                                             type="text"
-                                                            value={newSubtaskText}
-                                                            onChange={(e) => setNewSubtaskText(e.target.value)}
+                                                            value={subtaskTexts[goal.id] || ''}
+                                                            onChange={(e) => setSubtaskTexts(prev => ({ ...prev, [goal.id]: e.target.value }))}
                                                             onKeyDown={(e) => {
                                                                 if (e.key === 'Enter') {
                                                                     e.preventDefault();
