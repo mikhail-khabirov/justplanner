@@ -192,7 +192,7 @@ const WeeklyGoals: React.FC<WeeklyGoalsProps> = ({
             {/* Panel */}
             <div
                 className={`fixed top-0 left-0 h-full z-50 transition-transform duration-300 ease-out ${isOpen ? 'translate-x-0' : '-translate-x-full'}`}
-                style={{ width: 'min(340px, 90vw)' }}
+                style={{ width: 'min(410px, 90vw)' }}
             >
                 <div className="h-full bg-white shadow-2xl flex flex-col border-r border-gray-100">
                     {/* Header */}
@@ -243,14 +243,14 @@ const WeeklyGoals: React.FC<WeeklyGoalsProps> = ({
                                                 onTouchMove={handleTouchMove}
                                                 onTouchEnd={handleTouchEnd}
                                                 className={`group flex items-start gap-2 p-2.5 rounded-xl border transition-all duration-150 cursor-pointer ${dragIdx === idx
-                                                        ? 'opacity-50 scale-[0.98] border-emerald-300 bg-emerald-50/50'
-                                                        : overIdx === idx && dragIdx !== null
-                                                            ? 'border-emerald-400 bg-emerald-50/30 shadow-sm'
-                                                            : isExpanded
-                                                                ? 'border-emerald-200 bg-emerald-50/30 shadow-sm'
-                                                                : goal.completed
-                                                                    ? 'border-gray-100 bg-gray-50/50'
-                                                                    : 'border-gray-100 bg-white hover:border-gray-200 hover:shadow-sm'
+                                                    ? 'opacity-50 scale-[0.98] border-emerald-300 bg-emerald-50/50'
+                                                    : overIdx === idx && dragIdx !== null
+                                                        ? 'border-emerald-400 bg-emerald-50/30 shadow-sm'
+                                                        : isExpanded
+                                                            ? 'border-emerald-200 bg-emerald-50/30 shadow-sm'
+                                                            : goal.completed
+                                                                ? 'border-gray-100 bg-gray-50/50'
+                                                                : 'border-gray-100 bg-white hover:border-gray-200 hover:shadow-sm'
                                                     }`}
                                             >
                                                 {/* Drag handle */}
@@ -262,8 +262,8 @@ const WeeklyGoals: React.FC<WeeklyGoalsProps> = ({
                                                 <button
                                                     onClick={(e) => { e.stopPropagation(); onToggleComplete(goal.id); }}
                                                     className={`mt-0.5 flex-shrink-0 rounded-md border-2 flex items-center justify-center transition-all ${goal.completed
-                                                            ? 'bg-emerald-400 border-emerald-400 text-white'
-                                                            : 'border-gray-300 hover:border-emerald-400'
+                                                        ? 'bg-emerald-400 border-emerald-400 text-white'
+                                                        : 'border-gray-300 hover:border-emerald-400'
                                                         }`}
                                                     style={{ width: 18, height: 18 }}
                                                 >
@@ -300,8 +300,8 @@ const WeeklyGoals: React.FC<WeeklyGoalsProps> = ({
                                                             </span>
                                                             {totalCount > 0 && (
                                                                 <span className={`text-[10px] font-semibold ml-auto flex-shrink-0 px-1.5 py-0.5 rounded-full ${doneCount === totalCount
-                                                                        ? 'bg-emerald-100 text-emerald-600'
-                                                                        : 'bg-gray-100 text-gray-400'
+                                                                    ? 'bg-emerald-100 text-emerald-600'
+                                                                    : 'bg-gray-100 text-gray-400'
                                                                     }`}>
                                                                     {doneCount}/{totalCount}
                                                                 </span>
@@ -341,8 +341,8 @@ const WeeklyGoals: React.FC<WeeklyGoalsProps> = ({
                                                             <button
                                                                 onClick={() => onToggleSubtask(goal.id, sub.id)}
                                                                 className={`flex-shrink-0 rounded border-2 flex items-center justify-center transition-all ${sub.completed
-                                                                        ? 'bg-emerald-300 border-emerald-300 text-white'
-                                                                        : 'border-gray-300 hover:border-emerald-300'
+                                                                    ? 'bg-emerald-300 border-emerald-300 text-white'
+                                                                    : 'border-gray-300 hover:border-emerald-300'
                                                                     }`}
                                                                 style={{ width: 15, height: 15 }}
                                                             >
