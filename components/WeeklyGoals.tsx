@@ -352,8 +352,9 @@ const WeeklyGoals: React.FC<WeeklyGoalsProps> = ({
                                                             >
                                                                 {sub.completed && <Check size={10} strokeWidth={3} />}
                                                             </button>
-                                                            <span className={`flex-1 text-xs leading-snug ${sub.completed ? 'text-gray-400 line-through' : 'text-gray-600'
-                                                                }`}>
+                                                            <span className={`flex-1 text-xs leading-snug break-words ${sub.completed ? 'text-gray-400 line-through' : 'text-gray-600'}`}
+                                                                style={{ display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}
+                                                            >
                                                                 {sub.content}
                                                             </span>
                                                             <button
