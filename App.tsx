@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import { Column as ColumnType, Task, TaskColor } from './types';
-import { generateColumns, generateId, getTodayISO, getNextRecurrenceDate, MOCK_TODAY_ISO, safeLocalStorage } from './utils';
+import { generateColumns, generateId, getTodayISO, getNextRecurrenceDate, MOCK_TODAY_ISO, safeLocalStorage, toISODate } from './utils';
 import Column from './components/Column';
 import TaskModal from './components/TaskModal';
 import AuthModal from './components/AuthModal';
@@ -8,6 +8,8 @@ import SettingsModal from './components/SettingsModal';
 import OnboardingTooltip from './components/OnboardingTooltip';
 import OnboardingOverlay from './components/OnboardingOverlay';
 import ProductTour from './components/ProductTour';
+import WeeklyGoals from './components/WeeklyGoals';
+import type { WeeklyGoal } from './components/WeeklyGoals';
 import LandingPage from './components/LandingPage';
 import FeaturesPage from './components/FeaturesPage';
 import PublicOffer from './components/Legal/PublicOffer';
@@ -149,6 +151,7 @@ const App: React.FC = () => {
 
   // Annual offer state
   const [isBacklogCollapsed, setIsBacklogCollapsed] = useState(() => safeLocalStorage.getItem('backlogCollapsed') === '1');
+  const [isGoalsPanelOpen, setIsGoalsPanelOpen] = useState(false);
   const [showAnnualModal, setShowAnnualModal] = useState(false);
   const [showAnnualWidget, setShowAnnualWidget] = useState(() => isOfferActive() && !isOfferDismissed());
 
@@ -604,6 +607,64 @@ const App: React.FC = () => {
   }, [tasks]);
 
   const activeTask = useMemo(() => tasks.find(t => t.id === activeTaskId), [tasks, activeTaskId]);
+
+  // --- Weekly Goals ---
+  const weekGoalsColumnId = useMemo(() => `goals-${toISODate(startDate)}`, [startDate]);
+
+  const weekGoals: WeeklyGoal[] = useMemo(() => {
+    return tasks
+      .filter(t => t.columnId === weekGoalsColumnId)
+      .map(t => ({ id: t.id, content: t.content, completed: t.completed }));
+  }, [tasks, weekGoalsColumnId]);
+
+  const weekLabel = useMemo(() => {
+    const endDate = new Date(startDate);
+    endDate.setDate(startDate.getDate() + 6);
+    const startDay = startDate.getDate();
+    const endDay = endDate.getDate();
+    const startMonth = startDate.toLocaleDateString('ru-RU', { month: 'long' });
+    const endMonth = endDate.toLocaleDateString('ru-RU', { month: 'long' });
+    if (startMonth === endMonth) {
+      return `${startDay} – ${endDay} ${startMonth}`;
+    }
+    return `${startDay} ${startMonth} – ${endDay} ${endMonth}`;
+  }, [startDate]);
+
+  const handleAddGoal = useCallback((content: string) => {
+    const newTask: Task = {
+      id: generateId(),
+      content,
+      columnId: weekGoalsColumnId,
+      color: TaskColor.DEFAULT,
+      completed: false,
+      subtasks: [],
+    };
+    setTasks(prev => [...prev, newTask]);
+  }, [weekGoalsColumnId]);
+
+  const handleDeleteGoal = useCallback((id: string) => {
+    setTasks(prev => prev.filter(t => t.id !== id));
+  }, []);
+
+  const handleToggleGoal = useCallback((id: string) => {
+    setTasks(prev => prev.map(t => t.id === id ? { ...t, completed: !t.completed } : t));
+  }, []);
+
+  const handleUpdateGoal = useCallback((id: string, content: string) => {
+    setTasks(prev => prev.map(t => t.id === id ? { ...t, content } : t));
+  }, []);
+
+  const handleReorderGoals = useCallback((reordered: WeeklyGoal[]) => {
+    setTasks(prev => {
+      // Remove old goal tasks for this week, then add reordered ones back
+      const withoutGoals = prev.filter(t => t.columnId !== weekGoalsColumnId);
+      const goalTasks = reordered.map(g => {
+        const original = prev.find(t => t.id === g.id);
+        return original || { id: g.id, content: g.content, columnId: weekGoalsColumnId, color: TaskColor.DEFAULT, completed: g.completed, subtasks: [] };
+      });
+      return [...withoutGoals, ...goalTasks];
+    });
+  }, [weekGoalsColumnId]);
 
   // Header Date Title
   const monthTitle = useMemo(() => {
@@ -1421,6 +1482,19 @@ const App: React.FC = () => {
         </div>
 
       </header>
+
+      {/* Weekly Goals Panel */}
+      <WeeklyGoals
+        goals={weekGoals}
+        isOpen={isGoalsPanelOpen}
+        onToggle={() => setIsGoalsPanelOpen(prev => !prev)}
+        onAdd={handleAddGoal}
+        onDelete={handleDeleteGoal}
+        onToggleComplete={handleToggleGoal}
+        onUpdate={handleUpdateGoal}
+        onReorder={handleReorderGoals}
+        weekLabel={weekLabel}
+      />
 
       {/* Main Content: Horizontal Scroll for Days */}
       <main
