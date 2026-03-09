@@ -215,7 +215,7 @@ const WeeklyGoals: React.FC<WeeklyGoalsProps> = ({
                     </div>
 
                     {/* Goals list */}
-                    <div className="flex-1 overflow-y-auto px-3 py-3" ref={listRef}>
+                    <div className="flex-1 overflow-y-auto px-3 py-2 scrollbar-hide" ref={listRef}>
                         {goals.length === 0 ? (
                             <div className="flex flex-col items-center justify-center py-12 text-center">
                                 <div className="w-12 h-12 rounded-full bg-gray-50 flex items-center justify-center mb-3">
@@ -225,7 +225,7 @@ const WeeklyGoals: React.FC<WeeklyGoalsProps> = ({
                                 <p className="text-xs text-gray-300 mt-1">Добавьте главные цели на эту неделю</p>
                             </div>
                         ) : (
-                            <div className="space-y-1.5">
+                            <div className="space-y-1">
                                 {goals.map((goal, idx) => {
                                     const isExpanded = expandedGoalId === goal.id;
                                     const doneCount = goal.subtasks.filter(s => s.completed).length;
@@ -242,7 +242,7 @@ const WeeklyGoals: React.FC<WeeklyGoalsProps> = ({
                                                 onTouchStart={(e) => handleTouchStart(idx, e)}
                                                 onTouchMove={handleTouchMove}
                                                 onTouchEnd={handleTouchEnd}
-                                                className={`group flex items-start gap-2 p-2.5 rounded-xl border transition-all duration-150 cursor-pointer ${dragIdx === idx
+                                                className={`group flex items-start gap-1.5 p-2 rounded-lg border transition-all duration-150 cursor-pointer ${dragIdx === idx
                                                     ? 'opacity-50 scale-[0.98] border-emerald-300 bg-emerald-50/50'
                                                     : overIdx === idx && dragIdx !== null
                                                         ? 'border-emerald-400 bg-emerald-50/30 shadow-sm'
@@ -255,7 +255,7 @@ const WeeklyGoals: React.FC<WeeklyGoalsProps> = ({
                                             >
                                                 {/* Drag handle */}
                                                 <div className="pt-0.5 cursor-grab active:cursor-grabbing text-gray-300 hover:text-gray-400 touch-none">
-                                                    <GripVertical size={14} />
+                                                    <GripVertical size={12} />
                                                 </div>
 
                                                 {/* Checkbox */}
@@ -265,9 +265,9 @@ const WeeklyGoals: React.FC<WeeklyGoalsProps> = ({
                                                         ? 'bg-emerald-400 border-emerald-400 text-white'
                                                         : 'border-gray-300 hover:border-emerald-400'
                                                         }`}
-                                                    style={{ width: 18, height: 18 }}
+                                                    style={{ width: 16, height: 16 }}
                                                 >
-                                                    {goal.completed && <Check size={12} strokeWidth={3} />}
+                                                    {goal.completed && <Check size={10} strokeWidth={3} />}
                                                 </button>
 
                                                 {/* Content + subtask counter */}
@@ -283,17 +283,17 @@ const WeeklyGoals: React.FC<WeeklyGoalsProps> = ({
                                                                 if (e.key === 'Enter') commitEdit();
                                                                 if (e.key === 'Escape') { setEditingId(null); setEditText(''); }
                                                             }}
-                                                            className="w-full text-sm bg-transparent outline-none border-b border-emerald-300 py-0.5 text-gray-800"
+                                                            className="w-full text-xs bg-transparent outline-none border-b border-emerald-300 py-0.5 text-gray-800"
                                                         />
                                                     ) : (
-                                                        <div className="flex items-center gap-1.5">
+                                                        <div className="flex items-center gap-1">
                                                             {isExpanded
-                                                                ? <ChevronDown size={13} className="text-emerald-400 flex-shrink-0 mt-0.5" />
-                                                                : <ChevronRight size={13} className="text-gray-300 flex-shrink-0 mt-0.5" />
+                                                                ? <ChevronDown size={12} className="text-emerald-400 flex-shrink-0 mt-0.5" />
+                                                                : <ChevronRight size={12} className="text-gray-300 flex-shrink-0 mt-0.5" />
                                                             }
                                                             <span
                                                                 onDoubleClick={(e) => { e.stopPropagation(); startEdit(goal.id, goal.content); }}
-                                                                className={`text-sm leading-snug break-words ${goal.completed ? 'text-gray-400 line-through' : 'text-gray-700'
+                                                                className={`text-xs leading-snug break-words ${goal.completed ? 'text-gray-400 line-through' : 'text-gray-700'
                                                                     }`}
                                                             >
                                                                 {goal.content}
