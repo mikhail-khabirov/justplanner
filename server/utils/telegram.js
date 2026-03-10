@@ -80,31 +80,45 @@ async function getPaymentStats() {
     try {
         const result = await pool.query(`
             SELECT 
-                -- Регистрации (users)
+                -- Регистрации (verified users)
+                (SELECT COUNT(*) FROM users WHERE is_verified = true AND created_at >= (CURRENT_DATE AT TIME ZONE 'Europe/Moscow')) AS reg_today,
                 (SELECT COUNT(*) FROM users WHERE is_verified = true AND created_at >= NOW() - INTERVAL '24 hours') AS reg_24h,
+                (SELECT COUNT(*) FROM users WHERE is_verified = true AND created_at >= NOW() - INTERVAL '7 days') AS reg_week,
                 (SELECT COUNT(*) FROM users WHERE is_verified = true) AS reg_total,
 
-                -- 1₽ триалы
+                -- Триалы (1₽)
+                COUNT(*) FILTER (WHERE p.created_at >= (CURRENT_DATE AT TIME ZONE 'Europe/Moscow') AND p.status = 'succeeded' AND p.description = 'Trial 7 days') AS trial_today,
                 COUNT(*) FILTER (WHERE p.created_at >= NOW() - INTERVAL '24 hours' AND p.status = 'succeeded' AND p.description = 'Trial 7 days') AS trial_24h,
-                COALESCE(SUM(p.amount) FILTER (WHERE p.created_at >= NOW() - INTERVAL '24 hours' AND p.status = 'succeeded' AND p.description = 'Trial 7 days'), 0) AS trial_sum_24h,
+                COUNT(*) FILTER (WHERE p.created_at >= NOW() - INTERVAL '7 days' AND p.status = 'succeeded' AND p.description = 'Trial 7 days') AS trial_week,
                 COUNT(*) FILTER (WHERE p.status = 'succeeded' AND p.description = 'Trial 7 days') AS trial_total,
-                COALESCE(SUM(p.amount) FILTER (WHERE p.status = 'succeeded' AND p.description = 'Trial 7 days'), 0) AS trial_sum_total,
 
-                -- первые подписки
+                -- Подписки (полная стоимость — любая сумма)
+                COUNT(*) FILTER (WHERE p.created_at >= (CURRENT_DATE AT TIME ZONE 'Europe/Moscow') AND p.status = 'succeeded' AND p.description = 'Premium subscription') AS sub_today,
+                COALESCE(SUM(p.amount) FILTER (WHERE p.created_at >= (CURRENT_DATE AT TIME ZONE 'Europe/Moscow') AND p.status = 'succeeded' AND p.description = 'Premium subscription'), 0) AS sub_sum_today,
                 COUNT(*) FILTER (WHERE p.created_at >= NOW() - INTERVAL '24 hours' AND p.status = 'succeeded' AND p.description = 'Premium subscription') AS sub_24h,
                 COALESCE(SUM(p.amount) FILTER (WHERE p.created_at >= NOW() - INTERVAL '24 hours' AND p.status = 'succeeded' AND p.description = 'Premium subscription'), 0) AS sub_sum_24h,
+                COUNT(*) FILTER (WHERE p.created_at >= NOW() - INTERVAL '7 days' AND p.status = 'succeeded' AND p.description = 'Premium subscription') AS sub_week,
+                COALESCE(SUM(p.amount) FILTER (WHERE p.created_at >= NOW() - INTERVAL '7 days' AND p.status = 'succeeded' AND p.description = 'Premium subscription'), 0) AS sub_sum_week,
                 COUNT(*) FILTER (WHERE p.status = 'succeeded' AND p.description = 'Premium subscription') AS sub_total,
                 COALESCE(SUM(p.amount) FILTER (WHERE p.status = 'succeeded' AND p.description = 'Premium subscription'), 0) AS sub_sum_total,
 
-                -- Продления (автопродление + первая оплата после триала)
-                COUNT(*) FILTER (WHERE p.created_at >= NOW() - INTERVAL '24 hours' AND p.status = 'succeeded' AND (p.description LIKE '%автопродление%' OR p.description LIKE '%после триала%')) AS renewal_24h,
-                COALESCE(SUM(p.amount) FILTER (WHERE p.created_at >= NOW() - INTERVAL '24 hours' AND p.status = 'succeeded' AND (p.description LIKE '%автопродление%' OR p.description LIKE '%после триала%')), 0) AS renewal_sum_24h,
-                COUNT(*) FILTER (WHERE p.status = 'succeeded' AND (p.description LIKE '%автопродление%' OR p.description LIKE '%после триала%')) AS renewal_total,
-                COALESCE(SUM(p.amount) FILTER (WHERE p.status = 'succeeded' AND (p.description LIKE '%автопродление%' OR p.description LIKE '%после триала%')), 0) AS renewal_sum_total,
+                -- Продления (автопродление + после триала)
+                COUNT(*) FILTER (WHERE p.created_at >= (CURRENT_DATE AT TIME ZONE 'Europe/Moscow') AND p.status = 'succeeded' AND (p.description LIKE '%автопродление%' OR p.description LIKE '%после триала%')) AS renew_today,
+                COALESCE(SUM(p.amount) FILTER (WHERE p.created_at >= (CURRENT_DATE AT TIME ZONE 'Europe/Moscow') AND p.status = 'succeeded' AND (p.description LIKE '%автопродление%' OR p.description LIKE '%после триала%')), 0) AS renew_sum_today,
+                COUNT(*) FILTER (WHERE p.created_at >= NOW() - INTERVAL '24 hours' AND p.status = 'succeeded' AND (p.description LIKE '%автопродление%' OR p.description LIKE '%после триала%')) AS renew_24h,
+                COALESCE(SUM(p.amount) FILTER (WHERE p.created_at >= NOW() - INTERVAL '24 hours' AND p.status = 'succeeded' AND (p.description LIKE '%автопродление%' OR p.description LIKE '%после триала%')), 0) AS renew_sum_24h,
+                COUNT(*) FILTER (WHERE p.created_at >= NOW() - INTERVAL '7 days' AND p.status = 'succeeded' AND (p.description LIKE '%автопродление%' OR p.description LIKE '%после триала%')) AS renew_week,
+                COALESCE(SUM(p.amount) FILTER (WHERE p.created_at >= NOW() - INTERVAL '7 days' AND p.status = 'succeeded' AND (p.description LIKE '%автопродление%' OR p.description LIKE '%после триала%')), 0) AS renew_sum_week,
+                COUNT(*) FILTER (WHERE p.status = 'succeeded' AND (p.description LIKE '%автопродление%' OR p.description LIKE '%после триала%')) AS renew_total,
+                COALESCE(SUM(p.amount) FILTER (WHERE p.status = 'succeeded' AND (p.description LIKE '%автопродление%' OR p.description LIKE '%после триала%')), 0) AS renew_sum_total,
 
-                -- годовая 50%
+                -- Годовые (любая сумма — суммируется всё)
+                COUNT(*) FILTER (WHERE p.created_at >= (CURRENT_DATE AT TIME ZONE 'Europe/Moscow') AND p.status = 'succeeded' AND p.description = 'Annual Pro 365 days') AS annual_today,
+                COALESCE(SUM(p.amount) FILTER (WHERE p.created_at >= (CURRENT_DATE AT TIME ZONE 'Europe/Moscow') AND p.status = 'succeeded' AND p.description = 'Annual Pro 365 days'), 0) AS annual_sum_today,
                 COUNT(*) FILTER (WHERE p.created_at >= NOW() - INTERVAL '24 hours' AND p.status = 'succeeded' AND p.description = 'Annual Pro 365 days') AS annual_24h,
                 COALESCE(SUM(p.amount) FILTER (WHERE p.created_at >= NOW() - INTERVAL '24 hours' AND p.status = 'succeeded' AND p.description = 'Annual Pro 365 days'), 0) AS annual_sum_24h,
+                COUNT(*) FILTER (WHERE p.created_at >= NOW() - INTERVAL '7 days' AND p.status = 'succeeded' AND p.description = 'Annual Pro 365 days') AS annual_week,
+                COALESCE(SUM(p.amount) FILTER (WHERE p.created_at >= NOW() - INTERVAL '7 days' AND p.status = 'succeeded' AND p.description = 'Annual Pro 365 days'), 0) AS annual_sum_week,
                 COUNT(*) FILTER (WHERE p.status = 'succeeded' AND p.description = 'Annual Pro 365 days') AS annual_total,
                 COALESCE(SUM(p.amount) FILTER (WHERE p.status = 'succeeded' AND p.description = 'Annual Pro 365 days'), 0) AS annual_sum_total
             FROM payments p
@@ -114,6 +128,16 @@ async function getPaymentStats() {
         console.error('Failed to get payment stats:', err.message);
         return null;
     }
+}
+
+function formatPeriod(s, suffix) {
+    return (
+        `Рег — ${s['reg_' + suffix]}\n` +
+        `1₽ — ${s['trial_' + suffix]}\n` +
+        `Подписка — ${s['sub_' + suffix]} (${s['sub_sum_' + suffix]}₽)\n` +
+        `🔄 Продление — ${s['renew_' + suffix]} (${s['renew_sum_' + suffix]}₽)\n` +
+        `📅 Годовая — ${s['annual_' + suffix]} (${s['annual_sum_' + suffix]}₽)`
+    );
 }
 
 // ─── Telegram Bot Polling (commands) ─────────────────────
@@ -147,18 +171,14 @@ async function pollTelegramUpdates() {
                 }
                 const reply =
                     `💰 <b>Статистика платежей</b>\n\n` +
-                    `<b>24 часа</b>\n` +
-                    `Рег — ${stats.reg_24h}\n` +
-                    `1₽ — ${stats.trial_24h} (${stats.trial_sum_24h}₽)\n` +
-                    `199₽ — ${stats.sub_24h} (${stats.sub_sum_24h}₽)\n` +
-                    `🔄 — ${stats.renewal_24h} (${stats.renewal_sum_24h}₽)\n` +
-                    `1199₽ — ${stats.annual_24h} (${stats.annual_sum_24h}₽)\n\n` +
-                    `<b>Всего</b>\n` +
-                    `Рег — ${stats.reg_total}\n` +
-                    `1₽ — ${stats.trial_total} (${stats.trial_sum_total}₽)\n` +
-                    `199₽ — ${stats.sub_total} (${stats.sub_sum_total}₽)\n` +
-                    `🔄 — ${stats.renewal_total} (${stats.renewal_sum_total}₽)\n` +
-                    `1199₽ — ${stats.annual_total} (${stats.annual_sum_total}₽)`;
+                    `<b>📌 Сегодня</b>\n` +
+                    formatPeriod(stats, 'today') + `\n\n` +
+                    `<b>🕐 24 часа</b>\n` +
+                    formatPeriod(stats, '24h') + `\n\n` +
+                    `<b>📅 Неделя</b>\n` +
+                    formatPeriod(stats, 'week') + `\n\n` +
+                    `<b>📊 Всего</b>\n` +
+                    formatPeriod(stats, 'total');
                 await sendTelegramReply(msg.chat.id, reply);
             }
         }
@@ -181,7 +201,7 @@ async function sendTelegramReply(chatId, text) {
 (async function botLoop() {
     // Delete any existing webhook so polling works
     if (TELEGRAM_BOT_TOKEN) {
-        await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/deleteWebhook`).catch(() => {});
+        await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/deleteWebhook`).catch(() => { });
         console.log('🤖 Telegram bot polling started');
     }
     while (true) {
