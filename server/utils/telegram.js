@@ -123,7 +123,12 @@ async function getPaymentStats() {
                 COALESCE(SUM(p.amount) FILTER (WHERE p.status = 'succeeded' AND p.amount >= 1000), 0) AS annual_sum_total,
 
                 -- Telegram бот (пользователи с привязанным chat_id)
-                (SELECT COUNT(*) FROM users WHERE telegram_chat_id IS NOT NULL) AS tg_bot_total
+                (SELECT COUNT(*) FROM users WHERE telegram_chat_id IS NOT NULL) AS tg_bot_total,
+
+                -- Активные пользователи (заходили за последние 3 дня)
+                (SELECT COUNT(*) FROM users WHERE is_verified = true AND last_login >= NOW() - INTERVAL '3 days') AS active_3d,
+                -- Снэпшот вчера: кто заходил за 3 дня до начала сегодня
+                (SELECT COUNT(*) FROM users WHERE is_verified = true AND last_login >= (CURRENT_DATE AT TIME ZONE 'Europe/Moscow') - INTERVAL '3 days' AND last_login < (CURRENT_DATE AT TIME ZONE 'Europe/Moscow')) AS active_3d_yesterday
             FROM payments p
         `);
         return result.rows[0];
@@ -182,7 +187,14 @@ async function pollTelegramUpdates() {
                     formatPeriod(stats, 'week') + `\n\n` +
                     `<b>📊 Всего</b>\n` +
                     formatPeriod(stats, 'total') + `\n\n` +
-                    `🤖 Telegram бот — ${stats.tg_bot_total}`;
+                    `🤖 Telegram бот — ${stats.tg_bot_total}\n` +
+                    (() => {
+                        const now = parseInt(stats.active_3d);
+                        const prev = parseInt(stats.active_3d_yesterday);
+                        const diff = prev > 0 ? Math.round((now - prev) / prev * 100) : 0;
+                        const sign = diff > 0 ? '+' : '';
+                        return `🟢 Активные (3д) — ${now} (${sign}${diff}%)`;
+                    })();
                 await sendTelegramReply(msg.chat.id, reply);
             }
         }
