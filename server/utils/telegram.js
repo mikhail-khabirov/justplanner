@@ -120,7 +120,10 @@ async function getPaymentStats() {
                 COUNT(*) FILTER (WHERE p.created_at >= NOW() - INTERVAL '7 days' AND p.status = 'succeeded' AND p.amount >= 1000) AS annual_week,
                 COALESCE(SUM(p.amount) FILTER (WHERE p.created_at >= NOW() - INTERVAL '7 days' AND p.status = 'succeeded' AND p.amount >= 1000), 0) AS annual_sum_week,
                 COUNT(*) FILTER (WHERE p.status = 'succeeded' AND p.amount >= 1000) AS annual_total,
-                COALESCE(SUM(p.amount) FILTER (WHERE p.status = 'succeeded' AND p.amount >= 1000), 0) AS annual_sum_total
+                COALESCE(SUM(p.amount) FILTER (WHERE p.status = 'succeeded' AND p.amount >= 1000), 0) AS annual_sum_total,
+
+                -- Telegram бот (пользователи с привязанным chat_id)
+                (SELECT COUNT(*) FROM users WHERE telegram_chat_id IS NOT NULL) AS tg_bot_total
             FROM payments p
         `);
         return result.rows[0];
@@ -178,7 +181,8 @@ async function pollTelegramUpdates() {
                     `<b>📅 Неделя</b>\n` +
                     formatPeriod(stats, 'week') + `\n\n` +
                     `<b>📊 Всего</b>\n` +
-                    formatPeriod(stats, 'total');
+                    formatPeriod(stats, 'total') + `\n\n` +
+                    `🤖 Telegram бот — ${stats.tg_bot_total}`;
                 await sendTelegramReply(msg.chat.id, reply);
             }
         }
