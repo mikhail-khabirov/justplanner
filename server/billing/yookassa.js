@@ -10,7 +10,7 @@ const yookassa = new YooKassa({
 });
 
 const PREMIUM_PRICE = 299; // RUB per month (default for new users)
-const ANNUAL_PRICE = 2388; // RUB per year (legacy annual price)
+const ANNUAL_PRICE = 3588; // RUB per year (299 * 12)
 
 /**
  * Create a payment for premium subscription
@@ -112,14 +112,14 @@ export async function createRecurringPayment(paymentMethodId, userId, userEmail,
 }
 
 /**
- * Create annual payment with 50% discount (1199 RUB for 365 days)
+ * Create annual payment with 50% discount (1794 RUB for 365 days)
  */
 export async function createAnnualPayment(userId, userEmail) {
     const idempotenceKey = uuidv4();
 
     const payment = await yookassa.createPayment({
         amount: {
-            value: '1199.00',
+            value: '1794.00',
             currency: 'RUB'
         },
         capture: true,
@@ -141,7 +141,7 @@ export async function createAnnualPayment(userId, userEmail) {
                 description: 'JustPlanner Pro — годовая подписка',
                 quantity: '1',
                 amount: {
-                    value: '1199.00',
+                    value: '1794.00',
                     currency: 'RUB'
                 },
                 vat_code: 1,
@@ -158,7 +158,7 @@ export async function createAnnualPayment(userId, userEmail) {
 }
 
 /**
- * Create recurring annual payment using saved payment method (2388 RUB for 365 days)
+ * Create recurring annual payment using saved payment method (3588 RUB for 365 days)
  */
 export async function createAnnualRecurringPayment(paymentMethodId, userId, userEmail) {
     const idempotenceKey = uuidv4();

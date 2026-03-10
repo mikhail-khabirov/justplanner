@@ -181,11 +181,11 @@ const PricingPage: React.FC<PricingPageProps> = ({ onBack, onSelectPlan, token, 
                             <p className="text-gray-500 mb-6 text-sm">Всё включено, выгоднее на 20%</p>
                             <div className="mb-8">
                                 <div className="flex items-baseline gap-2">
-                                    <span className="text-lg font-medium text-gray-400 line-through">2 388 ₽</span>
-                                    <span className="text-5xl font-extrabold tracking-tight text-gray-900">1 910</span>
+                                    <span className="text-lg font-medium text-gray-400 line-through">3 588 ₽</span>
+                                    <span className="text-5xl font-extrabold tracking-tight text-gray-900">2 870</span>
                                     <span className="text-xl font-medium text-gray-500">₽</span>
                                 </div>
-                                <p className="text-sm text-gray-400 mt-1">за год · 159 ₽/мес</p>
+                                <p className="text-sm text-gray-400 mt-1">за год · 239 ₽/мес</p>
                             </div>
                             <ul className="space-y-4 mb-10 flex-grow">
                                 {proFeatures.map(f => (
@@ -202,7 +202,7 @@ const PricingPage: React.FC<PricingPageProps> = ({ onBack, onSelectPlan, token, 
                                 disabled={annualLoading}
                                 className="w-full py-4 px-6 rounded-2xl font-bold text-lg transition-all bg-gradient-to-r from-amber-400 to-orange-400 text-white hover:from-amber-500 hover:to-orange-500 shadow-[0_8px_20px_rgba(251,191,36,0.3)] disabled:opacity-60 flex items-center justify-center gap-2"
                             >
-                                {annualLoading ? <Loader2 size={20} className="animate-spin" /> : 'Купить за 1 910 ₽'}
+                                {annualLoading ? <Loader2 size={20} className="animate-spin" /> : 'Купить за 2 870 ₽'}
                             </button>
                         </div>
                     </div>

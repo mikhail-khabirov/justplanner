@@ -60,9 +60,9 @@ async function processOneRenewal({ user_id, yookassa_subscription_id, renewal_re
         let interval;
 
         if (is_annual) {
-            // Annual renewal: 2388 RUB for 365 days
+            // Annual renewal: 3588 RUB for 365 days
             payment = await createAnnualRecurringPayment(yookassa_subscription_id, user_id, email);
-            amount = 2388;
+            amount = 3588;
             description = 'Pro — автопродление годовой подписки';
             interval = '365 days';
         } else {

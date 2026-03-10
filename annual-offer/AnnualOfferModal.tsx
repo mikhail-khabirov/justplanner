@@ -99,7 +99,7 @@ const AnnualOfferModal: React.FC<AnnualOfferModalProps> = ({ isOpen, onClose, on
                         {isExpired ? (
                             <>
                                 <div className="flex items-baseline justify-center gap-2">
-                                    <span className="text-4xl font-extrabold text-gray-900">2 388 ₽</span>
+                                    <span className="text-4xl font-extrabold text-gray-900">3 588 ₽</span>
                                 </div>
                                 <p className="text-sm text-gray-500 mt-1">за 12 месяцев · 299 ₽/мес</p>
                                 <p className="text-xs text-gray-400 mt-2">Скидка действовала 24 часа с момента регистрации</p>
@@ -107,10 +107,10 @@ const AnnualOfferModal: React.FC<AnnualOfferModalProps> = ({ isOpen, onClose, on
                         ) : (
                             <>
                                 <div className="flex items-baseline justify-center gap-2">
-                                    <span className="text-lg text-gray-400 line-through">2 388 ₽</span>
-                                    <span className="text-4xl font-extrabold text-gray-900">1 199 ₽</span>
+                                    <span className="text-lg text-gray-400 line-through">3 588 ₽</span>
+                                    <span className="text-4xl font-extrabold text-gray-900">1 794 ₽</span>
                                 </div>
-                                <p className="text-sm text-gray-500 mt-1">за 12 месяцев · 99,9 ₽/мес</p>
+                                <p className="text-sm text-gray-500 mt-1">за 12 месяцев · 149 ₽/мес</p>
                             </>
                         )}
                     </div>
@@ -138,7 +138,7 @@ const AnnualOfferModal: React.FC<AnnualOfferModalProps> = ({ isOpen, onClose, on
                         ) : (
                             <>
                                 <Crown size={18} />
-                                {isExpired ? 'Оформить за 2 388 ₽' : 'Оформить за 1 199 ₽'}
+                                {isExpired ? 'Оформить за 3 588 ₽' : 'Оформить за 1 794 ₽'}
                             </>
                         )}
                     </button>
@@ -149,7 +149,7 @@ const AnnualOfferModal: React.FC<AnnualOfferModalProps> = ({ isOpen, onClose, on
                     </div>
 
                     <p className="text-center text-xs text-gray-400 mt-2">
-                        Подписка продлевается автоматически через 365 дней по стоимости 2 388 ₽/год. Отменить можно в любой момент в настройках.
+                        Подписка продлевается автоматически через 365 дней по стоимости 3 588 ₽/год. Отменить можно в любой момент в настройках.
                     </p>
                 </div>
             </div>
