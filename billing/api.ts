@@ -36,7 +36,7 @@ export const billingApi = {
             method: 'POST',
             headers: getAuthHeaders(),
             body: JSON.stringify({
-                amount: 199,
+                amount: 299,
                 description: 'JustPlanner Premium - ежемесячная подписка'
             })
         });

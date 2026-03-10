@@ -147,7 +147,7 @@ const PricingPage: React.FC<PricingPageProps> = ({ onBack, onSelectPlan, token, 
                                     <span className="text-xl font-medium text-gray-500">₽</span>
                                     <span className="text-lg font-medium text-gray-500">/ 7 дней</span>
                                 </div>
-                                <p className="text-sm text-gray-400 mt-1">далее 199 ₽/мес</p>
+                                <p className="text-sm text-gray-400 mt-1">далее 299 ₽/мес</p>
                             </div>
                             <ul className="space-y-4 mb-10 flex-grow">
                                 {proFeatures.map(f => (

@@ -17,7 +17,7 @@ export async function processRenewals() {
     try {
         // Find all expired active subscriptions with auto_renew and saved payment method
         const result = await pool.query(`
-            SELECT s.user_id, s.yookassa_subscription_id, s.renewal_retries, s.is_trial, s.is_annual, u.email
+            SELECT s.user_id, s.yookassa_subscription_id, s.renewal_retries, s.is_trial, s.is_annual, u.email, u.monthly_price
             FROM subscriptions s
             JOIN users u ON u.id = s.user_id
             WHERE s.auto_renew = TRUE
@@ -43,7 +43,7 @@ export async function processRenewals() {
 /**
  * Process a single subscription renewal
  */
-async function processOneRenewal({ user_id, yookassa_subscription_id, renewal_retries, is_trial, is_annual, email }) {
+async function processOneRenewal({ user_id, yookassa_subscription_id, renewal_retries, is_trial, is_annual, email, monthly_price }) {
     try {
         const label = is_trial ? 'trial→paid' : is_annual ? 'annual renewal' : 'renewal';
         console.log(`🔄 Renewing subscription for user ${user_id} [${label}] (attempt ${renewal_retries + 1}/${MAX_RETRIES})`);
@@ -66,9 +66,10 @@ async function processOneRenewal({ user_id, yookassa_subscription_id, renewal_re
             description = 'Pro — автопродление годовой подписки';
             interval = '365 days';
         } else {
-            // Monthly renewal: 199 RUB for 30 days
-            payment = await createRecurringPayment(yookassa_subscription_id, user_id, email);
-            amount = 199;
+            // Monthly renewal: use user's grandfathered price (199 for old users, 299 for new)
+            const userPrice = monthly_price || 299;
+            payment = await createRecurringPayment(yookassa_subscription_id, user_id, email, userPrice);
+            amount = userPrice;
             description = is_trial ? 'Pro — первая оплата после триала' : 'Premium — автопродление';
             interval = '30 days';
         }

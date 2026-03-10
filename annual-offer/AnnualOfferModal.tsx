@@ -101,7 +101,7 @@ const AnnualOfferModal: React.FC<AnnualOfferModalProps> = ({ isOpen, onClose, on
                                 <div className="flex items-baseline justify-center gap-2">
                                     <span className="text-4xl font-extrabold text-gray-900">2 388 ₽</span>
                                 </div>
-                                <p className="text-sm text-gray-500 mt-1">за 12 месяцев · 199 ₽/мес</p>
+                                <p className="text-sm text-gray-500 mt-1">за 12 месяцев · 299 ₽/мес</p>
                                 <p className="text-xs text-gray-400 mt-2">Скидка действовала 24 часа с момента регистрации</p>
                             </>
                         ) : (

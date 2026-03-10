@@ -40,3 +40,8 @@ CREATE INDEX IF NOT EXISTS idx_payments_yookassa_id ON payments(yookassa_payment
 ALTER TABLE subscriptions ADD COLUMN IF NOT EXISTS renewal_retries INTEGER DEFAULT 0;
 ALTER TABLE subscriptions ADD COLUMN IF NOT EXISTS last_renewal_attempt TIMESTAMP;
 ALTER TABLE subscriptions ADD COLUMN IF NOT EXISTS payment_method_title VARCHAR(255);
+
+-- Grandfathered pricing: new users pay 299, existing users keep 199
+ALTER TABLE users ADD COLUMN IF NOT EXISTS monthly_price INTEGER DEFAULT 299;
+-- Migration: set all existing users to legacy price
+UPDATE users SET monthly_price = 199 WHERE monthly_price IS NULL OR monthly_price = 299;

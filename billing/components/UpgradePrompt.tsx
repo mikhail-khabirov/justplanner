@@ -126,7 +126,7 @@ const UpgradePrompt: React.FC<UpgradePromptProps> = ({ isOpen, onClose, reason =
                         )}
                     </button>
 
-                    <p className="text-center text-xs text-gray-400 mt-1.5">далее 199 ₽/мес</p>
+                    <p className="text-center text-xs text-gray-400 mt-1.5">далее 299 ₽/мес</p>
 
                     {/* Auto-renewal terms link */}
                     <p className="text-center mt-0.5">
@@ -169,7 +169,7 @@ const UpgradePrompt: React.FC<UpgradePromptProps> = ({ isOpen, onClose, reason =
 
                         <div className="text-sm text-gray-600 space-y-3">
                             <p>
-                                Пробный период: 7 дней за 1 ₽. По окончании пробного периода подписка продлевается автоматически за 199 ₽/мес.
+                                Пробный период: 7 дней за 1 ₽. По окончании пробного периода подписка продлевается автоматически за 299 ₽/мес.
                             </p>
                             <p>
                                 Отменить подписку и отвязать способ оплаты вы сможете в любой момент в настройках.
