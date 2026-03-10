@@ -23,7 +23,7 @@ export const User = {
     // Update Last Login
     async updateLastLogin(id) {
         await pool.query(
-            'UPDATE users SET last_login = NOW(), inactivity_reminder_sent = FALSE WHERE id = $1',
+            'UPDATE users SET last_login = NOW() WHERE id = $1',
             [id]
         );
     },

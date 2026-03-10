@@ -19,17 +19,15 @@ export const Task = {
                 type: row.recurrence_type,
                 interval: row.recurrence_interval || 1,
                 endDate: row.recurrence_end_date
-            } : undefined,
-            reminderOffset: row.reminder_offset || null
+            } : undefined
         }));
     },
 
     // Create task
     async create(userId, task) {
-        await pool.query('UPDATE users SET no_task_reminder_sent = FALSE WHERE id = $1', [userId]);
         const result = await pool.query(
-            `INSERT INTO tasks (user_id, content, column_id, hour, color, completed, subtasks, recurrence_type, recurrence_interval, recurrence_end_date, reminder_offset, reminder_sent) 
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, FALSE) 
+            `INSERT INTO tasks (user_id, content, column_id, hour, color, completed, subtasks, recurrence_type, recurrence_interval, recurrence_end_date) 
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) 
        RETURNING *`,
             [
                 userId,
@@ -41,8 +39,7 @@ export const Task = {
                 JSON.stringify(task.subtasks || []),
                 task.recurrence?.type || null,
                 task.recurrence?.interval || 1,
-                task.recurrence?.endDate || null,
-                task.reminderOffset || null
+                task.recurrence?.endDate || null
             ]
         );
         const row = result.rows[0];
@@ -58,8 +55,7 @@ export const Task = {
                 type: row.recurrence_type,
                 interval: row.recurrence_interval || 1,
                 endDate: row.recurrence_end_date
-            } : undefined,
-            reminderOffset: row.reminder_offset || null
+            } : undefined
         };
     },
 
@@ -110,13 +106,6 @@ export const Task = {
                 values.push(updates.recurrence.endDate || null);
             }
         }
-        if (updates.reminderOffset !== undefined) {
-            fields.push(`reminder_offset = $${paramIndex++}`);
-            values.push(updates.reminderOffset || null);
-            // Reset reminder_sent when offset changes
-            fields.push(`reminder_sent = $${paramIndex++}`);
-            values.push(false);
-        }
 
         if (fields.length === 0) {
             return null;
@@ -143,8 +132,7 @@ export const Task = {
                 type: row.recurrence_type,
                 interval: row.recurrence_interval || 1,
                 endDate: row.recurrence_end_date
-            } : undefined,
-            reminderOffset: row.reminder_offset || null
+            } : undefined
         };
     },
 
@@ -174,35 +162,14 @@ export const Task = {
         try {
             await client.query('BEGIN');
 
-            // Read existing reminder_sent values before deleting (to preserve across sync)
-            const existingReminders = await client.query(
-                'SELECT content, column_id, hour, reminder_offset, reminder_sent FROM tasks WHERE user_id = $1 AND reminder_sent = TRUE',
-                [userId]
-            );
-            const sentMap = new Set(
-                existingReminders.rows.map(r => `${r.content}|${r.column_id}|${r.hour}|${r.reminder_offset}`)
-            );
-
             // Delete all existing tasks
             await client.query('DELETE FROM tasks WHERE user_id = $1', [userId]);
 
-            // Deduplicate tasks before inserting (prevent race-condition duplicates)
-            const seen = new Set();
-            const uniqueTasks = tasks.filter(task => {
-                const key = `${task.content}|${task.columnId}|${task.hour ?? ''}|${task.completed}`;
-                if (seen.has(key)) return false;
-                seen.add(key);
-                return true;
-            });
-
-            // Insert all unique tasks
-            for (const task of uniqueTasks) {
-                // Preserve reminder_sent if it was already sent for this exact task+offset
-                const wasSent = sentMap.has(`${task.content}|${task.columnId}|${task.hour}|${task.reminderOffset || null}`);
-
+            // Insert all new tasks
+            for (const task of tasks) {
                 await client.query(
-                    `INSERT INTO tasks (user_id, content, column_id, hour, color, completed, subtasks, recurrence_type, recurrence_interval, recurrence_end_date, reminder_offset, reminder_sent) 
-           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`,
+                    `INSERT INTO tasks (user_id, content, column_id, hour, color, completed, subtasks, recurrence_type, recurrence_interval, recurrence_end_date) 
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
                     [
                         userId,
                         task.content,
@@ -213,9 +180,7 @@ export const Task = {
                         JSON.stringify(task.subtasks || []),
                         task.recurrence?.type || null,
                         task.recurrence?.interval || 1,
-                        task.recurrence?.endDate || null,
-                        task.reminderOffset || null,
-                        wasSent
+                        task.recurrence?.endDate || null
                     ]
                 );
             }

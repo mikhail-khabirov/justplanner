@@ -61,7 +61,6 @@ const PricingPage: React.FC<PricingPageProps> = ({ onBack, onSelectPlan, token, 
     };
 
     const proFeatures = [
-        'Безлимитные задачи',
         'Все цвета оформления',
         'Повторяющиеся задачи',
         'Настройка начала дня',
@@ -116,7 +115,7 @@ const PricingPage: React.FC<PricingPageProps> = ({ onBack, onSelectPlan, token, 
                                 </div>
                             </div>
                             <ul className="space-y-4 mb-10 flex-grow">
-                                {['5 активных задач', 'Недельный вид на 7 дней', 'Drag & Drop перенос задач', 'Базовые цвета задач', 'Работает на всех устройствах'].map(f => (
+                                {['Безлимитные задачи', 'Недельный вид на 7 дней', 'Drag & Drop перенос задач', 'Базовые цвета задач', 'Работает на всех устройствах'].map(f => (
                                     <li key={f} className="flex items-start gap-3 text-gray-700">
                                         <div className="mt-1 w-5 h-5 bg-[#26A69A]/10 rounded-full flex items-center justify-center shrink-0">
                                             <Check size={14} className="text-[#26A69A]" />

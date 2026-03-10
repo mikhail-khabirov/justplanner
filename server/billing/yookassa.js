@@ -11,7 +11,6 @@ const yookassa = new YooKassa({
 
 const PREMIUM_PRICE = 199; // RUB per month
 const ANNUAL_PRICE = 2388; // RUB per year (199 * 12)
-const ANNUAL_FULL_PRICE = 1910; // RUB per year (20% discount from 2388)
 
 /**
  * Create a payment for premium subscription
@@ -145,47 +144,6 @@ export async function createAnnualPayment(userId, userEmail) {
                     value: '1199.00',
                     currency: 'RUB'
                 },
-                vat_code: 1,
-                payment_mode: 'full_payment',
-                payment_subject: 'service'
-            }]
-        }
-    }, idempotenceKey);
-
-    return {
-        confirmationUrl: payment.confirmation.confirmation_url,
-        paymentId: payment.id
-    };
-}
-
-/**
- * Create annual payment with 20% discount (1910 RUB for 365 days) — always available
- */
-export async function createAnnualFullPayment(userId, userEmail) {
-    const idempotenceKey = uuidv4();
-
-    const payment = await yookassa.createPayment({
-        amount: {
-            value: ANNUAL_FULL_PRICE.toFixed(2),
-            currency: 'RUB'
-        },
-        capture: true,
-        save_payment_method: true,
-        confirmation: {
-            type: 'redirect',
-            return_url: process.env.YOOKASSA_RETURN_URL || 'https://justplanner.ru'
-        },
-        description: 'JustPlanner Pro — годовая подписка (скидка 20%)',
-        metadata: {
-            userId: userId.toString(),
-            type: 'annual'
-        },
-        receipt: {
-            customer: { email: userEmail },
-            items: [{
-                description: 'JustPlanner Pro — годовая подписка (скидка 20%)',
-                quantity: '1',
-                amount: { value: ANNUAL_FULL_PRICE.toFixed(2), currency: 'RUB' },
                 vat_code: 1,
                 payment_mode: 'full_payment',
                 payment_subject: 'service'

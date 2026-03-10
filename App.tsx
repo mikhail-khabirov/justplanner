@@ -143,7 +143,7 @@ const App: React.FC = () => {
   const [blockingAuth, setBlockingAuth] = useState(false);
   // Upgrade prompt for free users hitting various limits
   const [showUpgradePrompt, setShowUpgradePrompt] = useState(false);
-  const [upgradeReason, setUpgradeReason] = useState<UpgradeReason>('task_limit');
+  const [upgradeReason, setUpgradeReason] = useState<UpgradeReason>('colors');
   const [authMode, setAuthMode] = useState<'login' | 'register'>('login');
 
   // Survey state
@@ -970,11 +970,6 @@ const App: React.FC = () => {
   // --- Task Management ---
 
   const handleInitiateQuickAdd = (columnId: string, hour?: number) => {
-    // Check task limit for free users
-    if (isAuthenticated && !canAddTask(tasks.length)) {
-      showUpgradePromptWithReason('task_limit');
-      return;
-    }
     // Check week restriction for free users (can only plan current week)
     if (isAuthenticated && !isPremium && isDateColumn(columnId)) {
       const targetDate = new Date(columnId);

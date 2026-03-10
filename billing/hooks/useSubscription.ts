@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import { billingApi } from '../api';
 import type { Subscription, BillingState } from '../types';
 
-const FREE_TASK_LIMIT = 5;
+
 
 export function useSubscription(taskCount: number = 0): BillingState & {
     refresh: () => Promise<void>;
@@ -34,9 +34,8 @@ export function useSubscription(taskCount: number = 0): BillingState & {
     }, [subscription]);
 
     const canAddTask = useMemo(() => {
-        if (isPremium) return true;
-        return taskCount < FREE_TASK_LIMIT;
-    }, [isPremium, taskCount]);
+        return true;
+    }, []);
 
     const cancelAutoRenew = useCallback(async () => {
         await billingApi.cancelAutoRenew();
@@ -53,7 +52,6 @@ export function useSubscription(taskCount: number = 0): BillingState & {
         isLoading,
         isPremium,
         canAddTask,
-        taskLimit: FREE_TASK_LIMIT,
         refresh: fetchSubscription,
         cancelAutoRenew,
         resumeAutoRenew

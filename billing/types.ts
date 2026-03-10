@@ -34,7 +34,6 @@ export interface BillingState {
     isLoading: boolean;
     isPremium: boolean;
     canAddTask: boolean;
-    taskLimit: number;
 }
 
 export interface CreatePaymentResponse {

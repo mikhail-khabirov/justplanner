@@ -2,15 +2,14 @@ import React, { createContext, useContext, useState, useEffect, useCallback, use
 import { billingApi } from './api';
 import type { Subscription, PlanType } from './types';
 
-const FREE_TASK_LIMIT = 5;
+
 
 interface BillingContextType {
     subscription: Subscription | null;
     isLoading: boolean;
     isPremium: boolean;
     plan: PlanType;
-    canAddTask: (currentTaskCount: number) => boolean;
-    taskLimit: number;
+    canAddTask: () => boolean;
     refresh: () => Promise<void>;
     cancelAutoRenew: () => Promise<void>;
     resumeAutoRenew: () => Promise<void>;
@@ -75,10 +74,9 @@ export const BillingProvider: React.FC<BillingProviderProps> = ({ children, isAu
         return isPremium ? 'pro' : 'free';
     }, [isPremium]);
 
-    const canAddTask = useCallback((currentTaskCount: number): boolean => {
-        if (isPremium) return true;
-        return currentTaskCount < FREE_TASK_LIMIT;
-    }, [isPremium]);
+    const canAddTask = useCallback((): boolean => {
+        return true;
+    }, []);
 
     const cancelAutoRenew = useCallback(async () => {
         await billingApi.cancelAutoRenew();
@@ -111,7 +109,6 @@ export const BillingProvider: React.FC<BillingProviderProps> = ({ children, isAu
         isPremium,
         plan,
         canAddTask,
-        taskLimit: FREE_TASK_LIMIT,
         refresh: fetchSubscription,
         cancelAutoRenew,
         resumeAutoRenew,

@@ -77,20 +77,10 @@ await test('API задач (auth)', async () => {
 });
 
 await test('Фронтенд загружается', async () => {
-    let lastError;
-    for (let attempt = 1; attempt <= 3; attempt++) {
-        try {
-            const res = await fetch(BASE_URL, { signal: AbortSignal.timeout(10000) });
-            assert(res.status === 200, `HTTP ${res.status}`);
-            const html = await res.text();
-            assert(html.includes('JustPlanner'), 'HTML не содержит JustPlanner');
-            return;
-        } catch (err) {
-            lastError = err;
-            if (attempt < 3) await new Promise(r => setTimeout(r, 5000));
-        }
-    }
-    throw lastError;
+    const res = await fetch(BASE_URL, { signal: AbortSignal.timeout(10000) });
+    assert(res.status === 200, `HTTP ${res.status}`);
+    const html = await res.text();
+    assert(html.includes('JustPlanner'), 'HTML не содержит JustPlanner');
 });
 
 // DB tests

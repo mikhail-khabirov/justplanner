@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { Crown, X, Loader2, Sparkles, Info, ShieldCheck } from 'lucide-react';
+import { Crown, X, Loader2, Sparkles, Info } from 'lucide-react';
 import { useBilling } from '../BillingContext';
 
-export type UpgradeReason = 'task_limit' | 'colors' | 'week_planning' | 'recurrence' | 'pdf' | 'print';
+export type UpgradeReason = 'colors' | 'week_planning' | 'recurrence' | 'pdf' | 'print';
 
 interface UpgradePromptProps {
     isOpen: boolean;
@@ -12,10 +12,6 @@ interface UpgradePromptProps {
 
 // Message content based on reason
 const REASON_CONTENT: Record<UpgradeReason, { title: string; subtitle: string }> = {
-    task_limit: {
-        title: 'Лимит достигнут',
-        subtitle: 'Бесплатный план: максимум 5 задач'
-    },
     colors: {
         title: 'Цвета для Pro',
         subtitle: 'Цветные карточки доступны в Pro версии'
@@ -41,8 +37,8 @@ const REASON_CONTENT: Record<UpgradeReason, { title: string; subtitle: string }>
 /**
  * Modal prompting free users to upgrade when they hit various limits
  */
-const UpgradePrompt: React.FC<UpgradePromptProps> = ({ isOpen, onClose, reason = 'task_limit' }) => {
-    const { startPayment, taskLimit } = useBilling();
+const UpgradePrompt: React.FC<UpgradePromptProps> = ({ isOpen, onClose, reason = 'colors' }) => {
+    const { startPayment } = useBilling();
     const [isProcessing, setIsProcessing] = useState(false);
     const [showTerms, setShowTerms] = useState(false);
 
@@ -99,10 +95,6 @@ const UpgradePrompt: React.FC<UpgradePromptProps> = ({ isOpen, onClose, reason =
                     <div className="space-y-3 mb-6">
                         <div className="flex items-center gap-3 text-gray-700">
                             <Sparkles size={18} className="text-amber-500 flex-shrink-0" />
-                            <span className="text-sm">Неограниченное количество задач</span>
-                        </div>
-                        <div className="flex items-center gap-3 text-gray-700">
-                            <Sparkles size={18} className="text-amber-500 flex-shrink-0" />
                             <span className="text-sm">Все цвета для карточек</span>
                         </div>
                         <div className="flex items-center gap-3 text-gray-700">
@@ -135,11 +127,6 @@ const UpgradePrompt: React.FC<UpgradePromptProps> = ({ isOpen, onClose, reason =
                     </button>
 
                     <p className="text-center text-xs text-gray-400 mt-1.5">далее 199 ₽/мес</p>
-
-                    <div className="flex items-center justify-center gap-1.5 mt-2">
-                        <ShieldCheck size={14} className="text-green-600 shrink-0" />
-                        <span className="text-xs text-green-700 font-medium">Гарантия возврата 100% — без вопросов</span>
-                    </div>
 
                     {/* Auto-renewal terms link */}
                     <p className="text-center mt-0.5">
@@ -186,9 +173,6 @@ const UpgradePrompt: React.FC<UpgradePromptProps> = ({ isOpen, onClose, reason =
                             </p>
                             <p>
                                 Отменить подписку и отвязать способ оплаты вы сможете в любой момент в настройках.
-                            </p>
-                            <p>
-                                Если продукт не понравится — вернём 100% оплаты без вопросов.
                             </p>
                         </div>
 
