@@ -103,24 +103,24 @@ async function getPaymentStats() {
                 COALESCE(SUM(p.amount) FILTER (WHERE p.status = 'succeeded' AND p.description = 'Premium subscription'), 0) AS sub_sum_total,
 
                 -- Продления (автопродление + после триала)
-                COUNT(*) FILTER (WHERE p.created_at >= (CURRENT_DATE AT TIME ZONE 'Europe/Moscow') AND p.status = 'succeeded' AND (p.description LIKE '%автопродление%' OR p.description LIKE '%после триала%')) AS renew_today,
-                COALESCE(SUM(p.amount) FILTER (WHERE p.created_at >= (CURRENT_DATE AT TIME ZONE 'Europe/Moscow') AND p.status = 'succeeded' AND (p.description LIKE '%автопродление%' OR p.description LIKE '%после триала%')), 0) AS renew_sum_today,
-                COUNT(*) FILTER (WHERE p.created_at >= NOW() - INTERVAL '24 hours' AND p.status = 'succeeded' AND (p.description LIKE '%автопродление%' OR p.description LIKE '%после триала%')) AS renew_24h,
-                COALESCE(SUM(p.amount) FILTER (WHERE p.created_at >= NOW() - INTERVAL '24 hours' AND p.status = 'succeeded' AND (p.description LIKE '%автопродление%' OR p.description LIKE '%после триала%')), 0) AS renew_sum_24h,
-                COUNT(*) FILTER (WHERE p.created_at >= NOW() - INTERVAL '7 days' AND p.status = 'succeeded' AND (p.description LIKE '%автопродление%' OR p.description LIKE '%после триала%')) AS renew_week,
-                COALESCE(SUM(p.amount) FILTER (WHERE p.created_at >= NOW() - INTERVAL '7 days' AND p.status = 'succeeded' AND (p.description LIKE '%автопродление%' OR p.description LIKE '%после триала%')), 0) AS renew_sum_week,
-                COUNT(*) FILTER (WHERE p.status = 'succeeded' AND (p.description LIKE '%автопродление%' OR p.description LIKE '%после триала%')) AS renew_total,
-                COALESCE(SUM(p.amount) FILTER (WHERE p.status = 'succeeded' AND (p.description LIKE '%автопродление%' OR p.description LIKE '%после триала%')), 0) AS renew_sum_total,
+                COUNT(*) FILTER (WHERE p.created_at >= (CURRENT_DATE AT TIME ZONE 'Europe/Moscow') AND p.status = 'succeeded' AND ((p.description LIKE '%автопродление%' OR p.description LIKE '%после триала%') AND p.description NOT LIKE '%годов%')) AS renew_today,
+                COALESCE(SUM(p.amount) FILTER (WHERE p.created_at >= (CURRENT_DATE AT TIME ZONE 'Europe/Moscow') AND p.status = 'succeeded' AND ((p.description LIKE '%автопродление%' OR p.description LIKE '%после триала%') AND p.description NOT LIKE '%годов%')), 0) AS renew_sum_today,
+                COUNT(*) FILTER (WHERE p.created_at >= NOW() - INTERVAL '24 hours' AND p.status = 'succeeded' AND ((p.description LIKE '%автопродление%' OR p.description LIKE '%после триала%') AND p.description NOT LIKE '%годов%')) AS renew_24h,
+                COALESCE(SUM(p.amount) FILTER (WHERE p.created_at >= NOW() - INTERVAL '24 hours' AND p.status = 'succeeded' AND ((p.description LIKE '%автопродление%' OR p.description LIKE '%после триала%') AND p.description NOT LIKE '%годов%')), 0) AS renew_sum_24h,
+                COUNT(*) FILTER (WHERE p.created_at >= NOW() - INTERVAL '7 days' AND p.status = 'succeeded' AND ((p.description LIKE '%автопродление%' OR p.description LIKE '%после триала%') AND p.description NOT LIKE '%годов%')) AS renew_week,
+                COALESCE(SUM(p.amount) FILTER (WHERE p.created_at >= NOW() - INTERVAL '7 days' AND p.status = 'succeeded' AND ((p.description LIKE '%автопродление%' OR p.description LIKE '%после триала%') AND p.description NOT LIKE '%годов%')), 0) AS renew_sum_week,
+                COUNT(*) FILTER (WHERE p.status = 'succeeded' AND ((p.description LIKE '%автопродление%' OR p.description LIKE '%после триала%') AND p.description NOT LIKE '%годов%')) AS renew_total,
+                COALESCE(SUM(p.amount) FILTER (WHERE p.status = 'succeeded' AND ((p.description LIKE '%автопродление%' OR p.description LIKE '%после триала%') AND p.description NOT LIKE '%годов%')), 0) AS renew_sum_total,
 
                 -- Годовые (любая сумма — суммируется всё)
-                COUNT(*) FILTER (WHERE p.created_at >= (CURRENT_DATE AT TIME ZONE 'Europe/Moscow') AND p.status = 'succeeded' AND p.description = 'Annual Pro 365 days') AS annual_today,
-                COALESCE(SUM(p.amount) FILTER (WHERE p.created_at >= (CURRENT_DATE AT TIME ZONE 'Europe/Moscow') AND p.status = 'succeeded' AND p.description = 'Annual Pro 365 days'), 0) AS annual_sum_today,
-                COUNT(*) FILTER (WHERE p.created_at >= NOW() - INTERVAL '24 hours' AND p.status = 'succeeded' AND p.description = 'Annual Pro 365 days') AS annual_24h,
-                COALESCE(SUM(p.amount) FILTER (WHERE p.created_at >= NOW() - INTERVAL '24 hours' AND p.status = 'succeeded' AND p.description = 'Annual Pro 365 days'), 0) AS annual_sum_24h,
-                COUNT(*) FILTER (WHERE p.created_at >= NOW() - INTERVAL '7 days' AND p.status = 'succeeded' AND p.description = 'Annual Pro 365 days') AS annual_week,
-                COALESCE(SUM(p.amount) FILTER (WHERE p.created_at >= NOW() - INTERVAL '7 days' AND p.status = 'succeeded' AND p.description = 'Annual Pro 365 days'), 0) AS annual_sum_week,
-                COUNT(*) FILTER (WHERE p.status = 'succeeded' AND p.description = 'Annual Pro 365 days') AS annual_total,
-                COALESCE(SUM(p.amount) FILTER (WHERE p.status = 'succeeded' AND p.description = 'Annual Pro 365 days'), 0) AS annual_sum_total
+                COUNT(*) FILTER (WHERE p.created_at >= (CURRENT_DATE AT TIME ZONE 'Europe/Moscow') AND p.status = 'succeeded' AND (p.description = 'Annual Pro 365 days' OR p.description LIKE '%годов%')) AS annual_today,
+                COALESCE(SUM(p.amount) FILTER (WHERE p.created_at >= (CURRENT_DATE AT TIME ZONE 'Europe/Moscow') AND p.status = 'succeeded' AND (p.description = 'Annual Pro 365 days' OR p.description LIKE '%годов%')), 0) AS annual_sum_today,
+                COUNT(*) FILTER (WHERE p.created_at >= NOW() - INTERVAL '24 hours' AND p.status = 'succeeded' AND (p.description = 'Annual Pro 365 days' OR p.description LIKE '%годов%')) AS annual_24h,
+                COALESCE(SUM(p.amount) FILTER (WHERE p.created_at >= NOW() - INTERVAL '24 hours' AND p.status = 'succeeded' AND (p.description = 'Annual Pro 365 days' OR p.description LIKE '%годов%')), 0) AS annual_sum_24h,
+                COUNT(*) FILTER (WHERE p.created_at >= NOW() - INTERVAL '7 days' AND p.status = 'succeeded' AND (p.description = 'Annual Pro 365 days' OR p.description LIKE '%годов%')) AS annual_week,
+                COALESCE(SUM(p.amount) FILTER (WHERE p.created_at >= NOW() - INTERVAL '7 days' AND p.status = 'succeeded' AND (p.description = 'Annual Pro 365 days' OR p.description LIKE '%годов%')), 0) AS annual_sum_week,
+                COUNT(*) FILTER (WHERE p.status = 'succeeded' AND (p.description = 'Annual Pro 365 days' OR p.description LIKE '%годов%')) AS annual_total,
+                COALESCE(SUM(p.amount) FILTER (WHERE p.status = 'succeeded' AND (p.description = 'Annual Pro 365 days' OR p.description LIKE '%годов%')), 0) AS annual_sum_total
             FROM payments p
         `);
         return result.rows[0];
