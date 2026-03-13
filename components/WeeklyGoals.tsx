@@ -175,25 +175,22 @@ const WeeklyGoals: React.FC<WeeklyGoalsProps> = ({
     return (
         <>
             {/* Side tab button */}
-            {!isOpen && (
-                <button
-                    onClick={onToggle}
-                    className="fixed left-0 top-1/2 -translate-y-1/2 z-30 flex items-center gap-1.5 bg-white/90 backdrop-blur-sm border border-l-0 border-gray-200 rounded-r-xl px-2 py-3 shadow-md hover:shadow-lg hover:bg-white transition-all duration-200 group"
-                    title="Цели недели"
-                    style={{ writingMode: 'vertical-lr', textOrientation: 'mixed' }}
-                >
-                    <Target size={16} className="transition-colors rotate-0" style={{ writingMode: 'horizontal-tb', color: '#26A69A' }} />
-                    <span className="text-[11px] font-semibold text-gray-500 group-hover:text-gray-700 tracking-wide transition-colors">Цели</span>
-                </button>
-            )}
+            <button
+                onClick={onToggle}
+                className="fixed left-0 top-1/2 -translate-y-1/2 z-30 flex items-center gap-1.5 bg-white/90 backdrop-blur-sm border border-l-0 border-gray-200 rounded-r-xl px-2 py-3 shadow-md hover:shadow-lg hover:bg-white transition-all duration-200 group"
+                title="Цели недели"
+                style={{ writingMode: 'vertical-lr', textOrientation: 'mixed', display: isOpen ? 'none' : undefined }}
+            >
+                <Target size={16} className="transition-colors rotate-0" style={{ writingMode: 'horizontal-tb', color: '#26A69A' }} />
+                <span className="text-[11px] font-semibold text-gray-500 group-hover:text-gray-700 tracking-wide transition-colors">Цели</span>
+            </button>
 
             {/* Backdrop */}
-            {isOpen && (
-                <div
-                    className="fixed inset-0 bg-black/20 backdrop-blur-[2px] z-40 transition-opacity duration-200"
-                    onClick={onToggle}
-                />
-            )}
+            <div
+                className="fixed inset-0 bg-black/20 backdrop-blur-[2px] z-40 transition-opacity duration-200"
+                onClick={onToggle}
+                style={{ display: isOpen ? undefined : 'none' }}
+            />
 
             {/* Panel */}
             <div
