@@ -27,6 +27,7 @@ interface WeeklyGoalsProps {
     onAddSubtask: (goalId: string, content: string) => void;
     onToggleSubtask: (goalId: string, subtaskId: string) => void;
     onDeleteSubtask: (goalId: string, subtaskId: string) => void;
+    onUpdateSubtask: (goalId: string, subtaskId: string, content: string) => void;
     showIntro?: boolean;
     onDismissIntro?: () => void;
     weekLabel: string;
@@ -45,6 +46,7 @@ const WeeklyGoals: React.FC<WeeklyGoalsProps> = ({
     onAddSubtask,
     onToggleSubtask,
     onDeleteSubtask,
+    onUpdateSubtask,
     showIntro,
     onDismissIntro,
     weekLabel,
@@ -54,8 +56,12 @@ const WeeklyGoals: React.FC<WeeklyGoalsProps> = ({
     const [editText, setEditText] = useState('');
     const [expandedGoals, setExpandedGoals] = useState<Set<string>>(new Set());
     const [subtaskTexts, setSubtaskTexts] = useState<Record<string, string>>({});
+    const [editingSubtaskId, setEditingSubtaskId] = useState<string | null>(null);
+    const [editingSubtaskGoalId, setEditingSubtaskGoalId] = useState<string | null>(null);
+    const [editSubtaskText, setEditSubtaskText] = useState('');
     const inputRef = useRef<HTMLInputElement>(null);
     const editInputRef = useRef<HTMLInputElement>(null);
+    const editSubtaskInputRef = useRef<HTMLInputElement>(null);
     const subtaskInputRef = useRef<HTMLInputElement>(null);
 
     // Drag state
@@ -91,6 +97,22 @@ const WeeklyGoals: React.FC<WeeklyGoalsProps> = ({
         setEditingId(null);
         setEditText('');
     }, [editingId, editText, onUpdate]);
+
+    const startEditSubtask = useCallback((goalId: string, subtaskId: string, content: string) => {
+        setEditingSubtaskGoalId(goalId);
+        setEditingSubtaskId(subtaskId);
+        setEditSubtaskText(content);
+        setTimeout(() => editSubtaskInputRef.current?.focus(), 50);
+    }, []);
+
+    const commitEditSubtask = useCallback(() => {
+        if (editingSubtaskGoalId && editingSubtaskId && editSubtaskText.trim()) {
+            onUpdateSubtask(editingSubtaskGoalId, editingSubtaskId, editSubtaskText.trim());
+        }
+        setEditingSubtaskId(null);
+        setEditingSubtaskGoalId(null);
+        setEditSubtaskText('');
+    }, [editingSubtaskGoalId, editingSubtaskId, editSubtaskText, onUpdateSubtask]);
 
     const toggleExpanded = useCallback((goalId: string) => {
         setExpandedGoals(prev => {
@@ -379,11 +401,27 @@ const WeeklyGoals: React.FC<WeeklyGoalsProps> = ({
                                                             >
                                                                 {sub.completed && <Check size={10} strokeWidth={3} />}
                                                             </button>
-                                                            <span className={`flex-1 text-xs leading-snug break-words ${sub.completed ? 'text-gray-400 line-through' : 'text-gray-600'}`}
-                                                                style={{ display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}
-                                                            >
-                                                                {sub.content}
-                                                            </span>
+                                                            {editingSubtaskId === sub.id ? (
+                                                                <input
+                                                                    ref={editSubtaskInputRef}
+                                                                    value={editSubtaskText}
+                                                                    onChange={(e) => setEditSubtaskText(e.target.value)}
+                                                                    onBlur={commitEditSubtask}
+                                                                    onKeyDown={(e) => {
+                                                                        if (e.key === 'Enter') commitEditSubtask();
+                                                                        if (e.key === 'Escape') { setEditingSubtaskId(null); setEditSubtaskText(''); }
+                                                                    }}
+                                                                    className="flex-1 text-xs bg-transparent outline-none py-0.5 text-gray-600" style={{ borderBottom: '1px solid #26A69A' }}
+                                                                />
+                                                            ) : (
+                                                                <span
+                                                                    onClick={() => startEditSubtask(goal.id, sub.id, sub.content)}
+                                                                    className={`flex-1 text-xs leading-snug break-words cursor-text ${sub.completed ? 'text-gray-400 line-through' : 'text-gray-600'}`}
+                                                                    style={{ display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}
+                                                                >
+                                                                    {sub.content}
+                                                                </span>
+                                                            )}
                                                             <button
                                                                 onClick={() => onDeleteSubtask(goal.id, sub.id)}
                                                                 className="p-0.5 rounded text-gray-300 hover:text-red-400 transition-colors opacity-0 group-hover/sub:opacity-100"

@@ -704,6 +704,15 @@ const App: React.FC = () => {
     }));
   }, []);
 
+  const handleUpdateGoalSubtask = useCallback((goalId: string, subtaskId: string, content: string) => {
+    setTasks(prev => prev.map(t => {
+      if (t.id === goalId) {
+        return { ...t, subtasks: t.subtasks.map(s => s.id === subtaskId ? { ...s, content } : s) };
+      }
+      return t;
+    }));
+  }, []);
+
   // Header Date Title
   const monthTitle = useMemo(() => {
     const title = startDate.toLocaleDateString('ru-RU', { month: 'long', year: 'numeric' });
@@ -1530,6 +1539,7 @@ const App: React.FC = () => {
         onAddSubtask={handleAddGoalSubtask}
         onToggleSubtask={handleToggleGoalSubtask}
         onDeleteSubtask={handleDeleteGoalSubtask}
+        onUpdateSubtask={handleUpdateGoalSubtask}
         weekLabel={weekLabel}
         showIntro={showGoalsIntro}
         onDismissIntro={() => { setShowGoalsIntro(false); safeLocalStorage.setItem('goalsIntroSeen', '1'); }}
