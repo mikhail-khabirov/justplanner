@@ -178,6 +178,11 @@ async function updateSchema() {
             ADD COLUMN IF NOT EXISTS reminder_offset VARCHAR(20),
             ADD COLUMN IF NOT EXISTS reminder_sent BOOLEAN DEFAULT FALSE;
         `);
+        // Grandfathered pricing for recurring renewals
+        await pool.query(`
+            ALTER TABLE users
+            ADD COLUMN IF NOT EXISTS monthly_price INTEGER DEFAULT 299;
+        `);
 
         console.log('✅ Database schema updated');
     } catch (err) {
