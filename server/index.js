@@ -195,10 +195,14 @@ app.listen(PORT, async () => {
     await updateSchema();
 
     // Schedule renewal cron: every day at 3:00 AM (server time)
-    cron.schedule('0 3 * * *', async () => {
-        console.log('⏰ Cron: Starting scheduled subscription renewal...');
-        await processRenewals();
-    });
+    if (process.env.DISABLE_RENEWAL_CRON === 'true') {
+        console.log('⏸  Renewal cron DISABLED via DISABLE_RENEWAL_CRON env var');
+    } else {
+        cron.schedule('0 3 * * *', async () => {
+            console.log('⏰ Cron: Starting scheduled subscription renewal...');
+            await processRenewals();
+        });
+    }
 
     // Annual offer reminder disabled - email marketing handled by Unisender
     // cron.schedule('*/30 * * * *', async () => {
