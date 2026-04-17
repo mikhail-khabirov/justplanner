@@ -1,19 +1,15 @@
 /**
  * Smoke tests — автоматическая проверка JustPlanner
- * 
+ *
  * Запуск кроном каждые 5 мин.
- * При ошибках — мгновенный алерт в Telegram (не чаще раз в 30 мин).
- * Результаты сохраняются в лог-файл для ежедневного отчёта.
+ * Результаты сохраняются в лог-файл; exit 1 при ошибках.
  */
 
 import 'dotenv/config';
-import { appendFileSync, readFileSync, writeFileSync } from 'fs';
+import { appendFileSync } from 'fs';
 
 const BASE_URL = process.env.TEST_BASE_URL || 'https://justplanner.ru';
-const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
-const TELEGRAM_CHAT_ID = process.env.TELEGRAM_CHAT_ID;
 const LOG_FILE = '/var/log/justplanner-tests.json';
-const ALERT_COOLDOWN_FILE = '/tmp/justplanner-test-alert';
 
 const results = [];
 let passed = 0;
@@ -135,31 +131,6 @@ if (failed > 0) {
     results.filter(r => r.status === 'fail').forEach(r => {
         console.log(`  ❌ ${r.name} — ${r.error}`);
     });
-}
-
-// ─── Alert to Telegram on failures (cooldown 30 min) ─────
-
-if (failed > 0 && TELEGRAM_BOT_TOKEN && TELEGRAM_CHAT_ID) {
-    let shouldAlert = true;
-    try {
-        const ts = parseInt(readFileSync(ALERT_COOLDOWN_FILE, 'utf8'));
-        if (Date.now() - ts < 30 * 60 * 1000) shouldAlert = false;
-    } catch {}
-
-    if (shouldAlert) {
-        const failedTests = results.filter(r => r.status === 'fail');
-        const message =
-            `🚨 <b>Тесты: ${failed} ошибок!</b>\n\n` +
-            failedTests.map(r => `❌ ${r.name}\n   <i>${r.error}</i>`).join('\n\n') +
-            `\n\n📊 Проведено: ${passed + failed} | Успешных: ${passed} | Ошибок: ${failed}\n🕐 ${time}`;
-
-        await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ chat_id: TELEGRAM_CHAT_ID, text: message, parse_mode: 'HTML' })
-        }).catch(() => {});
-        try { writeFileSync(ALERT_COOLDOWN_FILE, Date.now().toString()); } catch {}
-    }
 }
 
 if (pool) await pool.end();

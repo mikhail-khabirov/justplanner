@@ -2,7 +2,6 @@ import express from 'express';
 import { User } from '../models/User.js';
 import { generateToken } from '../middleware/auth.js';
 import passport from 'passport';
-import { notifyNewUser } from '../utils/telegram.js';
 import { addContactToUnisender } from '../utils/unisender.js';
 
 const router = express.Router();
@@ -74,8 +73,6 @@ router.post('/verify', async (req, res) => {
 
         // Welcome email disabled - handled by Unisender
 
-        // Telegram notification
-        notifyNewUser(email, 'email');
         addContactToUnisender(email).catch(console.error);
 
         // Login user

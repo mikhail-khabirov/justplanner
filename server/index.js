@@ -4,7 +4,6 @@ import cors from 'cors';
 import passport from 'passport';
 import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
 import { User } from './models/User.js';
-import { notifyNewUser } from './utils/telegram.js';
 import { addContactToUnisender } from './utils/unisender.js';
 import { startUserBotPolling, sendUserReminder } from './utils/userBot.js';
 import authRoutes from './routes/auth.js';
@@ -45,7 +44,6 @@ if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
 
             if (isNew) {
                 // Welcome email disabled - handled by Unisender
-                notifyNewUser(email, 'google');
                 addContactToUnisender(email).catch(console.error);
             }
 

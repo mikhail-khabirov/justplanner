@@ -2,7 +2,6 @@ import express from 'express';
 import pool from '../config/db.js';
 import { authenticateToken } from '../middleware/auth.js';
 import { createTrialPayment, getPaymentStatus, createCardBindingPayment, createAnnualPayment, createAnnualFullPayment, refundPayment } from './yookassa.js';
-import { notifyPayment } from '../utils/telegram.js';
 import { addContactToUnisender } from '../utils/unisender.js';
 
 const UNISENDER_BUYERS_LIST_ID = '6';
@@ -435,10 +434,6 @@ router.post('/webhook', async (req, res) => {
                 }
 
                 console.log(`🆓 Trial activated for user ${userId} until ${periodEnd}`);
-
-                const userResult = await pool.query('SELECT email FROM users WHERE id = $1', [userId]);
-                const userEmail = userResult.rows[0]?.email || `user#${userId}`;
-                notifyPayment(userEmail, payment.amount.value, 'Триал Pro 7 дней');
             } else if (paymentType === 'annual' || paymentType === 'annual_full' || paymentType === 'annual_recurring') {
                 // Annual: Pro for 365 days, with auto-renew
                 const periodEnd = new Date();
@@ -478,8 +473,6 @@ router.post('/webhook', async (req, res) => {
                 console.log(`📅 ${label} activated for user ${userId} until ${periodEnd}`);
 
                 const userResult = await pool.query('SELECT email FROM users WHERE id = $1', [userId]);
-                const userEmail = userResult.rows[0]?.email || `user#${userId}`;
-                notifyPayment(userEmail, payment.amount.value, label);
                 if (userResult.rows[0]?.email) {
                     addContactToUnisender(userResult.rows[0].email, UNISENDER_BUYERS_LIST_ID).catch(console.error);
                 }
@@ -515,10 +508,6 @@ router.post('/webhook', async (req, res) => {
                 }
 
                 console.log(`✅ Premium activated for user ${userId} until ${periodEnd}`);
-
-                const userResult = await pool.query('SELECT email FROM users WHERE id = $1', [userId]);
-                const userEmail = userResult.rows[0]?.email || `user#${userId}`;
-                notifyPayment(userEmail, payment.amount.value, 'Подписка Pro');
             }
         }
         else if (event.event === 'payment.canceled') {

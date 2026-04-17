@@ -1,7 +1,6 @@
 /**
  * User-facing Telegram bot for task reminders.
- * Separate from admin bot (telegram.js).
- * 
+ *
  * Commands:
  *   /start TOKEN — link Telegram account to JustPlanner user
  *   /stop        — unlink Telegram account
