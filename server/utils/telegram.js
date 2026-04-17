@@ -215,6 +215,10 @@ async function sendTelegramReply(chatId, text) {
 
 // Start polling loop
 (async function botLoop() {
+    if (process.env.STANDBY_MODE === 'true') {
+        console.log('🛑 Telegram admin bot polling SKIPPED (STANDBY_MODE=true)');
+        return;
+    }
     // Delete any existing webhook so polling works
     if (TELEGRAM_BOT_TOKEN) {
         await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/deleteWebhook`).catch(() => { });

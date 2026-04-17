@@ -194,6 +194,13 @@ async function updateSchema() {
 app.listen(PORT, async () => {
     await updateSchema();
 
+    console.log(`🚀 Server running on http://localhost:${PORT}`);
+
+    if (process.env.STANDBY_MODE === 'true') {
+        console.log('🛑 STANDBY_MODE=true: crons, Telegram bot polling, and background tasks are DISABLED. HTTP API still serves requests.');
+        return;
+    }
+
     // Schedule renewal cron: every day at 3:00 AM (server time)
     if (process.env.DISABLE_RENEWAL_CRON === 'true') {
         console.log('⏸  Renewal cron DISABLED via DISABLE_RENEWAL_CRON env var');
@@ -334,7 +341,6 @@ app.listen(PORT, async () => {
     // Start user-facing Telegram bot polling
     startUserBotPolling();
 
-    console.log(`🚀 Server running on http://localhost:${PORT}`);
     console.log('📅 Subscription renewal cron scheduled: daily at 3:00 AM');
     console.log('📧 Unisender trigger crons scheduled: no-task 48h, inactive 5d, Sunday 10:00 MSK');
     console.log('🔔 Task reminder cron scheduled: every minute');
