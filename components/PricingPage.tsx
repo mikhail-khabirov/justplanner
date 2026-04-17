@@ -30,7 +30,45 @@ function getRemainingDays(subscription?: Subscription | null): number {
 
 const PricingPage: React.FC<PricingPageProps> = ({ onBack, onSelectPlan, token, isAuthenticated, onAuthRequired, subscription }) => {
     const [annualLoading, setAnnualLoading] = useState(false);
+    const [trialLoading, setTrialLoading] = useState(false);
     const remainingDays = getRemainingDays(subscription);
+
+    const handleStartFree = () => {
+        if (!isAuthenticated) {
+            onAuthRequired?.();
+            return;
+        }
+        window.history.pushState({}, '', '/app');
+        onSelectPlan('free');
+    };
+
+    const handleStartTrial = async () => {
+        if (!isAuthenticated) {
+            onAuthRequired?.();
+            return;
+        }
+        setTrialLoading(true);
+        try {
+            const res = await fetch('/api/billing/create-payment', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+                },
+                credentials: 'include',
+            });
+            const data = await res.json();
+            if (data.confirmationUrl) {
+                window.location.href = data.confirmationUrl;
+            } else {
+                alert('Ошибка создания платежа: ' + (data.error || 'Попробуйте позже'));
+            }
+        } catch (e) {
+            alert('Ошибка сети. Попробуйте ещё раз.');
+        } finally {
+            setTrialLoading(false);
+        }
+    };
 
     const handleBuyAnnual = async () => {
         if (!isAuthenticated) {
@@ -125,7 +163,7 @@ const PricingPage: React.FC<PricingPageProps> = ({ onBack, onSelectPlan, token, 
                                 ))}
                             </ul>
                             <button
-                                onClick={() => { window.history.pushState({}, '', '/app'); onSelectPlan('free'); }}
+                                onClick={handleStartFree}
                                 className="w-full py-4 px-6 rounded-2xl font-bold text-lg transition-all bg-gray-100 text-gray-900 hover:bg-gray-200"
                             >
                                 Начать сейчас
@@ -160,10 +198,11 @@ const PricingPage: React.FC<PricingPageProps> = ({ onBack, onSelectPlan, token, 
                                 ))}
                             </ul>
                             <button
-                                onClick={() => { window.history.pushState({}, '', '/app'); onSelectPlan('pro'); }}
-                                className="w-full py-4 px-6 rounded-2xl font-bold text-lg transition-all bg-[#26A69A] text-white hover:bg-[#218F84] shadow-[0_8px_20px_rgba(38,166,154,0.3)]"
+                                onClick={handleStartTrial}
+                                disabled={trialLoading}
+                                className="w-full py-4 px-6 rounded-2xl font-bold text-lg transition-all bg-[#26A69A] text-white hover:bg-[#218F84] shadow-[0_8px_20px_rgba(38,166,154,0.3)] disabled:opacity-60 flex items-center justify-center gap-2"
                             >
-                                Попробовать за 1 ₽
+                                {trialLoading ? <Loader2 size={20} className="animate-spin" /> : 'Попробовать за 1 ₽'}
                             </button>
                         </div>
                     </div>

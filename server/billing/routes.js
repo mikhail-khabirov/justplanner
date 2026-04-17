@@ -1,7 +1,7 @@
 import express from 'express';
 import pool from '../config/db.js';
 import { authenticateToken } from '../middleware/auth.js';
-import { createTrialPayment, getPaymentStatus, createCardBindingPayment, createAnnualPayment, refundPayment } from './yookassa.js';
+import { createTrialPayment, getPaymentStatus, createCardBindingPayment, createAnnualPayment, createAnnualFullPayment, refundPayment } from './yookassa.js';
 import { notifyPayment } from '../utils/telegram.js';
 import { addContactToUnisender } from '../utils/unisender.js';
 
@@ -124,6 +124,38 @@ router.post('/create-annual-payment', authenticateToken, async (req, res) => {
         res.json({ confirmationUrl, paymentId });
     } catch (error) {
         console.error('Error creating annual payment:', error);
+        res.status(500).json({ error: 'Failed to create payment', message: error.message });
+    }
+});
+
+// Create annual full-price payment from pricing page (2870 RUB for 365 days)
+router.post('/create-annual-full-payment', authenticateToken, async (req, res) => {
+    try {
+        const userResult = await pool.query(
+            'SELECT email FROM users WHERE id = $1',
+            [req.user.id]
+        );
+
+        if (userResult.rows.length === 0) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+
+        const userEmail = userResult.rows[0].email;
+
+        const { confirmationUrl, paymentId } = await createAnnualFullPayment(
+            req.user.id,
+            userEmail
+        );
+
+        await pool.query(
+            `INSERT INTO payments (user_id, yookassa_payment_id, amount, currency, status, description)
+             VALUES ($1, $2, $3, $4, $5, $6)`,
+            [req.user.id, paymentId, 2870, 'RUB', 'pending', 'Annual Pro 365 days (full price)']
+        );
+
+        res.json({ confirmationUrl, paymentId });
+    } catch (error) {
+        console.error('Error creating annual full payment:', error);
         res.status(500).json({ error: 'Failed to create payment', message: error.message });
     }
 });
@@ -407,7 +439,7 @@ router.post('/webhook', async (req, res) => {
                 const userResult = await pool.query('SELECT email FROM users WHERE id = $1', [userId]);
                 const userEmail = userResult.rows[0]?.email || `user#${userId}`;
                 notifyPayment(userEmail, payment.amount.value, 'Триал Pro 7 дней');
-            } else if (paymentType === 'annual' || paymentType === 'annual_recurring') {
+            } else if (paymentType === 'annual' || paymentType === 'annual_full' || paymentType === 'annual_recurring') {
                 // Annual: Pro for 365 days, with auto-renew
                 const periodEnd = new Date();
                 periodEnd.setDate(periodEnd.getDate() + 365);
@@ -440,7 +472,9 @@ router.post('/webhook', async (req, res) => {
                     );
                 }
 
-                const label = paymentType === 'annual_recurring' ? 'Автопродление годовой' : 'Годовая подписка Pro';
+                const label = paymentType === 'annual_recurring'
+                    ? 'Автопродление годовой'
+                    : (paymentType === 'annual_full' ? 'Годовая подписка Pro (полная цена)' : 'Годовая подписка Pro');
                 console.log(`📅 ${label} activated for user ${userId} until ${periodEnd}`);
 
                 const userResult = await pool.query('SELECT email FROM users WHERE id = $1', [userId]);

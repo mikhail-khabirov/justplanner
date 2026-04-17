@@ -158,6 +158,52 @@ export async function createAnnualPayment(userId, userEmail) {
 }
 
 /**
+ * Create annual full-price payment from pricing page (2870 RUB for 365 days)
+ */
+export async function createAnnualFullPayment(userId, userEmail) {
+    const idempotenceKey = uuidv4();
+
+    const payment = await yookassa.createPayment({
+        amount: {
+            value: '2870.00',
+            currency: 'RUB'
+        },
+        capture: true,
+        save_payment_method: true,
+        confirmation: {
+            type: 'redirect',
+            return_url: process.env.YOOKASSA_RETURN_URL || 'https://justplanner.ru'
+        },
+        description: 'JustPlanner Pro — годовая подписка',
+        metadata: {
+            userId: userId.toString(),
+            type: 'annual_full'
+        },
+        receipt: {
+            customer: {
+                email: userEmail
+            },
+            items: [{
+                description: 'JustPlanner Pro — годовая подписка',
+                quantity: '1',
+                amount: {
+                    value: '2870.00',
+                    currency: 'RUB'
+                },
+                vat_code: 1,
+                payment_mode: 'full_payment',
+                payment_subject: 'service'
+            }]
+        }
+    }, idempotenceKey);
+
+    return {
+        confirmationUrl: payment.confirmation.confirmation_url,
+        paymentId: payment.id
+    };
+}
+
+/**
  * Create recurring annual payment using saved payment method (3588 RUB for 365 days)
  */
 export async function createAnnualRecurringPayment(paymentMethodId, userId, userEmail) {
