@@ -4,7 +4,7 @@ import cors from 'cors';
 import passport from 'passport';
 import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
 import { User } from './models/User.js';
-import { addContactToUnisender } from './utils/unisender.js';
+import { sendWelcomeEmail } from './utils/email.js';
 import { startUserBotPolling, sendUserReminder } from './utils/userBot.js';
 import authRoutes from './routes/auth.js';
 import tasksRoutes from './routes/tasks.js';
@@ -43,8 +43,7 @@ if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
             const { user, isNew } = await User.findOrCreateByGoogle(profile.id, email, utmSource, utmCampaign);
 
             if (isNew) {
-                // Welcome email disabled - handled by Unisender
-                addContactToUnisender(email).catch(console.error);
+                sendWelcomeEmail(email).catch(err => console.error('Welcome email failed:', err.message));
             }
 
             await User.updateLastLogin(user.id);
@@ -209,9 +208,8 @@ app.listen(PORT, async () => {
         });
     }
 
-    // Annual offer reminder disabled - email marketing handled by Unisender
-    // cron.schedule('*/30 * * * *', async () => {
-    if (false) { // disabled
+    // Cron: Annual offer reminder via SMTP — every 30 min, sends 19-24h after registration to free users
+    cron.schedule('*/30 * * * *', async () => {
         try {
             const { default: pool } = await import('./config/db.js');
             const { sendAnnualOfferReminder } = await import('./utils/email.js');
@@ -231,70 +229,6 @@ app.listen(PORT, async () => {
             }
         } catch (err) {
             console.error('❌ Annual offer reminder cron error:', err.message);
-        }
-    }
-
-    // Cron: No task in 48h → Unisender list 7 (every hour)
-    cron.schedule('0 * * * *', async () => {
-        try {
-            const { default: pool } = await import('./config/db.js');
-            const result = await pool.query(`
-                SELECT u.id, u.email FROM users u
-                LEFT JOIN subscriptions s ON s.user_id = u.id
-                WHERE u.is_verified = true
-                  AND u.no_task_reminder_sent = false
-                  AND u.created_at <= NOW() - INTERVAL '48 hours'
-                  AND (s.plan IS NULL OR s.plan = 'free')
-                  AND NOT EXISTS (SELECT 1 FROM tasks t WHERE t.user_id = u.id)
-            `);
-            for (const user of result.rows) {
-                await addContactToUnisender(user.email, '7').catch(console.error);
-                await pool.query('UPDATE users SET no_task_reminder_sent = true WHERE id = $1', [user.id]);
-                console.log(`� No-task reminder: added ${user.email} to Unisender list 7`);
-            }
-        } catch (err) {
-            console.error('❌ No-task reminder cron error:', err.message);
-        }
-    });
-
-    // Cron: Inactive 5+ days → Unisender list 8 (every hour)
-    cron.schedule('30 * * * *', async () => {
-        try {
-            const { default: pool } = await import('./config/db.js');
-            const result = await pool.query(`
-                SELECT u.id, u.email FROM users u
-                LEFT JOIN subscriptions s ON s.user_id = u.id
-                WHERE u.is_verified = true
-                  AND u.inactivity_reminder_sent = false
-                  AND u.last_login <= NOW() - INTERVAL '5 days'
-                  AND (s.plan IS NULL OR s.plan = 'free')
-            `);
-            for (const user of result.rows) {
-                await addContactToUnisender(user.email, '8').catch(console.error);
-                await pool.query('UPDATE users SET inactivity_reminder_sent = true WHERE id = $1', [user.id]);
-                console.log(`📧 Inactivity reminder: added ${user.email} to Unisender list 8`);
-            }
-        } catch (err) {
-            console.error('❌ Inactivity reminder cron error:', err.message);
-        }
-    });
-
-    // Cron: Weekly Sunday email → Unisender list 9 (every Sunday at 18:00 MSK = 15:00 UTC)
-    cron.schedule('0 15 * * 0', async () => {
-        try {
-            const { default: pool } = await import('./config/db.js');
-            const result = await pool.query(`
-                SELECT u.email FROM users u
-                LEFT JOIN subscriptions s ON s.user_id = u.id
-                WHERE u.is_verified = true
-                  AND (s.plan IS NULL OR s.plan = 'free')
-            `);
-            for (const user of result.rows) {
-                await addContactToUnisender(user.email, '9').catch(console.error);
-            }
-            console.log(`📧 Sunday email: added ${result.rows.length} users to Unisender list 9`);
-        } catch (err) {
-            console.error('❌ Sunday email cron error:', err.message);
         }
     });
 
@@ -340,7 +274,7 @@ app.listen(PORT, async () => {
     startUserBotPolling();
 
     console.log('📅 Subscription renewal cron scheduled: daily at 3:00 AM');
-    console.log('📧 Unisender trigger crons scheduled: no-task 48h, inactive 5d, Sunday 10:00 MSK');
+    console.log('📧 Annual offer reminder cron scheduled: every 30 min (sends 19-24h after registration)');
     console.log('🔔 Task reminder cron scheduled: every minute');
     console.log('🤖 User Telegram bot: ' + (process.env.TELEGRAM_USER_BOT_TOKEN ? 'enabled' : 'disabled'));
 });

@@ -24,7 +24,7 @@ const PublicOffer: React.FC<PublicOfferProps> = ({ onBack }) => {
                     <section>
                         <h2 className="text-lg font-bold mb-3 text-gray-900">1. Общие положения</h2>
                         <p>
-                            1.1. Настоящий документ является официальным предложением (публичной офертой) Самозанятого Федорова Максима Вадимовича (ИНН 370202964392),
+                            1.1. Настоящий документ является официальным предложением (публичной офертой) [ФИО владельца сервиса] (ИНН [номер]),
                             именуемого в дальнейшем «Исполнитель», и содержит все существенные условия предоставления услуг по использованию сервиса JustPlanner.
                         </p>
                         <p>
@@ -85,8 +85,8 @@ const PublicOffer: React.FC<PublicOfferProps> = ({ onBack }) => {
                     <section>
                         <h2 className="text-lg font-bold mb-3 text-gray-900">6. Реквизиты Исполнителя</h2>
                         <div className="bg-gray-50 p-6 rounded-xl border border-gray-200">
-                            <p className="font-bold mb-2">Самозанятый Федоров Максим Вадимович</p>
-                            <p className="mb-1"><span className="text-gray-500 w-24 inline-block">ИНН:</span> 370202964392</p>
+                            <p className="font-bold mb-2">[ФИО владельца сервиса]</p>
+                            <p className="mb-1"><span className="text-gray-500 w-24 inline-block">ИНН:</span> [номер]</p>
                             <p className="mb-1"><span className="text-gray-500 w-24 inline-block">Email:</span> support@justplanner.ru</p>
                             <p className="mb-1"><span className="text-gray-500 w-24 inline-block">Сайт:</span> https://justplanner.ru</p>
                         </div>

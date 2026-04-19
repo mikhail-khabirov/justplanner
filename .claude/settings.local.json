@@ -1,0 +1,38 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(ssh root@72.56.35.143 \"export DEBIAN_FRONTEND=noninteractive && apt-get update -qq && apt-get install -y -qq curl ca-certificates gnupg lsb-release git 2>&1 | tail -5 && echo done\")",
+      "Bash(ssh root@72.56.35.143 'export DEBIAN_FRONTEND=noninteractive && \\\\ *)",
+      "Bash(ssh root@72.56.35.143 \"mkdir -p /var/www && cd /var/www && git clone https://github.com/wfmvgo/justplanner.git 2>&1 | tail -3 && ls /var/www/justplanner | head -20\")",
+      "Bash(rsync -avz --delete --exclude node_modules --exclude dist --exclude .env --exclude .env.local --exclude 'github_actions_key*' --exclude google-credentials.json --exclude dashboard/google-credentials.json --exclude dashboard/.env --exclude dashboard/dashboard.log --exclude cohort_analysis.py --exclude JustPlanner_Cohort_Analysis.xlsx -e 'ssh -o StrictHostKeyChecking=no' ./ root@72.56.35.143:/var/www/justplanner/)",
+      "Bash(ssh root@72.56.35.143 \"ls /var/www/justplanner 2>/dev/null | wc -l; du -sh /var/www/justplanner 2>/dev/null\")",
+      "Bash(scp /tmp/jp-migration/server.env root@72.56.35.143:/var/www/justplanner/server/.env)",
+      "Bash(scp /tmp/jp-migration/dashboard.env root@72.56.35.143:/var/www/justplanner/dashboard/.env)",
+      "Bash(scp /tmp/jp-migration/google-credentials.json root@72.56.35.143:/var/www/justplanner/dashboard/google-credentials.json)",
+      "Bash(ssh root@72.56.35.143 \"chmod 600 /var/www/justplanner/server/.env /var/www/justplanner/dashboard/.env /var/www/justplanner/dashboard/google-credentials.json && echo DISABLE_RENEWAL_CRON=true >> /var/www/justplanner/server/.env && echo '--- new env last lines ---' && tail -3 /var/www/justplanner/server/.env | sed 's/=.*/=***/'\")",
+      "Bash(ssh root@72.56.35.143 \"cd /var/www/justplanner && npm install 2>&1 | tail -5 && echo === server install === && cd server && npm install 2>&1 | tail -5\")",
+      "Bash(ssh root@72.56.35.143 \"cd /var/www/justplanner && npm run build 2>&1 | tail -10\")",
+      "Bash(ssh root@5.35.94.142 \"su - postgres -c \\\\\"pg_dump -Fc -d justplanner\\\\\" > /tmp/justplanner.dump && ls -la /tmp/justplanner.dump\")",
+      "Bash(scp root@5.35.94.142:/tmp/justplanner.dump /tmp/jp-migration/justplanner.dump)",
+      "Bash(scp /tmp/jp-migration/justplanner.dump root@72.56.35.143:/tmp/justplanner.dump)",
+      "Bash(ssh root@72.56.35.143 \"ls -la /tmp/justplanner.dump\")",
+      "Bash(ssh root@72.56.35.143 \"cat /var/www/justplanner/ecosystem.config.js\")",
+      "Bash(ssh root@5.35.94.142 \"cat /etc/nginx/sites-enabled/*justplanner* 2>/dev/null || ls /etc/nginx/sites-enabled/ && cat /etc/nginx/sites-enabled/default 2>/dev/null | head -100\")",
+      "Bash(ssh root@72.56.35.143 *)",
+      "Bash(ssh root@5.35.94.142 \"pm2 list && echo --- && cat /var/www/justplanner/package.json | grep -A1 type && cat /var/www/justplanner/server/package.json | grep -A1 type\")",
+      "Bash(curl -sI http://72.56.35.143/)",
+      "Bash(curl -s http://72.56.35.143/api/health)",
+      "Bash(curl -s http://72.56.35.143/api/billing/subscription -H \"Content-Type: application/json\")",
+      "Bash(node --check server/index.js)",
+      "Bash(scp \"/Users/maximfedorov/Library/Mobile Documents/com~apple~CloudDocs/dev/justplanner/server/index.js\" root@72.56.35.143:/var/www/justplanner/server/index.js)",
+      "Bash(node --check server/utils/telegram.js)",
+      "Bash(scp \"/Users/maximfedorov/Library/Mobile Documents/com~apple~CloudDocs/dev/justplanner/server/utils/telegram.js\" root@72.56.35.143:/var/www/justplanner/server/utils/telegram.js)",
+      "Bash(ssh root@5.35.94.142 \"crontab -l 2>/dev/null\")",
+      "Bash(ssh root@5.35.94.142 \"crontab -l | grep -v daily-report.js | crontab - && echo --- new --- && crontab -l && echo --- env --- && sed -i.bak '/^TELEGRAM_BOT_TOKEN=/d; /^TELEGRAM_CHAT_ID=/d' /var/www/justplanner/server/.env && grep -c TELEGRAM /var/www/justplanner/server/.env && echo 'remaining TELEGRAM vars \\(should be 2: USER_BOT_TOKEN + USER_BOT_USERNAME\\)'\")",
+      "Bash(rsync -avz --delete --exclude node_modules --exclude dist --exclude .env --exclude .env.local --exclude 'github_actions_key*' --exclude google-credentials.json --exclude dashboard/google-credentials.json --exclude dashboard/.env --exclude dashboard/dashboard.log --exclude cohort_analysis.py --exclude JustPlanner_Cohort_Analysis.xlsx -e ssh ./ root@72.56.35.143:/var/www/justplanner/)",
+      "Bash(ssh root@5.35.94.142 \"echo --- last 15 OUT lines \\(post-restart\\) --- && pm2 logs justplanner-api --nostream --lines 15 --out 2>&1 | tail -20 && echo --- last 5 ERR lines --- && pm2 logs justplanner-api --nostream --lines 5 --err 2>&1 | tail -10 && echo --- timestamps --- && stat -c '%y %n' /root/.pm2/logs/justplanner-api-error.log\")",
+      "Bash(ssh root@5.35.94.142 \"pm2 logs justplanner-api --nostream --lines 25 --out 2>&1 | tail -30\")",
+      "Bash(ssh root@5.35.94.142 \"tail -5 /root/.pm2/logs/justplanner-api-error.log; echo; date\")"
+    ]
+  }
+}

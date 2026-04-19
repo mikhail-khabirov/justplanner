@@ -1,5 +1,5 @@
-import React from 'react';
-import { ArrowRight, CheckCircle, Calendar, Clock, Layout, Zap, Smartphone, ChevronRight, Check } from 'lucide-react';
+import React, { useState } from 'react';
+import { ArrowRight, CheckCircle, Calendar, Clock, Layout, Zap, Smartphone, ChevronRight, Check, Menu, X } from 'lucide-react';
 
 import LandingAnimation from './LandingAnimation'; // Toggle if needed
 
@@ -13,8 +13,18 @@ interface LandingPageProps {
 }
 
 const LandingPage: React.FC<LandingPageProps> = ({ onStart, onLogin, onShowTerms, onShowPrivacy, onShowPricing, onShowFeatures }) => {
+    const [menuOpen, setMenuOpen] = useState(false);
+
+    const handleLogin = () => {
+        (window as any).ym?.(106590123, 'reachGoal', 'btn_login_click');
+        setMenuOpen(false);
+        onLogin();
+    };
+    const handleFeatures = () => { setMenuOpen(false); onShowFeatures(); };
+    const handlePricing = () => { setMenuOpen(false); onShowPricing(); };
+
     return (
-        <div className="min-h-screen bg-white font-sans text-gray-900">
+        <div className="min-h-screen bg-white font-sans text-gray-900 overflow-x-hidden">
             {/* Header / Nav */}
             <nav className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-100">
                 <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
@@ -22,47 +32,68 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart, onLogin, onShowTerms
                         <div className="w-8 h-8 bg-[#26A69A] rounded-lg flex items-center justify-center text-white shadow-sm shrink-0">
                             <Check size={20} strokeWidth={3} />
                         </div>
-                        <span className="text-lg sm:text-xl font-bold tracking-tight truncate flex items-center gap-1.5">
+                        <span className="text-lg sm:text-xl font-bold tracking-tight truncate">
                             JustPlanner
-                            <span className="text-[0.65rem] leading-none px-1.5 py-0.5 rounded bg-gray-100 text-gray-500 font-bold uppercase tracking-wide border border-gray-200">Beta</span>
                         </span>
                     </div>
-                    <div className="flex items-center gap-3 sm:gap-6 shrink-0">
+
+                    {/* Desktop nav */}
+                    <div className="hidden sm:flex items-center gap-6 shrink-0">
                         <button
-                            onClick={onShowFeatures}
-                            className="hidden sm:block text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors"
+                            onClick={handleFeatures}
+                            className="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors"
                         >
                             Функции
                         </button>
                         <button
-                            onClick={onShowPricing}
-                            className="hidden sm:block text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors"
+                            onClick={handlePricing}
+                            className="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors"
                         >
                             Тарифы
                         </button>
                         <button
-                            onClick={onShowFeatures}
-                            className="sm:hidden text-xs font-medium text-gray-600"
-                        >
-                            Функции
-                        </button>
-                        <button
-                            onClick={onShowPricing}
-                            className="sm:hidden text-xs font-medium text-gray-600"
-                        >
-                            Тарифы
-                        </button>
-                        <button
-                            onClick={() => {
-                                (window as any).ym?.(106590123, 'reachGoal', 'btn_login_click');
-                                onLogin();
-                            }}
-                            className="text-xs sm:text-sm font-medium text-white bg-gray-900 hover:bg-gray-800 px-3 py-1.5 sm:px-4 sm:py-2 rounded-lg transition-colors"
+                            onClick={handleLogin}
+                            className="text-sm font-medium text-white bg-gray-900 hover:bg-gray-800 px-4 py-2 rounded-lg transition-colors"
                         >
                             Войти
                         </button>
                     </div>
+
+                    {/* Mobile burger */}
+                    <button
+                        onClick={() => setMenuOpen(v => !v)}
+                        aria-label="Меню"
+                        className="sm:hidden p-2 -mr-2 text-gray-700 hover:text-gray-900"
+                    >
+                        {menuOpen ? <X size={24} /> : <Menu size={24} />}
+                    </button>
                 </div>
+
+                {/* Mobile dropdown */}
+                {menuOpen && (
+                    <div className="sm:hidden border-t border-gray-100 bg-white/95 backdrop-blur-md">
+                        <div className="px-4 py-3 flex flex-col gap-1">
+                            <button
+                                onClick={handleFeatures}
+                                className="text-left px-3 py-3 text-base font-medium text-gray-700 hover:bg-gray-50 rounded-lg"
+                            >
+                                Функции
+                            </button>
+                            <button
+                                onClick={handlePricing}
+                                className="text-left px-3 py-3 text-base font-medium text-gray-700 hover:bg-gray-50 rounded-lg"
+                            >
+                                Тарифы
+                            </button>
+                            <button
+                                onClick={handleLogin}
+                                className="mt-2 px-4 py-3 text-base font-medium text-white bg-gray-900 hover:bg-gray-800 rounded-lg"
+                            >
+                                Войти
+                            </button>
+                        </div>
+                    </div>
+                )}
             </nav>
 
             {/* Hero Section */}
@@ -266,9 +297,6 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart, onLogin, onShowTerms
                     </div>
                 </div>
 
-                <p className="text-xs text-gray-500 mt-2">
-                    Самозанятый Федоров М.В. ИНН 370202964392
-                </p>
             </footer>
         </div>
     );

@@ -40,9 +40,6 @@ jobs:
             --exclude 'dist' \
             --exclude '.env' \
             --exclude 'github_actions_key*' \
-            --exclude 'dashboard/google-credentials.json' \
-            --exclude 'dashboard/.env' \
-            --exclude 'dashboard/dashboard.log' \
             -e "ssh -o StrictHostKeyChecking=no" \
             ./ ${USER}@${HOST}:/var/www/justplanner/
 

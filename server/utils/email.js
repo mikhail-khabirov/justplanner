@@ -240,6 +240,74 @@ export const sendAnnualOfferReminder = async (email) => {
     return sendEmail(email, '⏰ Осталось 5 часов — скидка 50% сгорает!', html, text);
 };
 
+export const sendRebindCardEmail = async (email) => {
+    const subject = 'Важно: подтверди карту, чтобы Pro продолжил работать';
+    const text = `Привет!
+
+Мы перешли на нового платёжного провайдера. Чтобы твоя Pro-подписка продолжила автоматически продлеваться — нужно один раз заново привязать карту.
+
+Что делать:
+1. Открой https://justplanner.ru/app
+2. Зайди в Настройки → Подписка
+3. Нажми "Привязать карту" — спишется и сразу вернётся 1 ₽
+
+Если не сделаешь — Pro будет работать до конца текущего оплаченного периода, потом автоматически переключится на бесплатный план.
+
+Все твои задачи и данные на месте, ничего не пропадёт.
+
+Спасибо!
+Команда JustPlanner`;
+
+    const html = `
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#f0f4f8;padding:32px 16px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif">
+<tr><td align="center">
+<table role="presentation" width="600" cellpadding="0" cellspacing="0" style="background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.08)">
+<tr><td style="background:linear-gradient(135deg,#1a9688 0%,#26A69A 100%);padding:36px 40px;text-align:center">
+<div style="font-size:24px;font-weight:700;color:#fff">📋 JustPlanner</div>
+<div style="margin-top:12px;font-size:18px;font-weight:600;color:#fff">Подтверди карту, чтобы Pro продолжил работать</div>
+</td></tr>
+<tr><td style="padding:32px 40px 0">
+<p style="margin:0;font-size:16px;color:#334155;line-height:1.6">Привет!</p>
+<p style="margin:12px 0 0;font-size:16px;color:#334155;line-height:1.6">Мы перешли на нового платёжного провайдера. Чтобы твоя <strong>Pro-подписка</strong> продолжила автоматически продлеваться — нужно один раз заново привязать карту.</p>
+</td></tr>
+<tr><td style="padding:24px 40px 0">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#fef3c7;border:1px solid #fde68a;border-radius:12px">
+<tr><td style="padding:18px 22px;font-size:14px;color:#92400e;line-height:1.6">
+⚠️ <strong>Если не привязать</strong> — Pro будет работать до конца текущего оплаченного периода, затем автоматически переключится на бесплатный план.
+</td></tr></table>
+</td></tr>
+<tr><td style="padding:28px 40px 0">
+<div style="font-size:16px;font-weight:700;color:#0f172a;margin-bottom:14px">Как это сделать (1 минута)</div>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+<tr><td style="padding:8px 0"><table role="presentation" cellpadding="0" cellspacing="0"><tr>
+<td style="vertical-align:top;padding-right:14px"><div style="width:26px;height:26px;border-radius:50%;background:#26A69A;color:white;font-size:13px;font-weight:700;text-align:center;line-height:26px">1</div></td>
+<td style="font-size:15px;color:#334155;line-height:1.5;padding-top:3px">Открой <a href="https://justplanner.ru/app" style="color:#26A69A;font-weight:600">justplanner.ru/app</a></td>
+</tr></table></td></tr>
+<tr><td style="padding:8px 0"><table role="presentation" cellpadding="0" cellspacing="0"><tr>
+<td style="vertical-align:top;padding-right:14px"><div style="width:26px;height:26px;border-radius:50%;background:#26A69A;color:white;font-size:13px;font-weight:700;text-align:center;line-height:26px">2</div></td>
+<td style="font-size:15px;color:#334155;line-height:1.5;padding-top:3px">Зайди в <strong>Настройки → Подписка</strong></td>
+</tr></table></td></tr>
+<tr><td style="padding:8px 0"><table role="presentation" cellpadding="0" cellspacing="0"><tr>
+<td style="vertical-align:top;padding-right:14px"><div style="width:26px;height:26px;border-radius:50%;background:#26A69A;color:white;font-size:13px;font-weight:700;text-align:center;line-height:26px">3</div></td>
+<td style="font-size:15px;color:#334155;line-height:1.5;padding-top:3px">Нажми <strong>"Привязать карту"</strong> — спишется и сразу вернётся 1 ₽</td>
+</tr></table></td></tr>
+</table>
+</td></tr>
+<tr><td style="padding:28px 40px;text-align:center">
+<a href="https://justplanner.ru/app" style="display:inline-block;background:#26A69A;color:#fff;font-size:16px;font-weight:600;padding:14px 40px;border-radius:10px;text-decoration:none">Перейти и привязать карту</a>
+</td></tr>
+<tr><td style="padding:0 40px 32px;text-align:center">
+<div style="border-top:1px solid #e2e8f0;padding-top:18px">
+<p style="margin:0;font-size:13px;color:#64748b;line-height:1.5">Все твои задачи и данные на месте, ничего не пропадёт.</p>
+<p style="margin:10px 0 0;font-size:13px;color:#94a3b8">Команда JustPlanner</p>
+</div>
+</td></tr>
+</table>
+</td></tr></table>`;
+
+    return sendEmail(email, subject, html, text);
+};
+
 export const sendPasswordResetEmail = async (email, link) => {
     const text = `
 Привет!

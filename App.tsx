@@ -1363,8 +1363,10 @@ const App: React.FC = () => {
               </div>
             </div>
 
-            {/* Efficiency Stats Widget */}
-            <StatsDisplay stats={stats} />
+            {/* Efficiency Stats Widget — hidden on narrow screens */}
+            <div className="hidden sm:block">
+              <StatsDisplay stats={stats} />
+            </div>
 
           </div>
 

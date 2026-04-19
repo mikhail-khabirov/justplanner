@@ -2,7 +2,7 @@ import express from 'express';
 import { User } from '../models/User.js';
 import { generateToken } from '../middleware/auth.js';
 import passport from 'passport';
-import { addContactToUnisender } from '../utils/unisender.js';
+import { sendWelcomeEmail } from '../utils/email.js';
 
 const router = express.Router();
 
@@ -71,9 +71,7 @@ router.post('/verify', async (req, res) => {
         // Verify User
         await User.verifyEmail(email);
 
-        // Welcome email disabled - handled by Unisender
-
-        addContactToUnisender(email).catch(console.error);
+        sendWelcomeEmail(email).catch(err => console.error('Welcome email failed:', err.message));
 
         // Login user
         await User.updateLastLogin(user.id);

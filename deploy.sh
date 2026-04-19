@@ -17,7 +17,6 @@ rsync -avz --delete \
   --exclude 'dist' \
   --exclude '.env' \
   --exclude 'google-credentials.json' \
-  --exclude 'dashboard/google-credentials.json' \
   -e ssh \
   /Users/maximfedorov/dev/justplanner/ \
   $SERVER:$REMOTE_PATH/
