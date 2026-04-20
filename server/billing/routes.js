@@ -2,6 +2,7 @@ import express from 'express';
 import pool from '../config/db.js';
 import { authenticateToken } from '../middleware/auth.js';
 import { createTrialPayment, getPaymentStatus, createCardBindingPayment, createAnnualPayment, createAnnualFullPayment, refundPayment } from './yookassa.js';
+import { sendAdminPaymentNotification } from '../utils/email.js';
 
 const router = express.Router();
 
@@ -427,6 +428,12 @@ router.post('/webhook', async (req, res) => {
                 }
 
                 console.log(`🆓 Trial activated for user ${userId} until ${periodEnd}`);
+
+const trialUserResult = await pool.query('SELECT email FROM users WHERE id = $1', [userId]);
+if (trialUserResult.rows[0]) {
+    sendAdminPaymentNotification(trialUserResult.rows[0].email, '1', 'trial').catch(console.error);
+}
+
             } else if (paymentType === 'annual' || paymentType === 'annual_full' || paymentType === 'annual_recurring') {
                 // Annual: Pro for 365 days, with auto-renew
                 const periodEnd = new Date();
@@ -464,6 +471,14 @@ router.post('/webhook', async (req, res) => {
                     ? 'Автопродление годовой'
                     : (paymentType === 'annual_full' ? 'Годовая подписка Pro (полная цена)' : 'Годовая подписка Pro');
                 console.log(`📅 ${label} activated for user ${userId} until ${periodEnd}`);
+
+
+const annualUserResult = await pool.query('SELECT email FROM users WHERE id = $1', [userId]);
+if (annualUserResult.rows[0]) {
+    const annualAmount = paymentType === 'annual_full' ? '2870' : (paymentType === 'annual_recurring' ? payment.amount.value : '1794');
+    sendAdminPaymentNotification(annualUserResult.rows[0].email, annualAmount, paymentType).catch(console.error);
+}
+
             } else {
                 // Regular/recurring payment: Pro for 30 days
                 const periodEnd = new Date();
@@ -496,6 +511,10 @@ router.post('/webhook', async (req, res) => {
                 }
 
                 console.log(`✅ Premium activated for user ${userId} until ${periodEnd}`);
+const monthlyUserResult = await pool.query('SELECT email FROM users WHERE id = $1', [userId]);
+if (monthlyUserResult.rows[0]) {
+    sendAdminPaymentNotification(monthlyUserResult.rows[0].email, payment.amount.value, 'recurring_payment').catch(console.error);
+}
             }
         }
         else if (event.event === 'payment.canceled') {

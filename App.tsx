@@ -1417,6 +1417,43 @@ const App: React.FC = () => {
               </button>
             )}
 
+{/* PDF Download - Pro only */}
+{isAuthenticated && (
+  <button
+    onClick={() => {
+      if (!isPremium) {
+        showUpgradePromptWithReason('print');
+        return;
+      }
+      const endOfWeek = new Date(startDate);
+      endOfWeek.setDate(startDate.getDate() + 6);
+      const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      const startDay = startDate.getDate();
+      const endDay = endOfWeek.getDate();
+      const month = months[startDate.getMonth()];
+      const filename = `${startDay}-${endDay} ${month} JustPlanner.pdf`;
+
+      const element = document.querySelector('.week-grid') as HTMLElement
+        || document.querySelector('main') as HTMLElement
+        || document.getElementById('root') as HTMLElement;
+
+      const opt = {
+        margin: [10, 5, 10, 5],
+        filename,
+        image: { type: 'jpeg', quality: 0.95 },
+        html2canvas: { scale: 1.5, useCORS: true, logging: false },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' }
+      };
+
+      (window as any).html2pdf().set(opt).from(element).save();
+    }}
+    className="p-2 rounded-full bg-gray-50 text-gray-600 hover:bg-gray-100 transition-colors"
+    title="Скачать PDF"
+  >
+    <FileDown size={20} />
+  </button>
+)}
+
             {/* Divider only on desktop */}
             <div className="hidden lg:block h-8 w-[1px] bg-gray-200 mx-1"></div>
 

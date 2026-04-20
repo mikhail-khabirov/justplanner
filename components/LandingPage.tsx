@@ -284,6 +284,10 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart, onLogin, onShowTerms
                     <a href="mailto:support@justplanner.ru" className="hover:text-gray-900 transition-colors">
                         support@justplanner.ru
                     </a>
+<p className="text-gray-400 text-xs">
+    ИП Хабиров М.Р. &nbsp;·&nbsp; ИНН 032810801523 &nbsp;·&nbsp; ОГРНИП 321028000152179
+</p>
+
                     <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-4">
                         <button onClick={onShowPricing} className="hover:text-gray-900 transition-colors underline decoration-gray-300 underline-offset-4">
                             Тарифы

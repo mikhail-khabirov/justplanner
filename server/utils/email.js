@@ -335,3 +335,26 @@ ${link}
 
     await sendEmail(email, 'Сброс пароля JustPlanner', text, html);
 };
+
+export const sendAdminPaymentNotification = async (userEmail, amount, planType) => {
+    const planLabels = {
+        trial: 'Пробный период (7 дней) — 1 ₽',
+        annual: 'Годовая подписка Pro — 1794 ₽',
+        annual_full: 'Годовая подписка Pro (полная цена) — 2870 ₽',
+        annual_recurring: 'Автопродление годовой подписки',
+        recurring_payment: 'Ежемесячная подписка Pro — 299 ₽'
+    };
+    const label = planLabels[planType] || `Оплата (${planType})`;
+    const html = `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+            <h2 style="color: #26A69A;">💰 Новая оплата JustPlanner</h2>
+            <table style="width: 100%; border-collapse: collapse;">
+                <tr><td style="padding: 8px; color: #666;">Пользователь:</td><td style="padding: 8px;"><b>${userEmail}</b></td></tr>
+                <tr><td style="padding: 8px; color: #666;">Тариф:</td><td style="padding: 8px;"><b>${label}</b></td></tr>
+                <tr><td style="padding: 8px; color: #666;">Сумма:</td><td style="padding: 8px;"><b>${amount} ₽</b></td></tr>
+                <tr><td style="padding: 8px; color: #666;">Время:</td><td style="padding: 8px;">${new Date().toLocaleString('ru-RU', { timeZone: 'Europe/Moscow' })}</td></tr>
+            </table>
+        </div>
+    `;
+    return sendEmail('linguageek.ru@yandex.ru', `💰 Оплата JustPlanner: ${userEmail}`, html, `Новая оплата от ${userEmail}: ${label}, ${amount} ₽`);
+};

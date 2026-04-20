@@ -36,7 +36,6 @@ if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
                 return done(new Error('Email not provided by Google'));
             }
 
-            // Extract UTM params from cookies
             const utmSource = req.cookies?.utm_source || null;
             const utmCampaign = req.cookies?.utm_campaign || null;
 
@@ -60,23 +59,19 @@ app.use(passport.initialize());
 app.use('/api/auth', authRoutes);
 app.use('/api/tasks', tasksRoutes);
 
-// Admin routes - import dynamically to avoid issues if file doesn't exist
 import adminRoutes from './routes/admin.js';
 app.use('/api/admin', adminRoutes);
 
-// Settings routes
 import settingsRoutes from './routes/settings.js';
 app.use('/api/settings', settingsRoutes);
 
-// Billing routes
 import billingRoutes from './billing/routes.js';
 app.use('/api/billing', billingRoutes);
 
-// Subscription renewal cron job
 import cron from 'node-cron';
 import { processRenewals } from './billing/renewal.js';
 
-// Health check (deep — verifies DB, email config)
+// Health check
 app.get('/api/health', async (req, res) => {
     const checks = { server: 'ok', database: 'fail', email: 'fail' };
     try {
@@ -89,10 +84,8 @@ app.get('/api/health', async (req, res) => {
     res.status(allOk ? 200 : 503).json({ status: allOk ? 'ok' : 'degraded', checks, timestamp: new Date().toISOString() });
 });
 
-// Admin: force renewal (for testing)
 import { authenticateToken } from './middleware/auth.js';
 app.post('/api/billing/force-renewal', authenticateToken, async (req, res) => {
-    // Simple admin check — you may want to enhance this
     const { default: poolDb } = await import('./config/db.js');
     const userResult = await poolDb.query('SELECT plan FROM users WHERE id = $1', [req.user.id]);
     if (userResult.rows.length === 0) {
@@ -106,50 +99,48 @@ app.post('/api/billing/force-renewal', authenticateToken, async (req, res) => {
     }
 });
 
-// Auto-migration helper
 async function updateSchema() {
     try {
         const { default: pool } = await import('./config/db.js');
         await pool.query(`
-            ALTER TABLE users 
+            ALTER TABLE users
             ADD COLUMN IF NOT EXISTS registration_source VARCHAR(255),
             ADD COLUMN IF NOT EXISTS registration_campaign VARCHAR(255);
         `);
-        // Add renewal tracking columns for recurring payments
         await pool.query(`
-            ALTER TABLE subscriptions 
+            ALTER TABLE subscriptions
             ADD COLUMN IF NOT EXISTS renewal_retries INTEGER DEFAULT 0;
         `);
         await pool.query(`
-            ALTER TABLE subscriptions 
+            ALTER TABLE subscriptions
             ADD COLUMN IF NOT EXISTS last_renewal_attempt TIMESTAMP;
         `);
         await pool.query(`
-            ALTER TABLE subscriptions 
+            ALTER TABLE subscriptions
             ADD COLUMN IF NOT EXISTS payment_method_title VARCHAR(255);
         `);
         await pool.query(`
-            ALTER TABLE subscriptions 
+            ALTER TABLE subscriptions
             ADD COLUMN IF NOT EXISTS is_trial BOOLEAN DEFAULT FALSE;
         `);
         await pool.query(`
-            ALTER TABLE subscriptions 
+            ALTER TABLE subscriptions
             ADD COLUMN IF NOT EXISTS is_annual BOOLEAN DEFAULT FALSE;
         `);
         await pool.query(`
-            ALTER TABLE users 
+            ALTER TABLE users
             ADD COLUMN IF NOT EXISTS annual_offer_reminder_sent BOOLEAN DEFAULT FALSE;
         `);
         await pool.query(`
-            ALTER TABLE users 
+            ALTER TABLE users
             ADD COLUMN IF NOT EXISTS no_task_reminder_sent BOOLEAN DEFAULT FALSE;
         `);
         await pool.query(`
-            ALTER TABLE users 
+            ALTER TABLE users
             ADD COLUMN IF NOT EXISTS inactivity_reminder_sent BOOLEAN DEFAULT FALSE;
         `);
         await pool.query(`
-            ALTER TABLE users 
+            ALTER TABLE users
             ADD COLUMN IF NOT EXISTS notification_survey_shown BOOLEAN DEFAULT FALSE;
         `);
         await pool.query(`
@@ -161,7 +152,6 @@ async function updateSchema() {
                 created_at TIMESTAMP DEFAULT NOW()
             )
         `);
-        // Telegram user bot: link token + chat ID
         await pool.query(`
             ALTER TABLE users
             ADD COLUMN IF NOT EXISTS telegram_chat_id VARCHAR(50),
@@ -169,13 +159,11 @@ async function updateSchema() {
             ADD COLUMN IF NOT EXISTS telegram_link_token_created TIMESTAMP,
             ADD COLUMN IF NOT EXISTS telegram_linked_at TIMESTAMP;
         `);
-        // Task reminders
         await pool.query(`
             ALTER TABLE tasks
             ADD COLUMN IF NOT EXISTS reminder_offset VARCHAR(20),
             ADD COLUMN IF NOT EXISTS reminder_sent BOOLEAN DEFAULT FALSE;
         `);
-        // Grandfathered pricing for recurring renewals
         await pool.query(`
             ALTER TABLE users
             ADD COLUMN IF NOT EXISTS monthly_price INTEGER DEFAULT 299;
@@ -187,18 +175,16 @@ async function updateSchema() {
     }
 }
 
-// Start server
 app.listen(PORT, async () => {
     await updateSchema();
 
     console.log(`🚀 Server running on http://localhost:${PORT}`);
 
     if (process.env.STANDBY_MODE === 'true') {
-        console.log('🛑 STANDBY_MODE=true: crons, Telegram bot polling, and background tasks are DISABLED. HTTP API still serves requests.');
+        console.log('🛑 STANDBY_MODE=true: crons, Telegram bot polling, and background tasks are DISABLED.');
         return;
     }
 
-    // Schedule renewal cron: every day at 3:00 AM (server time)
     if (process.env.DISABLE_RENEWAL_CRON === 'true') {
         console.log('⏸  Renewal cron DISABLED via DISABLE_RENEWAL_CRON env var');
     } else {
@@ -208,7 +194,6 @@ app.listen(PORT, async () => {
         });
     }
 
-    // Cron: Annual offer reminder via SMTP — every 30 min, sends 19-24h after registration to free users
     cron.schedule('*/30 * * * *', async () => {
         try {
             const { default: pool } = await import('./config/db.js');
@@ -232,7 +217,6 @@ app.listen(PORT, async () => {
         }
     });
 
-    // Cron: Task reminders via Telegram (every minute)
     cron.schedule('* * * * *', async () => {
         try {
             const { default: pool } = await import('./config/db.js');
@@ -245,7 +229,7 @@ app.listen(PORT, async () => {
                   AND t.reminder_sent = FALSE
                   AND t.completed = FALSE
                   AND u.telegram_chat_id IS NOT NULL
-                  AND t.column_id ~ '^\\d{4}-\\d{2}-\\d{2}$'
+                  AND t.column_id ~ '^\\\\d{4}-\\\\d{2}-\\\\d{2}$'
                   AND t.hour IS NOT NULL
                   AND (
                     (t.column_id || ' ' || LPAD(t.hour::text, 2, '0') || ':00:00')::timestamp
@@ -270,11 +254,10 @@ app.listen(PORT, async () => {
         }
     });
 
-    // Start user-facing Telegram bot polling
     startUserBotPolling();
 
     console.log('📅 Subscription renewal cron scheduled: daily at 3:00 AM');
-    console.log('📧 Annual offer reminder cron scheduled: every 30 min (sends 19-24h after registration)');
+    console.log('📧 Annual offer reminder cron scheduled: every 30 min');
     console.log('🔔 Task reminder cron scheduled: every minute');
     console.log('🤖 User Telegram bot: ' + (process.env.TELEGRAM_USER_BOT_TOKEN ? 'enabled' : 'disabled'));
 });

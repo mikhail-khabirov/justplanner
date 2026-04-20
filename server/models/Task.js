@@ -15,6 +15,8 @@ export const Task = {
             color: row.color,
             completed: row.completed,
             subtasks: row.subtasks || [],
+            reminderOffset: row.reminder_offset || null,
+            reminderSent: row.reminder_sent || false,
             recurrence: row.recurrence_type ? {
                 type: row.recurrence_type,
                 interval: row.recurrence_interval || 1,
@@ -26,8 +28,8 @@ export const Task = {
     // Create task
     async create(userId, task) {
         const result = await pool.query(
-            `INSERT INTO tasks (user_id, content, column_id, hour, color, completed, subtasks, recurrence_type, recurrence_interval, recurrence_end_date) 
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) 
+            `INSERT INTO tasks (user_id, content, column_id, hour, color, completed, subtasks, recurrence_type, recurrence_interval, recurrence_end_date, reminder_offset, reminder_sent) 
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) 
        RETURNING *`,
             [
                 userId,
@@ -39,7 +41,9 @@ export const Task = {
                 JSON.stringify(task.subtasks || []),
                 task.recurrence?.type || null,
                 task.recurrence?.interval || 1,
-                task.recurrence?.endDate || null
+                task.recurrence?.endDate || null,
+                task.reminderOffset || null,
+                task.reminderSent || false
             ]
         );
         const row = result.rows[0];
@@ -51,6 +55,8 @@ export const Task = {
             color: row.color,
             completed: row.completed,
             subtasks: row.subtasks || [],
+            reminderOffset: row.reminder_offset || null,
+            reminderSent: row.reminder_sent || false,
             recurrence: row.recurrence_type ? {
                 type: row.recurrence_type,
                 interval: row.recurrence_interval || 1,
@@ -88,6 +94,14 @@ export const Task = {
         if (updates.subtasks !== undefined) {
             fields.push(`subtasks = $${paramIndex++}`);
             values.push(JSON.stringify(updates.subtasks));
+        }
+        if (updates.reminderOffset !== undefined) {
+            fields.push(`reminder_offset = $${paramIndex++}`);
+            values.push(updates.reminderOffset || null);
+        }
+        if (updates.reminderSent !== undefined) {
+            fields.push(`reminder_sent = $${paramIndex++}`);
+            values.push(updates.reminderSent);
         }
         if (updates.recurrence !== undefined) {
             if (updates.recurrence === null) {
@@ -128,6 +142,8 @@ export const Task = {
             color: row.color,
             completed: row.completed,
             subtasks: row.subtasks || [],
+            reminderOffset: row.reminder_offset || null,
+            reminderSent: row.reminder_sent || false,
             recurrence: row.recurrence_type ? {
                 type: row.recurrence_type,
                 interval: row.recurrence_interval || 1,
@@ -162,14 +178,12 @@ export const Task = {
         try {
             await client.query('BEGIN');
 
-            // Delete all existing tasks
             await client.query('DELETE FROM tasks WHERE user_id = $1', [userId]);
 
-            // Insert all new tasks
             for (const task of tasks) {
                 await client.query(
-                    `INSERT INTO tasks (user_id, content, column_id, hour, color, completed, subtasks, recurrence_type, recurrence_interval, recurrence_end_date) 
-           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
+                    `INSERT INTO tasks (user_id, content, column_id, hour, color, completed, subtasks, recurrence_type, recurrence_interval, recurrence_end_date, reminder_offset, reminder_sent) 
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`,
                     [
                         userId,
                         task.content,
@@ -180,7 +194,9 @@ export const Task = {
                         JSON.stringify(task.subtasks || []),
                         task.recurrence?.type || null,
                         task.recurrence?.interval || 1,
-                        task.recurrence?.endDate || null
+                        task.recurrence?.endDate || null,
+                        task.reminderOffset || null,
+                        task.reminderSent || false
                     ]
                 );
             }
